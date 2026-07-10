@@ -1,0 +1,34 @@
+---
+description: SAAN ecommerce standards — cart, PDP, premium pricing
+globs: "**/app/**/*,**/components/**/*"
+alwaysApply: false
+---
+
+# Ecommerce Standards
+
+Pricing should feel premium.
+
+Avoid:
+
+- giant discount badges
+- flashy offers
+- red sale labels
+
+## Cart
+
+Use slide-out drawer.
+
+Never redirect user.
+
+Use AnimatePresence.
+
+## Product Pages
+
+Focus on:
+
+- Storytelling
+- Craftsmanship
+- Materials
+- Details
+
+Not aggressive selling.

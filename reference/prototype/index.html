@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>SAAN - Atmospheric Couture</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&amp;family=Lato:wght@300;400;700&amp;family=Great+Vibes&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <link href="css/custom.css" rel="stylesheet"/>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#b82e24",
+            "background-light": "#fcfaf8",
+            "background-dark": "#1a1614",
+            secondary: "#d4af37",
+            "text-light": "#332d2b",
+            "text-dark": "#e8e6e3",
+          },
+          fontFamily: {
+            display: ["Playfair Display", "serif"],
+            body: ["Lato", "sans-serif"],
+            script: ["Great Vibes", "cursive"],
+          },
+          borderRadius: {
+            DEFAULT: "0.25rem",
+          },
+          spacing: {
+            '128': '32rem',
+          },
+          animation: {
+            'marquee': 'marquee 40s linear infinite',
+            'marquee-fast': 'marquee 30s linear infinite',
+          },
+          keyframes: {
+            marquee: {
+              '0%': { transform: 'translateX(0%)' },
+              '100%': { transform: 'translateX(-50%)' },
+            }
+          }
+        },
+      },
+    };
+  </script>
+</head>
+<body class="text-text-light dark:text-text-dark transition-colors duration-300">
+
+<canvas id="glcanvas"></canvas>
+
+<!-- Marquee Announcement Bar -->
+<div class="bg-[#2a2422]/90 backdrop-blur-sm text-[#f4ece3] py-2 marquee-container text-xs tracking-[0.2em] uppercase font-light border-b border-[#3a3432] relative z-50">
+  <div class="marquee-content animate-marquee">
+    <span class="mx-8">COMPLIMENTARY SHIPPING ACROSS INDIA</span>
+    <span class="mx-8 opacity-50">·</span>
+    <span class="mx-8">EK SUNHERI DOPAHAR · NOW LIVE</span>
+    <span class="mx-8 opacity-50">·</span>
+    <span class="mx-8">MADE-TO-MEASURE AVAILABLE</span>
+    <span class="mx-8 opacity-50">·</span>
+    <span class="mx-8">VISIT OUR BANDRA ATELIER · BY APPOINTMENT</span>
+    <span class="mx-8 opacity-50">·</span>
+    <span class="mx-8">RESORT 2026 · SHELLS COMING SOON</span>
+    <span class="mx-8 opacity-50">·</span>
+    <span class="mx-8">COMPLIMENTARY SHIPPING ACROSS INDIA</span>
+    <span class="mx-8 opacity-50">·</span>
+    <span class="mx-8">EK SUNHERI DOPAHAR · NOW LIVE</span>
+    <span class="mx-8 opacity-50">·</span>
+    <span class="mx-8">MADE-TO-MEASURE AVAILABLE</span>
+    <span class="mx-8 opacity-50">·</span>
+    <span class="mx-8">VISIT OUR BANDRA ATELIER · BY APPOINTMENT</span>
+    <span class="mx-8 opacity-50">·</span>
+    <span class="mx-8">RESORT 2026 · SHELLS COMING SOON</span>
+    <span class="mx-8 opacity-50">·</span>
+  </div>
+</div>
+
+<header class="w-full z-40 bg-background-light/70 dark:bg-background-dark/70 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-800/50 transition-colors duration-300 sticky top-0">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-20">
+      <div class="flex-shrink-0 flex items-center">
+        <a class="block h-12 w-32 relative" href="#">
+          <img alt="SAAN" class="w-full h-full object-contain filter brightness-0 dark:invert" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjPXk_P_f2H3IaLAgb8EeVjUQQQRSB-zwZFInKOkdanT1bpMP9gf6vEVmqJU3twbg62TlUeSsYlqfG9Czb-1bcKtESRjN7A67EpECgNeUKnfKGn6qwsOhnBC0xmoE6xrqcEcd4BrKsACED9G2sU0G6w9yMX9npPr57TI4cTnnpNyqabTm7dVzpMxPkcOYh_qniyq-kMZb7EEnMj9jnxOVHJiY0h6eiuS5ZwuxmdQpMkQr3pv-LaUpMoMC3GrKRG9Mojr5LpZteYGrb"/>
+        </a>
+      </div>
+      <nav class="hidden md:flex space-x-8">
+        <a class="text-sm uppercase tracking-wider text-text-light dark:text-text-dark hover:text-primary dark:hover:text-primary transition-colors" href="#">Collections</a>
+        <a class="text-sm uppercase tracking-wider text-text-light dark:text-text-dark hover:text-primary dark:hover:text-primary transition-colors" href="#">New Arrivals</a>
+        <a class="text-sm uppercase tracking-wider text-text-light dark:text-text-dark hover:text-primary dark:hover:text-primary transition-colors" href="#">Best Sellers</a>
+        <a class="text-sm uppercase tracking-wider text-text-light dark:text-text-dark hover:text-primary dark:hover:text-primary transition-colors" href="#">About Us</a>
+      </nav>
+      <div class="flex items-center space-x-4">
+        <button class="text-text-light dark:text-text-dark hover:text-primary transition-colors" type="button" aria-label="Search">
+          <span class="material-icons">search</span>
+        </button>
+        <button class="text-text-light dark:text-text-dark hover:text-primary transition-colors" type="button" aria-label="Account">
+          <span class="material-icons">person_outline</span>
+        </button>
+        <button class="text-text-light dark:text-text-dark hover:text-primary transition-colors" type="button" aria-label="Shopping bag">
+          <span class="material-icons">shopping_bag</span>
+        </button>
+        <button class="md:hidden text-text-light dark:text-text-dark" type="button" aria-label="Menu">
+          <span class="material-icons">menu</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="relative h-[calc(100vh-80px)] flex items-center justify-center overflow-hidden">
+    <div class="absolute inset-0 z-0">
+      <img alt="Elegant SAAN fashion hero" class="w-full h-full object-cover object-center" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZ3T4FlcuEXuzIg31QvDCCN8VEKg2ugfXZxa37edfb2dQ6pG4J_pYenRmztPVoXKe0fEbiZblswEs6MfiQyXgXvzup3dUC4A3n-j4JyeWZLQXhvRA9kGhTx_OOQ7PDmC-g7GggHt1_2A1fnhNaSYtFlFFqxaM8U2Lr8ju_G7VM3DB6bh0zVKsaPH33O6-AHAcP48HijWas5lszvJ9XDZjbSg2lT9YjJpL5ToLgFgcHUc2HNNY832UIcq8IicF9ubHqrpUk6dqz7D8n"/>
+      <div class="absolute inset-0 bg-black/30 dark:bg-black/50"></div>
+    </div>
+    <div class="relative z-10 text-center px-4 max-w-4xl mx-auto gs-reveal">
+      <h1 class="font-display text-5xl md:text-7xl lg:text-8xl text-white mb-6 leading-tight drop-shadow-lg">Motion Heritage <br/><span class="italic font-light">Luxe</span></h1>
+      <p class="text-lg md:text-xl text-gray-200 mb-10 font-light tracking-wide drop-shadow-md">Discover the intersection of timeless tradition and contemporary elegance.</p>
+      <a class="inline-block bg-primary/90 backdrop-blur-sm text-white px-10 py-4 text-sm uppercase tracking-widest hover:bg-red-800 transition-colors duration-300" href="#">Explore Collection</a>
+    </div>
+  </section>
+
+  <!-- Category Cards Grid -->
+  <section class="w-full py-12 md:py-24 bg-transparent relative z-10">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8">
+        <a class="group block relative overflow-hidden h-[60vh] lg:h-[80vh] border border-transparent hover:border-secondary transition-colors duration-500 card-parallax-container" href="#">
+          <img alt="Bridal Exclusive" class="w-full h-[120%] -top-[10%] relative object-cover parallax-img" src="https://lh3.googleusercontent.com/aida/AP1WRLutlq9B7jbK8xaOM1Y6KXsC5yqI0VjsPXA6qrv6XuHRYaivjzopOb5Geofd8VR60viZRVujkP_dT3fQ9Bct_J2A9AgoRu5BfdablfKEafZWYWicegtuUJXLB6_GJIdF_rdP_yMFuBjxSncQ2bEHHzdRdyrXvX1jd7m4-P1wNWc75nWL6mC-pgsd8t5CHV7x7wf3cWYkO0UpW2rg0Vv2q0E_uLqSy8VrRMkKi4AdsFTT748GxCPbOkc0x6_p"/>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover:from-black/60 transition-colors duration-500"></div>
+          <div class="absolute inset-0 flex flex-col justify-end p-8 overflow-hidden">
+            <h3 class="text-white font-display text-4xl md:text-5xl tracking-wider drop-shadow-md transform translate-y-8 group-hover:translate-y-0 transition-transform duration-500 ease-out">BRIDAL EXCLUSIVE</h3>
+            <p class="text-white/80 mt-2 text-sm tracking-widest uppercase transform translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 delay-100 ease-out">Explore the Collection</p>
+          </div>
+        </a>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-8">
+          <a class="group block relative overflow-hidden h-[40vh] sm:h-[calc(40vh-1rem)] lg:h-[calc(40vh-1rem)] border border-transparent hover:border-secondary transition-colors duration-500 card-parallax-container" href="#">
+            <img alt="Sets" class="w-full h-[120%] -top-[10%] relative object-cover parallax-img" src="https://lh3.googleusercontent.com/aida/AP1WRLvTwGGOeFz9ygHnUIU9uYOJkKQ_u2JwQqLfGMG4BNr9Hb-4rDzgAgJ3C3rSjFjIBIwk7jxLtfVO9kXgYbqAdIoKC0Ui4NQZ3zoebrXZI-pjbc00ljEgtWlzaE3jDXf0Z0a_BvNK7zsI0NThEE90AL15JwoI7KoTYmnmj84Ql5GXCITVvYw0Pkha6JFgpiSBTytl-j8JsIzL5Kk_bWCLHoICuPjv28-FYxRHvFUYucXaBvDeHYINst-sBEk"/>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover:from-black/60 transition-colors duration-500"></div>
+            <div class="absolute inset-0 flex flex-col justify-end p-6 overflow-hidden">
+              <h3 class="text-white font-display text-2xl md:text-3xl tracking-wider drop-shadow-md transform translate-y-6 group-hover:translate-y-0 transition-transform duration-500 ease-out">SETS</h3>
+            </div>
+          </a>
+          <a class="group block relative overflow-hidden h-[40vh] sm:h-[calc(40vh-1rem)] lg:h-[calc(40vh-1rem)] border border-transparent hover:border-secondary transition-colors duration-500 card-parallax-container" href="#">
+            <img alt="Suit Sets" class="w-full h-[120%] -top-[10%] relative object-cover parallax-img" src="https://lh3.googleusercontent.com/aida/AP1WRLtpL7cJJWpwBvYshT4vae7Z-ey6HYZq7ALcwE6niKkTx6jIZMSzKOVkPA8eFD_fWaAIOnZ4n9ScoKX1KXBkVPaYsPmLtLt4f3oMjK4ScWiQi88Bhqi_kjTvhzFGqoyRVgklEyxMfnW77v_7XEKZkxmLSHP0TPGQL7K2-Dj9Cmhr8-Z_9Sis9yAjO_gFr-osKvzgyQBvVwAxHscohl_lH_uL-sC4UaeMmDDDQJNxKxu2W4pf5FPSNFxVh0CY"/>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover:from-black/60 transition-colors duration-500"></div>
+            <div class="absolute inset-0 flex flex-col justify-end p-6 overflow-hidden">
+              <h3 class="text-white font-display text-2xl md:text-3xl tracking-wider drop-shadow-md transform translate-y-6 group-hover:translate-y-0 transition-transform duration-500 ease-out">SUIT SETS</h3>
+            </div>
+          </a>
+          <a class="group block relative overflow-hidden h-[40vh] sm:h-[calc(40vh-1rem)] lg:h-[calc(40vh-1rem)] border border-transparent hover:border-secondary transition-colors duration-500 card-parallax-container" href="#">
+            <img alt="Kurtas and Kurtis" class="w-full h-[120%] -top-[10%] relative object-cover parallax-img" src="https://lh3.googleusercontent.com/aida/AP1WRLslz93g_x2OyHpOLRKKwTYQb9lgLLd9pzBMD-hz3PaYOcL3pSfhMcjGCzfFvg6TxhmjCgFP3dELKTYkzBTNbrm5pC7IgCobXfq4zIZofgTOY5D8Fz53VlzaI1WkIZNZtkgldXjl82CYB4JLBDzDGXx4LE6W-e2vn4n834EFOAOTDxDpxEVpflDU3vbzH7uyjOju2WsBbPyw8I3Wmuij_lhDCYxMnPe1Lp-16pY9Q9xAGVTdg7xBQGgahGW7"/>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover:from-black/60 transition-colors duration-500"></div>
+            <div class="absolute inset-0 flex flex-col justify-end p-6 overflow-hidden">
+              <h3 class="text-white font-display text-2xl md:text-3xl tracking-wider drop-shadow-md transform translate-y-6 group-hover:translate-y-0 transition-transform duration-500 ease-out">KURTAS &amp; KURTIS</h3>
+            </div>
+          </a>
+          <a class="group block relative overflow-hidden h-[40vh] sm:h-[calc(40vh-1rem)] lg:h-[calc(40vh-1rem)] border border-transparent hover:border-secondary transition-colors duration-500 card-parallax-container" href="#">
+            <img alt="Summer Styles" class="w-full h-[120%] -top-[10%] relative object-cover parallax-img" src="https://lh3.googleusercontent.com/aida/AP1WRLvKYrLQJS0tj5uxvdy2urfImp5EDpxWxOn8t3lZtA5n588Gc9coq3MmMAqP6dTDmbCcwk6UCG-s39YJAq1L-nOSNZih0gw0DALLLgEKMm0tg0dpjamyjQ-FyR0AGElVc3FP5SKmag3XtUw2xyDR3CzBRKlYeWFgaRGp_jLMSQpZ_BY9JNeOSC1ZpBQnUntEPqst7-FQzAtXJy-S65AtPZC6UYdE6L2pJK0UenU3BrjdYVK7Wd3zEQqSvqc"/>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover:from-black/60 transition-colors duration-500"></div>
+            <div class="absolute inset-0 flex flex-col justify-end p-6 overflow-hidden">
+              <h3 class="text-white font-display text-2xl md:text-3xl tracking-wider drop-shadow-md transform translate-y-6 group-hover:translate-y-0 transition-transform duration-500 ease-out">SUMMER STYLES</h3>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- New Arrivals -->
+  <section class="py-24 bg-background-light/40 dark:bg-background-dark/60 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16 gs-reveal">
+        <h2 class="font-display text-3xl md:text-4xl text-text-light dark:text-text-dark mb-4">Latest Additions</h2>
+        <div class="w-16 h-0.5 bg-primary mx-auto mb-4"></div>
+        <p class="text-gray-500 dark:text-gray-400 font-light tracking-wide">Modern couture crafted with heritage techniques.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div class="group cursor-pointer gs-reveal">
+          <div class="relative overflow-hidden aspect-[3/4] mb-6 bg-[#f4ece3] dark:bg-[#2a2422]">
+            <img alt="Zari Embroidered Lehenga" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida/AP1WRLslz93g_x2OyHpOLRKKwTYQb9lgLLd9pzBMD-hz3PaYOcL3pSfhMcjGCzfFvg6TxhmjCgFP3dELKTYkzBTNbrm5pC7IgCobXfq4zIZofgTOY5D8Fz53VlzaI1WkIZNZtkgldXjl82CYB4JLBDzDGXx4LE6W-e2vn4n834EFOAOTDxDpxEVpflDU3vbzH7uyjOju2WsBbPyw8I3Wmuij_lhDCYxMnPe1Lp-16pY9Q9xAGVTdg7xBQGgahGW7"/>
+            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
+            <div class="absolute bottom-0 left-0 w-full p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-white/90 dark:bg-black/90 backdrop-blur-sm flex justify-center">
+              <button class="text-xs uppercase tracking-widest font-medium text-text-light dark:text-text-dark hover:text-primary transition-colors" type="button">Quick View</button>
+            </div>
+          </div>
+          <div class="text-left">
+            <h3 class="font-display text-lg text-text-light dark:text-text-dark mb-1 group-hover:text-primary transition-colors">Zari Embroidered Lehenga</h3>
+            <p class="text-primary font-medium">$1,250.00</p>
+          </div>
+        </div>
+        <div class="group cursor-pointer gs-reveal" style="transition-delay: 100ms;">
+          <div class="relative overflow-hidden aspect-[3/4] mb-6 bg-[#f4ece3] dark:bg-[#2a2422]">
+            <img alt="Silk Chanderi Kurta Set" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida/AP1WRLtpL7cJJWpwBvYshT4vae7Z-ey6HYZq7ALcwE6niKkTx6jIZMSzKOVkPA8eFD_fWaAIOnZ4n9ScoKX1KXBkVPaYsPmLtLt4f3oMjK4ScWiQi88Bhqi_kjTvhzFGqoyRVgklEyxMfnW77v_7XEKZkxmLSHP0TPGQL7K2-Dj9Cmhr8-Z_9Sis9yAjO_gFr-osKvzgyQBvVwAxHscohl_lH_uL-sC4UaeMmDDDQJNxKxu2W4pf5FPSNFxVh0CY"/>
+            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
+            <div class="absolute top-4 right-4 bg-white dark:bg-black px-2 py-1 text-[10px] uppercase tracking-widest z-10">New</div>
+            <div class="absolute bottom-0 left-0 w-full p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-white/90 dark:bg-black/90 backdrop-blur-sm flex justify-center">
+              <button class="text-xs uppercase tracking-widest font-medium text-text-light dark:text-text-dark hover:text-primary transition-colors" type="button">Quick View</button>
+            </div>
+          </div>
+          <div class="text-left">
+            <h3 class="font-display text-lg text-text-light dark:text-text-dark mb-1 group-hover:text-primary transition-colors">Silk Chanderi Kurta Set</h3>
+            <p class="text-primary font-medium">$420.00</p>
+          </div>
+        </div>
+        <div class="group cursor-pointer gs-reveal" style="transition-delay: 200ms;">
+          <div class="relative overflow-hidden aspect-[3/4] mb-6 bg-[#f4ece3] dark:bg-[#2a2422]">
+            <img alt="Velvet Anarkali Suit" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida/AP1WRLvTwGGOeFz9ygHnUIU9uYOJkKQ_u2JwQqLfGMG4BNr9Hb-4rDzgAgJ3C3rSjFjIBIwk7jxLtfVO9kXgYbqAdIoKC0Ui4NQZ3zoebrXZI-pjbc00ljEgtWlzaE3jDXf0Z0a_BvNK7zsI0NThEE90AL15JwoI7KoTYmnmj84Ql5GXCITVvYw0Pkha6JFgpiSBTytl-j8JsIzL5Kk_bWCLHoICuPjv28-FYxRHvFUYucXaBvDeHYINst-sBEk"/>
+            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
+            <div class="absolute bottom-0 left-0 w-full p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-white/90 dark:bg-black/90 backdrop-blur-sm flex justify-center">
+              <button class="text-xs uppercase tracking-widest font-medium text-text-light dark:text-text-dark hover:text-primary transition-colors" type="button">Quick View</button>
+            </div>
+          </div>
+          <div class="text-left">
+            <h3 class="font-display text-lg text-text-light dark:text-text-dark mb-1 group-hover:text-primary transition-colors">Velvet Anarkali Suit</h3>
+            <p class="text-primary font-medium">$680.00</p>
+          </div>
+        </div>
+        <div class="group cursor-pointer gs-reveal" style="transition-delay: 300ms;">
+          <div class="relative overflow-hidden aspect-[3/4] mb-6 bg-[#f4ece3] dark:bg-[#2a2422]">
+            <img alt="Organza Saree with Pearls" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida/AP1WRLvKYrLQJS0tj5uxvdy2urfImp5EDpxWxOn8t3lZtA5n588Gc9coq3MmMAqP6dTDmbCcwk6UCG-s39YJAq1L-nOSNZih0gw0DALLLgEKMm0tg0dpjamyjQ-FyR0AGElVc3FP5SKmag3XtUw2xyDR3CzBRKlYeWFgaRGp_jLMSQpZ_BY9JNeOSC1ZpBQnUntEPqst7-FQzAtXJy-S65AtPZC6UYdE6L2pJK0UenU3BrjdYVK7Wd3zEQqSvqc"/>
+            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
+            <div class="absolute bottom-0 left-0 w-full p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-white/90 dark:bg-black/90 backdrop-blur-sm flex justify-center">
+              <button class="text-xs uppercase tracking-widest font-medium text-text-light dark:text-text-dark hover:text-primary transition-colors" type="button">Quick View</button>
+            </div>
+          </div>
+          <div class="text-left">
+            <h3 class="font-display text-lg text-text-light dark:text-text-dark mb-1 group-hover:text-primary transition-colors">Organza Saree with Pearls</h3>
+            <p class="text-primary font-medium">$550.00</p>
+          </div>
+        </div>
+      </div>
+      <div class="text-center mt-16 gs-reveal">
+        <a class="inline-block border border-text-light dark:border-text-dark text-text-light dark:text-text-dark px-8 py-3 text-sm uppercase tracking-widest hover:bg-text-light hover:text-white dark:hover:bg-text-dark dark:hover:text-black transition-colors duration-300" href="#">Shop All New Arrivals</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Lifestyle Editorial Blocks -->
+  <section class="py-12 md:py-24 bg-transparent relative z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="space-y-16 bg-background-light/40 dark:bg-background-dark/60 backdrop-blur-md p-8 md:p-12 rounded-lg">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center gs-reveal">
+          <div class="order-2 lg:order-1 flex flex-col justify-center text-center lg:text-left px-4 lg:pr-12">
+            <h3 class="text-xs tracking-[0.2em] uppercase text-primary mb-3">Summer Edit</h3>
+            <h2 class="font-display text-4xl md:text-5xl text-text-light dark:text-text-dark mb-6">Women's Summer <br/><span class="italic font-light">Essentials</span></h2>
+            <p class="text-gray-600 dark:text-gray-400 font-light leading-relaxed mb-8">Embrace the warmth with our curated selection of breezy, elegant silhouettes designed for the sun-drenched days ahead. Effortless style meets refined comfort.</p>
+            <div>
+              <a class="inline-block border-b border-text-light dark:border-text-dark text-text-light dark:text-text-dark pb-1 text-sm uppercase tracking-widest hover:text-primary hover:border-primary transition-colors duration-300" href="#">Shop Essentials</a>
+            </div>
+          </div>
+          <div class="order-1 lg:order-2 overflow-hidden shadow-lg">
+            <img alt="Women's Summer Essentials" class="w-full h-auto object-cover hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHSPN01s9mjYK9yweYgW2_FOPfS4lCuM7sXNi6Itmr7J7m3xy8gIqGv7y2aRqYCoFMy1u3UAgqpzlmKNWsqVq5ZAptrbvZCSuetmx1lvc9Gbu_uLNuDecZNPDzP-V0nbj4JZ9ygBIJzI3SZWpEjQ2HWDCPv5h4PT2nCnpyj4VUaQ7Cqamn1hfLzXQCTIZ5sgnB-PshpAYmwZYYLp01lrMehUvyZtr9pM8RxUbPHpX_m31RRCRSufeJRHOplRD8vglty-7hN-JKLTp0"/>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center gs-reveal">
+          <div class="order-1 overflow-hidden shadow-lg">
+            <img alt="Discover Modern Italian Style" class="w-full h-auto object-cover hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcAeGILicJc-qDOibIUGdphY_Ct0g5TCSmuR03oh3VkZY6tiOmUt52c0jaJ4kn_sOvtcSBsYlzTg9Xtdj40-pQ45HhDdeBKpzVejMaViBVxrnUpmM_8sba57IK7cpsiKBmYE9LYWk0S5Cg09IGlF2SHWO10If9lP9tp6nldnTQ-HwuX03dgKWPH9Lo7_V8GwZUJNUYGUMX8b-evEZu1NpFJrNgTw63SQwyGRhrbX3tlTOgyG2OBBH2TtMdpg1z6J8GVLo4JsdwVCIq"/>
+          </div>
+          <div class="order-2 flex flex-col justify-center text-center lg:text-left px-4 lg:pl-12">
+            <h3 class="text-xs tracking-[0.2em] uppercase text-primary mb-3">Curated Selection</h3>
+            <h2 class="font-display text-4xl md:text-5xl text-text-light dark:text-text-dark mb-6">Discover Modern <br/><span class="italic font-light">Italian Style</span></h2>
+            <p class="text-gray-600 dark:text-gray-400 font-light leading-relaxed mb-8">A sophisticated blend of sartorial excellence and modern sensibilities. Explore the new Harmont &amp; Blaine collection, bringing Italian finesse to your everyday wardrobe.</p>
+            <div>
+              <a class="inline-block border-b border-text-light dark:border-text-dark text-text-light dark:text-text-dark pb-1 text-sm uppercase tracking-widest hover:text-primary hover:border-primary transition-colors duration-300" href="#">Explore Collection</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- The LK Journal -->
+  <section class="py-20 bg-white/60 dark:bg-[#111]/80 backdrop-blur-md overflow-hidden relative z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12 gs-reveal">
+      <div class="flex flex-col md:flex-row justify-between items-end border-b border-gray-200 dark:border-gray-800 pb-4">
+        <div>
+          <h2 class="font-display text-4xl text-text-light dark:text-text-dark">The LK Journal</h2>
+          <p class="text-gray-500 dark:text-gray-400 font-light mt-2 tracking-wide">Stories of style, heritage, and modern living.</p>
+        </div>
+        <a class="hidden md:inline-block text-sm uppercase tracking-widest text-primary hover:text-text-light dark:hover:text-text-dark transition-colors mt-4 md:mt-0" href="#">Read All Stories</a>
+      </div>
+    </div>
+    <div class="marquee-container w-full py-4">
+      <div class="journal-track animate-marquee-fast">
+        <div class="journal-card mx-4 group cursor-pointer">
+          <div class="overflow-hidden aspect-[4/3] mb-4">
+            <img alt="Ethnic vs Traditional Wear" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7KD6FLVgyseKj6RedXoGS_YJdS-gKgYTSuEl7W32TEOK9g_bwx_4BSZFkpXkSOyWsC5JRfKyp1fbgMTrbSE55nysXkUOmdvMtSNhBQVxSBVfYRlT-4PKvtz57Fayhq3OhpOsDDCvH0jTx8UV9FaeK0IWyo1J7lnkiSOv5sSK97s5BxyhjTY237hZYr-hgtLQ45ARwUX2ySJwJbI3Q51_ANXiSRLNg8uYY-__r0lPNrW8AVztbI_c-Uxx2lsC3vxy2f9m96S9Gf5ye"/>
+          </div>
+          <p class="text-xs uppercase tracking-widest text-primary mb-2">Style Guide</p>
+          <h3 class="font-display text-xl text-text-light dark:text-text-dark group-hover:text-primary transition-colors">Ethnic vs Traditional Wear: Decoding the Differences</h3>
+        </div>
+        <div class="journal-card mx-4 group cursor-pointer">
+          <div class="overflow-hidden aspect-[4/3] mb-4">
+            <img alt="Summer Dressing Guide" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwQ-Ui5CrqgZW3E7W_ARk0GMvcLIWaGI9nAzoNG-j51kM4OrjdYsE6IjPaS-Ev0V5p6HUqG0opakNnacq6TJhUbZDHMS3KvqUGVWLHFMAB0ekYT7MPkY0JgECoyLmsCRG9vAGNmj9p9pdxZzN8yKJgzgHvPRHYV_rDw7bEuYUhHNKD_wZrYTRwi_paRyfZAE3Lv7Ad6xcXv9YYN-UoG3K5-5R4TqdCipitTzn7ZFO1iNJ84KELoKVXFZ-0Ho3j0-XRrGWzd3sqW7bK"/>
+          </div>
+          <p class="text-xs uppercase tracking-widest text-primary mb-2">Editor's Picks</p>
+          <h3 class="font-display text-xl text-text-light dark:text-text-dark group-hover:text-primary transition-colors">Summer Dressing Guide: Staying Cool &amp; Chic</h3>
+        </div>
+        <div class="journal-card mx-4 group cursor-pointer">
+          <div class="overflow-hidden aspect-[4/3] mb-4">
+            <img alt="The Art of Zardozi" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzX_milgk66WVOusJUj1QcPzBymDqV1J8WtYj2xZSEO39UYUlEmVT0Q9l_FBbCUOTD1bHJKjEHYFAFEoOrmdcwA8Xb_4y_CbVIAp_Y-nk97X2WeXGBrhigVF-x9ISOsP3bqw39L84fDJ3Rm__DJdymjiHvMq3Cb79k4H1zRE1TpUcM8kPqrUyCWYPaFvdK1c6TzdjPegZSZ2L1njNhmsoq8Em75DPOp5UIERJCVxplUPo_-M9vQJ2hhtiArxNPB6IZ8QhxyfXdrv5c"/>
+          </div>
+          <p class="text-xs uppercase tracking-widest text-primary mb-2">Behind the Seams</p>
+          <h3 class="font-display text-xl text-text-light dark:text-text-dark group-hover:text-primary transition-colors">The Art of Zardozi: Preserving Ancient Crafts</h3>
+        </div>
+        <div class="journal-card mx-4 group cursor-pointer">
+          <div class="overflow-hidden aspect-[4/3] mb-4">
+            <img alt="Resort 2026 Lookbook" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdM-ReYMWCNMpadhsOwukkdkAmkr2blNLMn9-TWLdFE8xqaF1OPRJJhtkcZ_Q5PpPpb5s9Tuwlf3rzENBAl3p7GjGDMWPh412qIrZ80I9nF3DmZynHwcX2ktQG0LT44H3uW9IGTReqyYnzNAh85CUM9iUC-3lnYS9X7igg8sEVzHIXrdNU8Ivb1y5DSqmJHffLc_mANsx7on0p23O2dfcKC2Tum6zIfI_5_m05172D5Huu9RA69cVXQ2ea2oBAIXtilz6Lt3_Dyoee"/>
+          </div>
+          <p class="text-xs uppercase tracking-widest text-primary mb-2">Lookbook</p>
+          <h3 class="font-display text-xl text-text-light dark:text-text-dark group-hover:text-primary transition-colors">Resort 2026: An Exclusive First Look</h3>
+        </div>
+        <!-- Duplicate for seamless loop -->
+        <div class="journal-card mx-4 group cursor-pointer">
+          <div class="overflow-hidden aspect-[4/3] mb-4">
+            <img alt="Ethnic vs Traditional Wear" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrevy4mUGKpFPtdY6MA7SpMi2_cSNTGUt-_X12rl9OomA5pEFh9gfiN3g4g4Kx5Mz_e2vAkLxMBP1oZ8mE0627Jm-Za7Kkw_rOHi1smiecc-hnzkXcAymcmLfDsZl6C7r4cwMl3731AK5j91Sd9nbQtqcxzlTbvB2LuNm35DSsaWDCtszc7AbELrpAiM__pFlProD8bkGav7_GrdDZXzfPhzkg7LZ9JVgQZe00qgHvMqGEfcCRhQ7v2Pz7-lr-qvjm7h1bqkUNZPvZ"/>
+          </div>
+          <p class="text-xs uppercase tracking-widest text-primary mb-2">Style Guide</p>
+          <h3 class="font-display text-xl text-text-light dark:text-text-dark group-hover:text-primary transition-colors">Ethnic vs Traditional Wear: Decoding the Differences</h3>
+        </div>
+        <div class="journal-card mx-4 group cursor-pointer">
+          <div class="overflow-hidden aspect-[4/3] mb-4">
+            <img alt="Summer Dressing Guide" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB47Lk5QrOvL6lPsK_FOmpWXnj9oJlB7HSpONXmVn4apWCcK9xdrNidajeXfCzDDezmHh5LOzHTdYq2VEu3JsSMxBD5o7MljP7T09CskeGKWKs1INQ3E4t9nYxIQPoHwKexyU-eCUZeJiNT9rFwWTdE79CLnph2m6wVD_jY2lRAXydx0sDu8Pi2h_s98HVEB11jHfyrLp0bdu0vYjnCu1mi20VDhBIXVLJEkPOg44pw4W6q8jnrY7Tof1F7FGIPKCLepE5goFPX6gWR"/>
+          </div>
+          <p class="text-xs uppercase tracking-widest text-primary mb-2">Editor's Picks</p>
+          <h3 class="font-display text-xl text-text-light dark:text-text-dark group-hover:text-primary transition-colors">Summer Dressing Guide: Staying Cool &amp; Chic</h3>
+        </div>
+        <div class="journal-card mx-4 group cursor-pointer">
+          <div class="overflow-hidden aspect-[4/3] mb-4">
+            <img alt="The Art of Zardozi" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6pV2sItfLfqzl5LStqnPLmWofNwfaQHWJ5Nc2ww-AfmHW1XhOvL46c1_HqeB6TUkzeui6uoxmt8FJ4Z12G9jwYpC60tLm3klmS5Xu7B_dNKt3mf6Y99FbfI7IJb3R1i4K8SCA2SAN8l_NSf9Dga87g-4japbKFDQy1PZasXYiPGxDzrkW4JPVCMHXvJsYh1u1iLOu-zG_bpewfNLkLwxLdp0ozDgB7KiwQRhwqb3QxJhNGosC9sviddXzUWA9YrYxKv2S32KnLruS"/>
+          </div>
+          <p class="text-xs uppercase tracking-widest text-primary mb-2">Behind the Seams</p>
+          <h3 class="font-display text-xl text-text-light dark:text-text-dark group-hover:text-primary transition-colors">The Art of Zardozi: Preserving Ancient Crafts</h3>
+        </div>
+        <div class="journal-card mx-4 group cursor-pointer">
+          <div class="overflow-hidden aspect-[4/3] mb-4">
+            <img alt="Resort 2026 Lookbook" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtPTjw_ZHtTyCFsy-GFCspraNPQBbiZ_v061qjHFUTggetdoeoHuyuWwHCEhMcgsSR9UEkKFOp8kLGZ5Pa51ea7sASji0nUPLXnmJ8yDx59RFZe5ywq0m0PGGiYJ3uzRs0w1kS_tE0t43bByYExHPQy0luiAnFs3Vr92hUIJ-bdI0Bxa2Pmj5Omm0VjRUyh_Jk3juYJX0fvE3F66eqfaCsmxxUnBsiSCdvDH4pAOHm1-d9pDjkc1eAKzT0kSEeibAk2w2x1sPwyNZy"/>
+          </div>
+          <p class="text-xs uppercase tracking-widest text-primary mb-2">Lookbook</p>
+          <h3 class="font-display text-xl text-text-light dark:text-text-dark group-hover:text-primary transition-colors">Resort 2026: An Exclusive First Look</h3>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Best Sellers Promotional -->
+  <section class="w-full relative bg-[#f4ece3]/80 dark:bg-[#2a2422]/80 backdrop-blur-md overflow-hidden gs-reveal-promotional z-10">
+    <div class="max-w-[1600px] mx-auto">
+      <div class="flex flex-col lg:flex-row items-center">
+        <div class="w-full lg:w-1/2 relative min-h-[500px] lg:min-h-[700px]">
+          <img alt="Two women showcasing SAAN elegant traditional wear" class="absolute inset-0 w-full h-full object-cover object-center lg:object-right" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdPy7cYr0PWZvju_YY7-sEr1LXrZE5ZEeXMHbN5PWFqaBQ-Ykl0tkIQpUPHi5ZxUgIFwPHCf5sQbGoxhZNW8zTMXnZhGWJyd3ixOhpiobAHozL3n3LGOJW4LdrL-G7GLBoQJMBg3_jT2LbyeQ10heJQ6hAdFcXKFQcSQ4ALk-2L0SMXLutedN34niL65A2b49abt3wBwDUCbQMnX_SNxBX8FeagweCRNhBj4ECc0WHlv-IW95Q9vao2MDZ7q8bBC-hYI4LEm4QZ8hj"/>
+        </div>
+        <div class="w-full lg:w-1/2 px-6 py-16 lg:py-24 lg:px-16 xl:px-24 flex flex-col justify-center items-start lg:items-center text-center relative z-10">
+          <div class="relative w-full max-w-lg mx-auto mb-6">
+            <h2 class="font-display text-5xl sm:text-6xl md:text-7xl font-bold tracking-widest text-primary uppercase relative z-20 flex justify-center items-center gap-1">
+              <span>BEST</span>
+              <span class="relative inline-block w-8 sm:w-12">
+                <span class="font-script absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-7xl sm:text-8xl md:text-[9rem] font-normal leading-none text-primary opacity-80" style="margin-top: -0.1em; margin-left: -0.1em;">S</span>
+              </span>
+              <span>ELLERS</span>
+            </h2>
+            <p class="mt-4 text-xs sm:text-sm tracking-[0.3em] sm:tracking-[0.4em] uppercase text-primary font-medium">Own What's Always Admired</p>
+          </div>
+          <div class="flex items-baseline justify-center gap-2 mb-10">
+            <span class="text-2xl sm:text-3xl text-primary font-display font-medium">Upto</span>
+            <span class="text-6xl sm:text-7xl md:text-8xl font-display font-bold text-primary leading-none tracking-tighter">50% OFF</span>
+          </div>
+          <a class="inline-block bg-[#b82e24] text-white font-medium uppercase tracking-widest text-sm sm:text-base px-10 sm:px-12 py-4 border border-[#b82e24] hover:bg-transparent hover:text-[#b82e24] transition-all duration-300" href="#">Shop Now</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Newsletter -->
+  <section class="py-24 bg-background-light/40 dark:bg-background-dark/60 backdrop-blur-md border-t border-gray-200/20 dark:border-gray-800/20 relative z-10">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center gs-reveal">
+      <span class="material-icons text-primary text-4xl mb-4">mail_outline</span>
+      <h2 class="font-display text-3xl md:text-4xl text-text-light dark:text-text-dark mb-4">Join the SAAN Community</h2>
+      <p class="text-gray-500 dark:text-gray-400 font-light mb-8">Subscribe to receive updates, access to exclusive deals, and more.</p>
+      <form class="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
+        <input class="flex-grow bg-transparent border-b border-gray-300 dark:border-gray-700 py-3 px-2 focus:outline-none focus:border-primary dark:focus:border-primary text-text-light dark:text-text-dark placeholder-gray-400" placeholder="Enter your email address" required type="email"/>
+        <button class="bg-text-light dark:bg-text-dark text-background-light dark:text-background-dark px-8 py-3 text-sm uppercase tracking-widest hover:bg-primary dark:hover:bg-primary hover:text-white transition-colors duration-300" type="submit">Subscribe</button>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer class="bg-[#111]/90 backdrop-blur-md text-gray-400 py-16 relative z-10">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-12">
+    <div>
+      <a class="block mb-6 h-10 w-24 relative" href="#">
+        <img alt="SAAN" class="w-full h-full object-contain filter invert" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjPXk_P_f2H3IaLAgb8EeVjUQQQRSB-zwZFInKOkdanT1bpMP9gf6vEVmqJU3twbg62TlUeSsYlqfG9Czb-1bcKtESRjN7A67EpECgNeUKnfKGn6qwsOhnBC0xmoE6xrqcEcd4BrKsACED9G2sU0G6w9yMX9npPr57TI4cTnnpNyqabTm7dVzpMxPkcOYh_qniyq-kMZb7EEnMj9jnxOVHJiY0h6eiuS5ZwuxmdQpMkQr3pv-LaUpMoMC3GrKRG9Mojr5LpZteYGrb"/>
+      </a>
+      <p class="text-sm font-light leading-relaxed mb-6">Redefining heritage for the modern muse. Ethical craftsmanship meets timeless design.</p>
+      <div class="flex space-x-4">
+        <a class="hover:text-white transition-colors" href="#" aria-label="Facebook"><span class="material-icons text-lg">facebook</span></a>
+        <a class="hover:text-white transition-colors" href="#" aria-label="Instagram"><span class="material-icons text-lg">photo_camera</span></a>
+        <a class="hover:text-white transition-colors" href="#" aria-label="YouTube"><span class="material-icons text-lg">play_circle_outline</span></a>
+      </div>
+    </div>
+    <div>
+      <h4 class="text-white font-medium uppercase tracking-wider mb-6 text-sm">Shop</h4>
+      <ul class="space-y-3 text-sm font-light">
+        <li><a class="hover:text-white transition-colors" href="#">New Arrivals</a></li>
+        <li><a class="hover:text-white transition-colors" href="#">Best Sellers</a></li>
+        <li><a class="hover:text-white transition-colors" href="#">Festive Collection</a></li>
+        <li><a class="hover:text-white transition-colors" href="#">Bridal</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="text-white font-medium uppercase tracking-wider mb-6 text-sm">Support</h4>
+      <ul class="space-y-3 text-sm font-light">
+        <li><a class="hover:text-white transition-colors" href="#">Contact Us</a></li>
+        <li><a class="hover:text-white transition-colors" href="#">Shipping &amp; Returns</a></li>
+        <li><a class="hover:text-white transition-colors" href="#">Size Guide</a></li>
+        <li><a class="hover:text-white transition-colors" href="#">FAQs</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="text-white font-medium uppercase tracking-wider mb-6 text-sm">Legal</h4>
+      <ul class="space-y-3 text-sm font-light">
+        <li><a class="hover:text-white transition-colors" href="#">Terms of Service</a></li>
+        <li><a class="hover:text-white transition-colors" href="#">Privacy Policy</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 pt-8 border-t border-gray-800 text-sm font-light text-center md:text-left flex flex-col md:flex-row justify-between items-center">
+    <p>© 2024 SAAN. All rights reserved.</p>
+  </div>
+</footer>
+
+<script src="js/shader-background.js"></script>
+<script src="js/scroll-animations.js"></script>
+</body>
+</html>

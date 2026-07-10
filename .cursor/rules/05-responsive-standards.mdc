@@ -1,0 +1,51 @@
+---
+description: SAAN responsive standards — mobile-first, clamp typography
+globs: "**/*.{tsx,css}"
+alwaysApply: false
+---
+
+# Responsive Standards
+
+Mobile First.
+
+Breakpoints:
+
+Mobile:
+320px–767px
+
+Tablet:
+768px–1024px
+
+Desktop:
+1025px+
+
+## Requirements
+
+No horizontal scroll.
+
+No clipped content.
+
+No overlapping text.
+
+No overflowing containers.
+
+## Typography
+
+Use clamp().
+
+Examples:
+
+Hero:
+clamp(3rem, 8vw, 8rem)
+
+Heading:
+clamp(2rem, 5vw, 4rem)
+
+Body:
+clamp(1rem, 2vw, 1.125rem)
+
+## Layout
+
+Editorial grids on desktop.
+
+Elegant stacking on mobile.

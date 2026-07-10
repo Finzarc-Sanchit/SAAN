@@ -1,0 +1,58 @@
+---
+description: SAAN motion standards — Framer Motion, easing, scroll reveals
+globs: "**/*.{tsx,ts}"
+alwaysApply: false
+---
+
+# Motion Standards
+
+Motion should feel like silk fabric.
+
+Never abrupt.
+
+## Luxury Easing
+
+cubic-bezier(0.25, 1, 0.5, 1)
+
+## Fade Easing
+
+cubic-bezier(0.16, 1, 0.3, 1)
+
+## Rules
+
+Animate only:
+
+- opacity
+- transform
+
+Never animate:
+
+- width
+- height
+- left
+- top
+- margin
+- padding
+
+## Framer Motion
+
+Always:
+
+viewport={{ once: true }}
+
+Avoid:
+
+- Infinite loops
+- Repeated viewport triggers
+- Excessive spring physics
+
+## Scroll Reveals
+
+Preferred:
+
+- Text fade-up
+- Character reveals
+- Subtle parallax
+- Image scale reveal
+
+Avoid flashy effects.

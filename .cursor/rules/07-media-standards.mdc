@@ -1,0 +1,55 @@
+---
+description: SAAN media standards — Next Image, video, lazy loading
+globs: "**/*.{tsx,ts}"
+alwaysApply: false
+---
+
+# Media Standards
+
+## Images
+
+Always use:
+
+Next Image
+
+Requirements:
+
+- blur placeholders
+- proper sizes
+- priority for hero
+
+Prevent CLS.
+
+## Photography
+
+Only editorial quality imagery.
+
+Never use generic stock photos.
+
+## Video
+
+Background videos:
+
+muted
+loop
+playsInline
+autoPlay
+
+Use:
+
+WebM
+MP4 fallback
+
+## Testimonial Videos
+
+Never preload all videos.
+
+Use:
+
+preload="metadata"
+
+Lazy load.
+
+Mount only active video.
+
+Pause hidden videos.

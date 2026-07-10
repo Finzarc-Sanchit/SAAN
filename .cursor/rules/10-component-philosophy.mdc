@@ -1,0 +1,28 @@
+---
+description: SAAN component philosophy — luxury editorial UI patterns
+globs: "**/components/**/*.{tsx,ts}"
+alwaysApply: false
+---
+
+# Component Philosophy
+
+Every component should answer:
+
+"Would this belong on a luxury fashion website?"
+
+If not:
+
+Simplify.
+
+Prefer:
+
+- Editorial layouts
+- White space
+- Typography
+
+Avoid:
+
+- SaaS cards
+- Dashboard UI
+- Generic templates
+- Over-decoration

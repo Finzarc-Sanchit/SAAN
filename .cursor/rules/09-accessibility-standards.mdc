@@ -1,0 +1,25 @@
+---
+description: SAAN accessibility standards — WCAG AA minimum
+alwaysApply: true
+---
+
+# Accessibility Standards
+
+Minimum:
+
+WCAG AA
+
+Requirements:
+
+- Keyboard navigation
+- Focus states
+- Alt text
+- Semantic HTML
+
+Support:
+
+prefers-reduced-motion
+
+Disable unnecessary animations.
+
+Luxury must remain accessible.

@@ -1,0 +1,55 @@
+---
+description: SAAN performance standards — 60 FPS, Core Web Vitals
+globs: "**/*.{tsx,ts}"
+alwaysApply: false
+---
+
+# Performance Standards
+
+Performance is luxury.
+
+Target:
+
+60 FPS
+
+Core Web Vitals:
+
+LCP < 2.5s
+CLS < 0.1
+INP < 200ms
+
+## Rules
+
+Use:
+
+- IntersectionObserver
+- requestAnimationFrame
+
+Avoid:
+
+- Heavy scroll listeners
+- Layout thrashing
+- Re-renders
+
+## React
+
+Use:
+
+React.memo
+useMemo
+useCallback
+
+When appropriate.
+
+## GPU
+
+Animate only:
+
+transform
+opacity
+
+Use:
+
+translate3d(0,0,0)
+
+where needed.

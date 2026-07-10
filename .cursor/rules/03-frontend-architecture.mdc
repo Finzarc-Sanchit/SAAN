@@ -1,0 +1,45 @@
+---
+description: SAAN frontend stack — Next.js 15, RSC-first architecture
+globs: "**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Frontend Architecture
+
+## Stack
+
+Framework:
+Next.js 15 App Router
+
+Language:
+TypeScript Strict Mode
+
+Styling:
+Tailwind CSS
+
+Motion:
+Framer Motion
+
+Scroll:
+Lenis
+
+Components:
+Shadcn UI (heavily customized)
+
+## Principles
+
+- Server Components first
+- Client Components only when needed
+- Strict typing everywhere
+- Reusable architecture
+- Semantic HTML
+
+Always use:
+
+<main>
+<nav>
+<section>
+<article>
+<footer>
+
+Avoid div soup.

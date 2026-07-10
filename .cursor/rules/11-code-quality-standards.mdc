@@ -1,0 +1,29 @@
+---
+description: SAAN code quality — typing, architecture, maintainability
+alwaysApply: true
+---
+
+# Code Quality Standards
+
+Always:
+
+- Strong typing
+- Reusable components
+- Clean architecture
+- Modular code
+
+Never:
+
+- Any types
+- Inline hacks
+- Duplicate code
+
+Files should remain:
+
+- Readable
+- Maintainable
+- Scalable
+
+Use descriptive naming.
+
+Prefer composition over complexity.
