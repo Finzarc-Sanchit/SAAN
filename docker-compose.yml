@@ -42,6 +42,8 @@ services:
       JWT_ACCESS_EXPIRES_IN: 15m
       JWT_REFRESH_EXPIRES_IN: 7d
       CORS_ORIGINS: http://localhost:3000
+      COOKIE_SAME_SITE: lax
+      CSRF_TOKEN_COOKIE_NAME: saan_csrf_token
       BCRYPT_ROUNDS: 12
       COOKIE_SECURE: 'false'
       REFRESH_TOKEN_COOKIE_NAME: saan_refresh_token

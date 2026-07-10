@@ -1,12 +1,12 @@
 'use client';
 
-import { Heart, Search, ShoppingBag, User } from 'lucide-react';
+import { Heart, Search, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { MobileNav } from '@/components/layout/MobileNav';
+import { AccountMenu } from '@/components/layout/AccountMenu';
 import { NavLink } from '@/components/layout/NavLink';
 import { SaanLogo } from '@/components/layout/SaanLogo';
-import { useAuth } from '@/components/providers/AuthProvider';
 import { useCart } from '@/components/providers/CartProvider';
 import { useWishlist } from '@/hooks/useWishlist';
 import { NAV_LINKS } from '@/lib/site-content';
@@ -69,21 +69,6 @@ function CartButton({ className }: { className?: string }) {
   );
 }
 
-function AccountButton({ className }: { className?: string }) {
-  const { openLoginDialog, isAuthenticated } = useAuth();
-
-  return (
-    <button
-      type="button"
-      aria-label={isAuthenticated ? 'Account' : 'Sign in'}
-      onClick={() => openLoginDialog('login')}
-      className={cn(actionClass, className)}
-    >
-      <User className={iconClass} strokeWidth={1.25} />
-    </button>
-  );
-}
-
 export function Header() {
   return (
     <header
@@ -106,13 +91,13 @@ export function Header() {
             <button type="button" aria-label="Search" className={actionClass}>
               <Search className={iconClass} strokeWidth={1.25} />
             </button>
-            <AccountButton />
+            <AccountMenu />
             <WishlistLink />
             <CartButton />
           </div>
 
           <div className="flex items-center gap-4 md:hidden">
-            <AccountButton />
+            <AccountMenu />
             <WishlistLink />
             <CartButton />
             <MobileNav />

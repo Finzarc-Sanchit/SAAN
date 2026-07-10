@@ -18,8 +18,9 @@ export function MobileNav({ className }: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const { count: wishlistCount } = useWishlist();
   const { count: cartCount, openCart, lastAddedAt } = useCart();
-  const { openLoginDialog } = useAuth();
+  const { isAuthenticated, isLoading, openLoginDialog, logout } = useAuth();
   const [cartPop, setCartPop] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     if (!lastAddedAt) return;
@@ -87,6 +88,13 @@ export function MobileNav({ className }: MobileNavProps) {
                   onNavigate={() => setOpen(false)}
                 />
               ))}
+              {isAuthenticated && (
+                <NavLink
+                  href="/account"
+                  label="Profile"
+                  onNavigate={() => setOpen(false)}
+                />
+              )}
             </nav>
 
             <div className="mt-8 flex items-center gap-6 border-t border-saan-champagne/40 pt-6">
@@ -97,17 +105,40 @@ export function MobileNav({ className }: MobileNavProps) {
               >
                 <Search className="h-[18px] w-[18px]" strokeWidth={1.25} />
               </button>
-              <button
-                type="button"
-                aria-label="Sign in"
-                onClick={() => {
-                  openLoginDialog('login');
-                  setOpen(false);
-                }}
-                className="text-saan-charcoal transition-opacity hover:opacity-60"
-              >
-                <User className="h-[18px] w-[18px]" strokeWidth={1.25} />
-              </button>
+              {!isLoading && !isAuthenticated && (
+                <button
+                  type="button"
+                  aria-label="Sign in"
+                  onClick={() => {
+                    openLoginDialog('login');
+                    setOpen(false);
+                  }}
+                  className="text-saan-charcoal transition-opacity hover:opacity-60"
+                >
+                  <User className="h-[18px] w-[18px]" strokeWidth={1.25} />
+                </button>
+              )}
+              {!isLoading && isAuthenticated && (
+                <button
+                  type="button"
+                  aria-label="Sign out"
+                  disabled={isLoggingOut}
+                  onClick={() => {
+                    void (async () => {
+                      setIsLoggingOut(true);
+                      try {
+                        await logout();
+                        setOpen(false);
+                      } finally {
+                        setIsLoggingOut(false);
+                      }
+                    })();
+                  }}
+                  className="text-label-caps text-saan-charcoal transition-opacity hover:opacity-60 disabled:opacity-50"
+                >
+                  {isLoggingOut ? '…' : 'Sign out'}
+                </button>
+              )}
               <Link
                 href="/wishlist"
                 aria-label={`Wishlist, ${wishlistCount} items`}

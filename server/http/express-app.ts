@@ -20,7 +20,20 @@ export function createApp(): express.Application {
   app.use(helmet());
   app.use(
     cors({
-      origin: env.CORS_ORIGINS,
+      origin(origin, callback) {
+        // Server-to-server requests (e.g. Next.js rewrite proxy) carry no Origin header.
+        if (!origin) {
+          callback(null, true);
+          return;
+        }
+
+        if (env.CORS_ORIGINS.includes(origin)) {
+          callback(null, true);
+          return;
+        }
+
+        callback(null, false);
+      },
       credentials: true,
     }),
   );

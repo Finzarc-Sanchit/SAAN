@@ -13,6 +13,7 @@ import type { User } from '@/lib/types/auth';
 import type { LoginInput, RegisterInput } from '@/lib/types/auth.schemas';
 import * as authApi from '@/lib/api/auth';
 import { clearSession, restoreSession } from '@/lib/api/client';
+import { broadcastAuthSync, subscribeToAuthSync } from '@/lib/auth/auth-sync';
 import { setAccessToken } from '@/lib/auth/token-store';
 
 export type AuthDialogStep =
@@ -54,6 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const completeAuth = useCallback((session: { user: User; accessToken: string }) => {
     setAccessToken(session.accessToken);
     setUser(session.user);
+    broadcastAuthSync({ type: 'login' });
 
     if (pendingActionRef.current) {
       const action = pendingActionRef.current;
@@ -65,10 +67,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setDialogStep('login');
   }, []);
 
-  const openLoginDialog = useCallback((step: AuthDialogStep = 'login') => {
-    setDialogStep(step);
-    setIsDialogOpen(true);
-  }, []);
+  const openLoginDialog = useCallback(
+    (step: AuthDialogStep = 'login') => {
+      if (user) {
+        return;
+      }
+
+      setDialogStep(step);
+      setIsDialogOpen(true);
+    },
+    [user],
+  );
 
   const closeLoginDialog = useCallback(() => {
     setIsDialogOpen(false);
@@ -87,6 +96,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     setUser(null);
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      setIsDialogOpen(false);
+      setDialogStep('login');
+      pendingActionRef.current = null;
+    }
+  }, [user]);
+
+  useEffect(() => {
+    return subscribeToAuthSync((message) => {
+      if (message.type === 'logout') {
+        clearSession();
+        setUser(null);
+        return;
+      }
+
+      void restoreSession().then((session) => {
+        setUser(session?.user ?? null);
+      });
+    });
   }, []);
 
   useEffect(() => {
@@ -127,6 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       clearSession();
       setUser(null);
+      broadcastAuthSync({ type: 'logout' });
     }
   }, []);
 

@@ -1,54 +1,55 @@
 import type { Request, Response, NextFunction } from 'express';
 import { env } from '../../config/env';
 import { UnauthorizedError } from '../../shared/errors/unauthorized-error';
+import {
+  clearCsrfCookie,
+  clearRefreshCookie,
+  setCsrfCookie,
+  setRefreshCookie,
+} from '../../shared/utils/auth-cookies';
 import { successResponse } from '../../shared/utils/response';
 import type { AuthService } from './auth.service';
-
-const REFRESH_COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: env.COOKIE_SECURE,
-  sameSite: env.COOKIE_SAME_SITE,
-  path: '/api/v1/auth',
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-};
 
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  getCsrf = async (_req: Request, res: Response): Promise<void> => {
+    const csrfToken = setCsrfCookie(res);
+    res.status(200).json(successResponse({ csrfToken }));
+  };
+
   register = async (req: Request, res: Response): Promise<void> => {
     const result = await this.authService.register(req.body);
-
     res.status(201).json(successResponse(result));
   };
 
   verifyOtp = async (req: Request, res: Response): Promise<void> => {
     const result = await this.authService.verifyOtp(req.body);
-
-    this.setRefreshCookie(res, result.tokens.refreshToken);
+    const csrfToken = this.setSessionCookies(res, result.tokens.refreshToken);
 
     res.status(200).json(
       successResponse({
         user: result.user,
         accessToken: result.tokens.accessToken,
+        csrfToken,
       }),
     );
   };
 
   resendOtp = async (req: Request, res: Response): Promise<void> => {
     const result = await this.authService.resendOtp(req.body);
-
     res.status(200).json(successResponse(result));
   };
 
   login = async (req: Request, res: Response): Promise<void> => {
     const result = await this.authService.login(req.body);
-
-    this.setRefreshCookie(res, result.tokens.refreshToken);
+    const csrfToken = this.setSessionCookies(res, result.tokens.refreshToken);
 
     res.status(200).json(
       successResponse({
         user: result.user,
         accessToken: result.tokens.accessToken,
+        csrfToken,
       }),
     );
   };
@@ -62,13 +63,13 @@ export class AuthController {
       }
 
       const result = await this.authService.refresh(refreshToken);
-
-      this.setRefreshCookie(res, result.tokens.refreshToken);
+      const csrfToken = this.setSessionCookies(res, result.tokens.refreshToken);
 
       res.status(200).json(
         successResponse({
           user: result.user,
           accessToken: result.tokens.accessToken,
+          csrfToken,
         }),
       );
     } catch (error) {
@@ -81,29 +82,23 @@ export class AuthController {
       await this.authService.logout(req.user.id);
     }
 
-    res.clearCookie(env.REFRESH_TOKEN_COOKIE_NAME, {
-      httpOnly: true,
-      secure: env.COOKIE_SECURE,
-      sameSite: env.COOKIE_SAME_SITE,
-      path: '/api/v1/auth',
-    });
-
+    clearRefreshCookie(res);
+    clearCsrfCookie(res);
     res.status(200).json(successResponse({ message: 'Logged out successfully' }));
   };
 
   forgotPassword = async (req: Request, res: Response): Promise<void> => {
     const result = await this.authService.forgotPassword(req.body);
-
     res.status(200).json(successResponse(result));
   };
 
   resetPassword = async (req: Request, res: Response): Promise<void> => {
     const result = await this.authService.resetPassword(req.body);
-
     res.status(200).json(successResponse(result));
   };
 
-  private setRefreshCookie(res: Response, refreshToken: string): void {
-    res.cookie(env.REFRESH_TOKEN_COOKIE_NAME, refreshToken, REFRESH_COOKIE_OPTIONS);
+  private setSessionCookies(res: Response, refreshToken: string): string {
+    setRefreshCookie(res, refreshToken);
+    return setCsrfCookie(res);
   }
 }

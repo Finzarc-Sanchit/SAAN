@@ -14,6 +14,7 @@ export type User = {
 export type AuthSession = {
   user: User;
   accessToken: string;
+  csrfToken?: string;
 };
 
 export type RegisterResponse = {

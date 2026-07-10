@@ -21,8 +21,9 @@ const envSchema = z.object({
     .enum(['true', 'false'])
     .default('false')
     .transform((value) => value === 'true'),
-  COOKIE_SAME_SITE: z.enum(['strict', 'lax', 'none']).default('strict'),
+  COOKIE_SAME_SITE: z.enum(['strict', 'lax', 'none']).default('lax'),
   REFRESH_TOKEN_COOKIE_NAME: z.string().default('saan_refresh_token'),
+  CSRF_TOKEN_COOKIE_NAME: z.string().default('saan_csrf_token'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   OTP_EXPIRY_MINUTES: z.coerce.number().min(1).default(10),
   PASSWORD_RESET_EXPIRY_MINUTES: z.coerce.number().min(1).default(30),

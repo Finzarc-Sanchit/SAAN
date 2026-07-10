@@ -13,6 +13,7 @@ import type {
   VerifyOtpInput,
 } from '@/lib/types/auth.schemas';
 import { apiRequest } from '@/lib/api/client';
+import { applyAuthSession } from '@/lib/auth/csrf';
 
 const AUTH_BASE = '/api/v1/auth';
 
@@ -25,11 +26,13 @@ export async function register(input: RegisterInput): Promise<RegisterResponse> 
 }
 
 export async function verifyOtp(input: VerifyOtpInput): Promise<AuthSession> {
-  return apiRequest<AuthSession>(`${AUTH_BASE}/verify-otp`, {
+  const session = await apiRequest<AuthSession>(`${AUTH_BASE}/verify-otp`, {
     method: 'POST',
     body: input,
     skipAuthRefresh: true,
   });
+  applyAuthSession(session);
+  return session;
 }
 
 export async function resendOtp(input: ResendOtpInput): Promise<GenericMessageResponse> {
@@ -41,18 +44,22 @@ export async function resendOtp(input: ResendOtpInput): Promise<GenericMessageRe
 }
 
 export async function login(input: LoginInput): Promise<AuthSession> {
-  return apiRequest<AuthSession>(`${AUTH_BASE}/login`, {
+  const session = await apiRequest<AuthSession>(`${AUTH_BASE}/login`, {
     method: 'POST',
     body: input,
     skipAuthRefresh: true,
   });
+  applyAuthSession(session);
+  return session;
 }
 
 export async function refresh(): Promise<AuthSession> {
-  return apiRequest<AuthSession>(`${AUTH_BASE}/refresh`, {
+  const session = await apiRequest<AuthSession>(`${AUTH_BASE}/refresh`, {
     method: 'POST',
     skipAuthRefresh: true,
   });
+  applyAuthSession(session);
+  return session;
 }
 
 export async function logout(): Promise<LogoutResponse> {

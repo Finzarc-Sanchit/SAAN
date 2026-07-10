@@ -17,12 +17,17 @@ const TITLES = {
 
 export function LoginDialog() {
   const {
+    isAuthenticated,
     isDialogOpen,
     dialogStep,
     pendingEmail,
     closeLoginDialog,
     setDialogStep,
   } = useAuth();
+
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <ModalShell

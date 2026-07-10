@@ -17,6 +17,7 @@ import {
   parseAuthPageMode,
   type AuthPageMode,
 } from '@/lib/auth/auth-page';
+import { useGuestOnly } from '@/hooks/useGuestOnly';
 import { setAccessToken } from '@/lib/auth/token-store';
 
 type RegisterFlowStep = 1 | 2 | 3;
@@ -41,6 +42,7 @@ function RegisterPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { completeAuth } = useAuth();
+  const { isLoading: isAuthLoading } = useGuestOnly({ redirectTo: '/' });
 
   const mode = useMemo(
     () => parseAuthPageMode(searchParams.get('mode')),
@@ -94,9 +96,6 @@ function RegisterPageContent() {
     }
   };
 
-  const isRegisterFlow = mode === 'register' && flowStep > 1;
-  const showModeTabs = mode !== 'forgot-password' && flowStep === 1;
-
   const heading = (() => {
     if (flowStep === 2) return 'Verify your email';
     if (flowStep === 3) return 'Welcome to SAAN';
@@ -104,6 +103,19 @@ function RegisterPageContent() {
     if (mode === 'forgot-password') return 'Reset Password';
     return 'Join SAAN';
   })();
+
+  if (isAuthLoading) {
+    return (
+      <main className="section-py min-h-[70vh] pt-28">
+        <Container className="max-w-lg text-center">
+          <p className="font-body text-sm text-saan-ink/60">Loading…</p>
+        </Container>
+      </main>
+    );
+  }
+
+  const isRegisterFlow = mode === 'register' && flowStep > 1;
+  const showModeTabs = mode !== 'forgot-password' && flowStep === 1;
 
   return (
     <main className="section-py min-h-[70vh] pt-28">
