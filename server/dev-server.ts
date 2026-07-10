@@ -1,12 +1,15 @@
 import { createServer } from 'http';
-import { getReadyApp } from './bootstrap';
+import { createApp } from './http/express-app';
+import { ensureConnections } from './middlewares/ensure-connections.middleware';
 import { env } from './config/env';
 import { disconnectMongo } from './infrastructure/database/mongodb/connection';
 import { disconnectRedis } from './infrastructure/database/redis/connection';
 import { logger } from './middlewares/request-logger';
 
 async function bootstrap(): Promise<void> {
-  const app = await getReadyApp();
+  await ensureConnections();
+
+  const app = createApp();
   const server = createServer(app);
 
   server.listen(env.PORT, () => {

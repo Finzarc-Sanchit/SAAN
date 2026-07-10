@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import { env } from '../config/env';
 import { authRoutes } from '../modules/auth/auth.routes';
 import { errorHandler } from '../middlewares/error-handler';
+import { ensureConnectionsMiddleware } from '../middlewares/ensure-connections.middleware';
 import { globalRateLimiter } from '../middlewares/rate-limit.middleware';
 import { notFoundHandler, requestLogger } from '../middlewares/request-logger';
 import { isMongoConnected } from '../infrastructure/database/mongodb/connection';
@@ -15,6 +16,7 @@ export function createApp(): express.Application {
   const app = express();
 
   app.set('trust proxy', 1);
+  app.use(ensureConnectionsMiddleware);
   app.use(helmet());
   app.use(
     cors({
