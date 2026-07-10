@@ -7,7 +7,7 @@ import type { AuthService } from './auth.service';
 const REFRESH_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: env.COOKIE_SECURE,
-  sameSite: 'strict' as const,
+  sameSite: env.COOKIE_SAME_SITE,
   path: '/api/v1/auth',
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
@@ -84,7 +84,7 @@ export class AuthController {
     res.clearCookie(env.REFRESH_TOKEN_COOKIE_NAME, {
       httpOnly: true,
       secure: env.COOKIE_SECURE,
-      sameSite: 'strict',
+      sameSite: env.COOKIE_SAME_SITE,
       path: '/api/v1/auth',
     });
 

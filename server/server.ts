@@ -1,15 +1,12 @@
 import { createServer } from 'http';
-import { createApp } from './app';
+import { getReadyApp } from './bootstrap';
 import { env } from './config/env';
-import { connectMongo, disconnectMongo } from './infrastructure/database/mongodb/connection';
-import { connectRedis, disconnectRedis } from './infrastructure/database/redis/connection';
+import { disconnectMongo } from './infrastructure/database/mongodb/connection';
+import { disconnectRedis } from './infrastructure/database/redis/connection';
 import { logger } from './middlewares/request-logger';
 
 async function bootstrap(): Promise<void> {
-  await connectMongo();
-  await connectRedis();
-
-  const app = createApp();
+  const app = await getReadyApp();
   const server = createServer(app);
 
   server.listen(env.PORT, () => {

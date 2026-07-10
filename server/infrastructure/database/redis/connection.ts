@@ -2,6 +2,11 @@ import Redis, { type RedisOptions } from 'ioredis';
 import { env } from '../../../config/env';
 import { logger } from '../../../middlewares/request-logger';
 
+declare global {
+  // eslint-disable-next-line no-var
+  var redisClientCache: Redis | undefined;
+}
+
 let redisClient: Redis | null = null;
 
 function resolveRedisConfig(): { url: string; options: RedisOptions } {
@@ -24,15 +29,23 @@ function resolveRedisConfig(): { url: string; options: RedisOptions } {
 }
 
 export function getRedisClient(): Redis {
-  if (!redisClient) {
-    const { url, options } = resolveRedisConfig();
-    redisClient = new Redis(url, options);
-
-    redisClient.on('error', (error: Error) => {
-      logger.error({ err: error }, 'Redis connection error');
-    });
+  if (redisClient) {
+    return redisClient;
   }
 
+  if (global.redisClientCache) {
+    redisClient = global.redisClientCache;
+    return redisClient;
+  }
+
+  const { url, options } = resolveRedisConfig();
+  redisClient = new Redis(url, options);
+
+  redisClient.on('error', (error: Error) => {
+    logger.error({ err: error }, 'Redis connection error');
+  });
+
+  global.redisClientCache = redisClient;
   return redisClient;
 }
 
@@ -62,6 +75,7 @@ export async function disconnectRedis(): Promise<void> {
 
   await redisClient.quit();
   redisClient = null;
+  global.redisClientCache = undefined;
   logger.info('Redis disconnected');
 }
 

@@ -2,27 +2,44 @@ import mongoose, { type ClientSession } from 'mongoose';
 import { env } from '../../../config/env';
 import { logger } from '../../../middlewares/request-logger';
 
-let isConnected = false;
+type MongooseCache = {
+  conn: typeof mongoose | null;
+  promise: Promise<typeof mongoose> | null;
+};
+
+declare global {
+  // eslint-disable-next-line no-var
+  var mongooseCache: MongooseCache | undefined;
+}
+
+const cache: MongooseCache = global.mongooseCache ?? { conn: null, promise: null };
+
+if (!global.mongooseCache) {
+  global.mongooseCache = cache;
+}
 
 export async function connectMongo(): Promise<void> {
-  if (isConnected) {
+  if (cache.conn && mongoose.connection.readyState === 1) {
     return;
   }
 
-  mongoose.set('strictQuery', true);
+  if (!cache.promise) {
+    mongoose.set('strictQuery', true);
+    cache.promise = mongoose.connect(env.MONGO_URI);
+  }
 
-  await mongoose.connect(env.MONGO_URI);
-  isConnected = true;
+  cache.conn = await cache.promise;
   logger.info('MongoDB connected');
 }
 
 export async function disconnectMongo(): Promise<void> {
-  if (!isConnected) {
+  if (!cache.conn) {
     return;
   }
 
   await mongoose.disconnect();
-  isConnected = false;
+  cache.conn = null;
+  cache.promise = null;
   logger.info('MongoDB disconnected');
 }
 
