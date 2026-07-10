@@ -1,0 +1,87 @@
+---
+description: Canonical folder structure for the SAAN server (backend). Reference this before creating any new file or folder.
+globs: server/**
+alwaysApply: true
+---
+
+# Folder Structure (Canonical — server/)
+
+Do not deviate from this structure. If a new top-level concept doesn't fit,
+propose where it should go rather than inventing an ad-hoc location.
+
+`client/` is governed by your existing frontend rules — see
+`17-frontend-integration.mdc` for the contract points where the two must
+agree.
+
+```
+saan/
+├── client/                            # (owned by your existing frontend rules)
+│
+├── server/                            # Express backend — NO src/ wrapper
+│   ├── config/                        # Typed env + app config (Zod-validated)
+│   ├── modules/                       # Feature-first, NOT type-first
+│   │   ├── product/
+│   │   │   ├── product.routes.ts
+│   │   │   ├── product.controller.ts
+│   │   │   ├── product.service.ts
+│   │   │   ├── product.repository.interface.ts
+│   │   │   ├── product.dto.ts         # Zod schemas
+│   │   │   ├── product.types.ts
+│   │   │   └── product.test.ts
+│   │   ├── order/
+│   │   ├── cart/
+│   │   ├── user/
+│   │   ├── auth/
+│   │   ├── payment/
+│   │   └── category/
+│   ├── infrastructure/
+│   │   ├── database/
+│   │   │   ├── mongodb/
+│   │   │   │   ├── connection.ts
+│   │   │   │   ├── models/            # Mongoose schemas ONLY here
+│   │   │   │   └── repositories/      # Mongoose implementations of the
+│   │   │   │                          # *.repository.interface.ts contracts
+│   │   │   │                          # defined in modules/
+│   │   │   └── redis/
+│   │   ├── storage/                   # File upload abstraction (S3/local)
+│   │   └── payment-gateway/           # Razorpay/Stripe adapters
+│   ├── middlewares/
+│   │   ├── error-handler.ts
+│   │   ├── auth.middleware.ts
+│   │   ├── validate.middleware.ts
+│   │   ├── rate-limit.middleware.ts
+│   │   └── request-logger.ts
+│   ├── shared/
+│   │   ├── errors/                    # AppError, NotFoundError, etc.
+│   │   ├── utils/
+│   │   └── constants/
+│   ├── tests/
+│   │   ├── integration/
+│   │   └── unit/
+│   ├── app.ts                         # Express app assembly (middlewares, routes)
+│   └── server.ts                      # Entry point (listen, graceful shutdown)
+│
+├── docker/
+│   ├── server.Dockerfile
+│   └── client.Dockerfile
+├── docker-compose.yml
+├── .cursor/
+│   └── rules/
+├── .env.example
+```
+
+## Rules
+
+- Backend is organized **feature-first** (`modules/product`, `modules/order`),
+  not layer-first. Each module is a vertical slice.
+- No `src/` directory inside `server/` — module/infrastructure/middleware
+  folders sit directly under `server/`.
+- Only `infrastructure/database/mongodb/` may import `mongoose`.
+- Only `infrastructure/payment-gateway/` may import a payment SDK (Razorpay/Stripe).
+- Only `infrastructure/storage/` may import a storage SDK (AWS S3, Cloudinary).
+- Shared types and validation schemas live **within each app** and are reused
+  inside that app:
+  - **Client** — `client/lib/types/` (API shapes, auth types, form schemas)
+  - **Server** — `server/modules/*/*.types.ts`, `*.dto.ts`, and
+    `server/shared/` (utils, validation, constants)
+  Keep client and server contracts aligned per `17-frontend-integration.mdc`.

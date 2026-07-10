@@ -1,0 +1,104 @@
+---
+description: Backend layering rules for server/ — how routes, controllers, services, and repositories interact.
+globs: server/**
+alwaysApply: false
+---
+
+# Backend Architecture (server/)
+
+Strict one-directional dependency flow:
+
+```
+routes → controller → service → repository interface → (mongodb repository impl)
+                          ↓
+                   other services (never other repositories directly)
+```
+
+## Layer responsibilities
+
+- **routes** (`*.routes.ts`): Only wires HTTP method + path + middleware +
+  controller function. No logic.
+- **controller** (`*.controller.ts`): Parses/validates request (via
+  `validate.middleware.ts` + Zod DTO), calls exactly one service method,
+  shapes the HTTP response using the standard envelope. No business logic,
+  no direct database access.
+- **service** (`*.service.ts`): All business logic lives here. Services depend
+  on repository **interfaces**, injected via constructor — never import a
+  concrete Mongoose repository directly.
+- **repository interface** (`*.repository.interface.ts`): Defines the contract
+  (e.g. `findById`, `create`, `updateStock`) using plain domain types — no
+  Mongoose/DB-specific types allowed in the signature.
+- **repository implementation** (`server/infrastructure/database/mongodb/repositories`):
+  Implements the interface using Mongoose. This is the ONLY place allowed to
+  know MongoDB exists.
+
+## Example: Product module
+
+```ts
+// server/modules/product/product.repository.interface.ts
+export interface IProductRepository {
+  findById(id: string): Promise<Product | null>;
+  findMany(filter: ProductFilter, pagination: Pagination): Promise<Paginated<Product>>;
+  create(data: CreateProductInput): Promise<Product>;
+  updateStock(id: string, quantityDelta: number): Promise<void>;
+}
+
+// server/modules/product/product.service.ts
+export class ProductService {
+  constructor(private readonly productRepo: IProductRepository) {}
+
+  async getProduct(id: string) {
+    const product = await this.productRepo.findById(id);
+    if (!product) throw new NotFoundError('Product not found');
+    return product;
+  }
+}
+
+// server/infrastructure/database/mongodb/repositories/product.repository.ts
+export class MongoProductRepository implements IProductRepository {
+  async findById(id: string) {
+    return ProductModel.findById(id).lean(); // mongoose lives ONLY here
+  }
+  // ...
+}
+
+// A composition root (e.g. modules/product/product.module.ts or a central
+// container.ts) wires the concrete implementation into the service:
+export const productService = new ProductService(new MongoProductRepository());
+```
+
+## Why this matters for "swap the database later"
+
+If SAAN later moves from MongoDB to PostgreSQL:
+1. Write `PostgresProductRepository implements IProductRepository` in a new
+   `server/infrastructure/database/postgres/repositories` folder.
+2. Swap the wiring in the composition root.
+3. **Zero changes** to controllers, services, routes, or tests that mock
+   `IProductRepository`.
+
+## Controllers must not
+
+- Call `Model.find()`, `Model.create()`, etc. directly.
+- Contain `if/else` business rules (e.g. stock checks, pricing logic,
+  discount calculations) — that belongs in the service.
+- Format error responses manually — throw an `AppError` subclass and let
+  the centralized `error-handler.ts` middleware format it.
+
+## Services must not
+
+- Import `express` (`Request`/`Response`) types.
+- Import `mongoose` types directly — only the domain types from
+  `*.types.ts` and the repository interface.
+
+## Composition / dependency wiring
+
+Use a simple factory/composition root per module (no heavy DI framework
+needed at this scale). If the app grows enough to need a DI container,
+consider `tsyringe`, but do not add it prematurely.
+
+## Infrastructure adapters (email, storage, payment-gateway)
+
+- Each adapter implements an interface defined in its own folder
+  (e.g. `IEmailService` in `infrastructure/email/email.interface.ts`).
+- Only the concrete adapter file may import the third-party SDK
+  (nodemailer, AWS SDK, Razorpay, etc.).

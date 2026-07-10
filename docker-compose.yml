@@ -1,0 +1,71 @@
+services:
+  mongodb:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build:
+      context: .
+      dockerfile: docker/server.Dockerfile
+    restart: unless-stopped
+    ports:
+      - '4000:4000'
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      MONGO_URI: mongodb://mongodb:27017/saan
+      REDIS_URL: redis://redis:6379
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change-me-to-a-secure-access-secret-min-32-chars}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change-me-to-a-secure-refresh-secret-min-32-chars}
+      JWT_ACCESS_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 7d
+      CORS_ORIGINS: http://localhost:3000
+      BCRYPT_ROUNDS: 12
+      COOKIE_SECURE: 'false'
+      REFRESH_TOKEN_COOKIE_NAME: saan_refresh_token
+      LOG_LEVEL: info
+      OTP_EXPIRY_MINUTES: 10
+      PASSWORD_RESET_EXPIRY_MINUTES: 30
+      APP_URL: http://localhost:3000
+      SMTP_HOST: ${SMTP_HOST:-smtp.example.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-smtp-user}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-smtp-password}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-SAAN}
+      EMAIL_FROM_ADDRESS: ${EMAIL_FROM_ADDRESS:-noreply@saan.example}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:4000/health']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  mongodb_data:
+  redis_data:

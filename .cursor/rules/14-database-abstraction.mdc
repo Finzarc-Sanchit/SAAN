@@ -1,0 +1,95 @@
+---
+description: Database abstraction rules — how MongoDB is used today while keeping the codebase database-agnostic for future migration.
+globs: server/infrastructure/database/**, server/modules/**/*.repository.interface.ts
+alwaysApply: false
+---
+
+# Database Strategy: MongoDB today, swappable tomorrow
+
+SAAN starts on **MongoDB + Mongoose**, but the schema and code must be written
+so a future move to a relational database (or a different NoSQL store) only
+touches the `server/infrastructure/database` layer.
+
+## Rules
+
+1. **Repository pattern is mandatory.** Every module that needs persistence
+   defines an `I<Entity>Repository` interface using plain TypeScript/domain
+   types (no `ObjectId`, no Mongoose `Document`). The Mongoose implementation
+   converts to/from these domain types at the boundary (e.g. `_id` → `id`).
+
+2. **Domain types live in `*.types.ts`, never `*.model.ts`.** Example:
+   ```ts
+   // server/modules/product/product.types.ts — DB-agnostic
+   export interface Product {
+     id: string;
+     name: string;
+     slug: string;
+     price: number;
+     currency: string;
+     stock: number;
+     categoryId: string;
+     images: string[];
+     createdAt: Date;
+     updatedAt: Date;
+   }
+   ```
+   ```ts
+   // server/infrastructure/database/mongodb/models/product.model.ts
+   const productSchema = new Schema({ ... });
+   productSchema.set('toJSON', {
+     transform: (_doc, ret) => {
+       ret.id = ret._id.toString();
+       delete ret._id;
+       delete ret.__v;
+     },
+   });
+   export const ProductModel = model('Product', productSchema);
+   ```
+
+3. **IDs are always plain strings (UUID-style) at the domain/API boundary.**
+   Never leak `mongoose.Types.ObjectId` past the repository implementation.
+   This is the single biggest thing that makes a relational migration painless
+   — Postgres UUID primary keys map 1:1 onto the same domain contract.
+
+4. **Avoid MongoDB-only query features in service code.** Aggregation
+   pipelines, `$lookup`, etc. are fine *inside* the Mongoose repository
+   implementation, but the interface method they back (e.g.
+   `findBestSellers(limit: number): Promise<Product[]>`) must describe the
+   *intent*, not the mechanism, so a SQL implementation (`GROUP BY` + `JOIN`)
+   can satisfy the same contract.
+
+5. **No schema-less "any" documents.** Every Mongoose schema has explicit
+   fields, types, and validation — this keeps the eventual relational schema
+   design (tables/columns) a near 1:1 mapping instead of a redesign.
+
+6. **Migrations discipline even on Mongo.** Use a lightweight migration tool
+   (e.g. `migrate-mongo`) for schema/index changes and seed data, mirroring
+   how a relational migration tool (Prisma Migrate/Knex) would work. This
+   habit transfers directly if/when SAAN moves to Postgres + Prisma.
+
+7. **Environment-driven connection, one entry point.** All DB connection
+   logic lives in `server/infrastructure/database/mongodb/connection.ts`.
+   Swapping databases means adding a sibling
+   `server/infrastructure/database/postgres/` with its own `connection.ts`,
+   not editing scattered connection calls.
+
+8. **Transactions are abstracted.** Wrap Mongo sessions/transactions (e.g. for
+   "place order + decrement stock") behind a `withTransaction(fn)` helper in
+   the mongodb infra layer, so services call `withTransaction` without
+   knowing whether it's a Mongo session or a SQL transaction underneath.
+
+## What "low effort to change DB" looks like in practice
+
+| Task | Effort if rules are followed |
+|---|---|
+| Add PostgreSQL support | Write new repository implementations + connection.ts under `server/infrastructure/database/postgres` |
+| Migrate one module first (e.g. orders) | Only swap that module's composition-root wiring |
+| Update tests | Service/unit tests already mock the interface — unaffected |
+| Update controllers/routes | No changes needed |
+
+## Indexing & performance (MongoDB specifics, kept inside infra layer)
+
+- Add indexes for: `slug` (unique), `categoryId`, text index on `name`/`description`
+  for search, compound index on `(categoryId, price)` for filtered listing.
+- Use `.lean()` for read-heavy queries that don't need Mongoose document methods.
+- Paginate everything with cursor-based or skip/limit + max page size cap.

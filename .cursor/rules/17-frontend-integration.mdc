@@ -1,0 +1,98 @@
+---
+description: The contract points where client/ (frontend, rules owned separately) must integrate with server/ (backend). Use this whenever writing frontend code that talks to the API.
+globs: client/**
+alwaysApply: false
+---
+
+# Frontend ↔ Backend Integration Contract
+
+Your frontend (`client/`) has its own rules for structure, styling, and
+rendering strategy. This file only defines the points where frontend code
+must line up with the backend (`server/`) so the two never drift apart.
+
+## 1. Types and validation — per app, aligned by contract
+
+- **Client** request/response shapes and Zod form schemas live in
+  `client/lib/types/` and are imported across the frontend — never redeclare
+  API entity shapes inline in components.
+- **Server** request DTOs and domain types live in each module's `*.dto.ts`
+  and `*.types.ts`, with cross-module helpers in `server/shared/`.
+- Client and server each maintain their own types/schemas. When adding or
+  changing an API field, update **both** sides to match the contract below.
+- If the frontend needs a Zod schema for form validation that mirrors an API
+  DTO, define it in `client/lib/types/` following the same field rules as
+  the server's `*.dto.ts` — do not import across the client/server boundary.
+
+## 2. API client — one place, not scattered fetches
+
+- All HTTP calls to `server/` go through a single typed client module
+  (wherever your frontend rules place it) — never inline
+  `fetch('/api/v1/...')` calls inside components.
+- The client always talks to `/api/v1/...` — respect backend versioning;
+  never hit an unversioned or `/api/v2` path unless the backend has
+  actually moved to it.
+- Base URL comes from an env var (e.g. `NEXT_PUBLIC_API_URL` or equivalent),
+  never hardcoded.
+
+## 3. Response envelope — unwrap consistently
+
+Every backend response follows:
+```json
+// success
+{ "success": true, "data": { }, "meta": { } }
+// error
+{ "success": false, "error": { "code": "...", "message": "...", "details": [] } }
+```
+- The API client unwraps `data` for callers and throws a typed
+  `ApiError(code, message, details)` on `success: false`, so components/hooks
+  never manually check `response.success`.
+- `meta` (pagination info) is passed through to list-consuming
+  hooks/components as-is — don't reshape it ad hoc per feature.
+
+## 4. Error handling on the client
+
+- Map backend error `code`s (e.g. `PRODUCT_NOT_FOUND`, `VALIDATION_ERROR`,
+  `UNAUTHORIZED`) to user-facing messages in one place (an error-message
+  map), not with scattered string comparisons across components.
+- `UNAUTHORIZED`/expired-token errors trigger the shared auth-refresh flow
+  (see below) before surfacing an error to the user.
+
+## 5. Auth flow
+
+- Access token: kept in memory (or short-lived storage per your frontend
+  rules) and sent as `Authorization: Bearer <token>` on every API client
+  request.
+- Refresh token: httpOnly secure cookie, never accessible to JS — the
+  browser sends it automatically to the refresh endpoint.
+- The API client has a single 401-handling interceptor: on a 401, attempt
+  one silent refresh via the backend's refresh endpoint, retry the original
+  request once, then force logout if the refresh also fails. This logic
+  lives in one place, not duplicated per feature/service call.
+
+## 6. Idempotency for sensitive actions
+
+- Checkout/order-creation/payment calls from the frontend must attach an
+  `Idempotency-Key` header (generate a UUID client-side per checkout
+  attempt) to match the backend's idempotency handling — prevents duplicate
+  orders on double-click or network retry.
+
+## 7. Pagination contract
+
+- List views send `page`/`limit` query params matching the backend's
+  defaults (`page=1`, `limit=20`, max `100`) and read `meta.total` for
+  pagination UI — don't invent a different pagination scheme client-side.
+
+## 8. Environment/config alignment
+
+- Any value the frontend needs that originates from backend config (e.g.
+  supported currencies, max upload size, feature flags) should be exposed
+  via a dedicated `GET /api/v1/config` endpoint rather than duplicated as a
+  hardcoded constant in the frontend.
+
+## 9. What NOT to do
+
+- Don't call MongoDB, Redis, or any infrastructure service directly from
+  `client/` — everything goes through `server/`.
+- Don't reimplement backend business logic (pricing, discounts, stock
+  checks) on the frontend for anything other than optimistic UI — the
+  backend is always the source of truth and re-validates on submit.

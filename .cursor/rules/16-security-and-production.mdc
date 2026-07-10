@@ -1,0 +1,83 @@
+---
+description: Security, config, logging, and production-readiness requirements for server/.
+globs: server/**
+alwaysApply: false
+---
+
+# Security & Production Readiness (server/)
+
+## Config
+
+- All env vars are declared and validated in `server/config/env.ts` using
+  Zod, e.g.:
+  ```ts
+  const envSchema = z.object({
+    NODE_ENV: z.enum(['development', 'test', 'production']),
+    PORT: z.coerce.number().default(4000),
+    MONGO_URI: z.string().url(),
+    JWT_ACCESS_SECRET: z.string().min(32),
+    JWT_REFRESH_SECRET: z.string().min(32),
+    REDIS_URL: z.string().url(),
+  });
+  export const env = envSchema.parse(process.env); // throws on boot if invalid
+  ```
+- Never read `process.env` outside `server/config/env.ts`.
+- `.env` is gitignored; `.env.example` documents every variable with a
+  placeholder/description.
+
+## Security middlewares (applied in `server/app.ts`, in this order)
+
+1. `helmet()` — secure headers
+2. CORS with an explicit allow-list of origins (never `origin: '*'` in prod)
+3. `express.json({ limit: '1mb' })` — cap body size
+4. Rate limiting (`express-rate-limit` backed by Redis store) — stricter
+   limits on `/auth/login`, `/auth/register`, `/checkout`
+5. Request logger (Pino) with a request-id for tracing
+6. Routes
+7. 404 handler
+8. Centralized error handler (must be last)
+
+## Auth & data protection
+
+- Passwords hashed with `bcrypt` (cost factor ≥ 12), never stored/logged in
+  plaintext.
+- JWT secrets ≥ 32 chars, rotated via env change + short access-token TTL.
+- Sensitive fields (password hash, tokens) are excluded via schema-level
+  `select: false` (Mongoose) and never included in API responses.
+- Sanitize all user input that touches HTML rendering (product
+  descriptions, reviews) to prevent stored XSS.
+- Use parameterized queries by construction — the repository pattern with
+  Mongoose/ORM already prevents raw string query injection; never build
+  queries via string concatenation.
+
+## Logging & observability
+
+- Structured JSON logs via Pino, one log line per request with method, path,
+  status, duration, request-id, and user id (if authenticated).
+- Never log secrets, tokens, passwords, or full card/payment details.
+- Health check endpoint `GET /health` (liveness) and `GET /ready` (readiness,
+  checks DB/Redis connectivity) for container orchestration.
+
+## Graceful shutdown
+
+- `server/server.ts` listens for `SIGTERM`/`SIGINT`, stops accepting new
+  connections, finishes in-flight requests, closes DB/Redis connections,
+  then exits — required for zero-downtime deploys.
+
+## Testing expectations
+
+- Every service method has unit tests with a mocked repository (no real DB).
+- Every route has at least one integration test (Supertest) covering the
+  happy path and the main error path, run against a test database (e.g.
+  `mongodb-memory-server`) or a Dockerized test DB.
+- CI must run lint + typecheck + tests before merge.
+
+## Docker & deployment
+
+- Multi-stage Dockerfiles (`docker/server.Dockerfile`,
+  `docker/client.Dockerfile`): build stage installs deps + compiles
+  TypeScript, runtime stage copies only the compiled output + production
+  `node_modules` (via `npm ci --omit=dev`).
+- `docker-compose.yml` wires `server` + `client` + mongodb + redis for local
+  dev to mirror production topology.
+- Never run `ts-node` or dev servers in the production image.

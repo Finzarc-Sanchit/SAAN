@@ -1,0 +1,85 @@
+---
+description: REST API design conventions — versioning, response envelope, errors, pagination, validation.
+globs: server/**
+alwaysApply: false
+---
+
+# API Design Conventions
+
+## Versioning
+
+- All routes are prefixed `/api/v1/...`. Never break v1 — introduce `/api/v2`
+  for breaking changes.
+
+## Response envelope (always this shape)
+
+```json
+// Success
+{
+  "success": true,
+  "data": { },
+  "meta": { "page": 1, "limit": 20, "total": 134 }
+}
+
+// Error
+{
+  "success": false,
+  "error": {
+    "code": "PRODUCT_NOT_FOUND",
+    "message": "Product not found",
+    "details": []
+  }
+}
+```
+
+`meta` is optional and only present for paginated/list endpoints.
+
+## Error handling
+
+- Domain errors extend a base `AppError` (`server/shared/errors/app-error.ts`)
+  with `statusCode` and `code`. Examples: `NotFoundError` (404),
+  `ValidationError` (400), `UnauthorizedError` (401), `ForbiddenError` (403),
+  `ConflictError` (409).
+- Controllers/services `throw` these errors; they never construct HTTP
+  responses for error cases directly.
+- A single centralized `error-handler.ts` Express middleware (registered last)
+  catches all errors, logs them (with Pino, including request id), and maps
+  known `AppError` subclasses to their status code — unknown errors become a
+  generic 500 with a generic message (never leak stack traces or internals
+  in production responses).
+
+## Validation
+
+- Every route that accepts a body/query/params defines a Zod schema in the
+  module's `*.dto.ts` file.
+- A `validate.middleware.ts` takes a Zod schema and validates
+  `req.body`/`req.query`/`req.params` before the controller runs, returning a
+  400 `ValidationError` with field-level details on failure.
+
+## Pagination
+
+- List endpoints accept `page` and `limit` query params (default `page=1`,
+  `limit=20`, hard cap `limit<=100`), returned in `meta`.
+- For high-traffic listing (e.g. product catalog), prefer cursor-based
+  pagination once data volume grows; keep the interface
+  (`findMany(filter, pagination)`) stable either way.
+
+## Auth
+
+- `Authorization: Bearer <accessToken>` header. Access tokens short-lived
+  (~15 min), refresh tokens longer-lived and stored as httpOnly secure
+  cookies, rotated on use.
+- `auth.middleware.ts` verifies the JWT and attaches `req.user`; role-based
+  guards (`requireRole('admin')`) are separate composable middlewares.
+
+## Idempotency & safety
+
+- Payment and order-creation endpoints accept an `Idempotency-Key` header to
+  prevent duplicate charges/orders on retry.
+
+## Naming
+
+- Resources are plural nouns: `/products`, `/orders`, `/cart-items`.
+- Use nested routes only one level deep: `/orders/:orderId/items`, not deeper.
+- Actions that aren't pure CRUD are modeled as sub-resources or verbs on a
+  clear noun: `POST /orders/:id/cancel`, `POST /cart/:id/checkout`.

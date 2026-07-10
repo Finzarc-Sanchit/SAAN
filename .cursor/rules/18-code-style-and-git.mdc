@@ -1,0 +1,62 @@
+---
+description: Code style, naming, testing, and git conventions for the backend (server/).
+globs: server/**
+alwaysApply: false
+---
+
+# Code Style, Testing & Git Conventions (server/)
+
+## TypeScript
+
+- `strict: true`, `noImplicitAny: true`, `noUncheckedIndexedAccess: true` in
+  `server/tsconfig.json`.
+- No `any`. Use `unknown` + narrowing, or a proper generic/type, if a type is
+  genuinely unknown. If `any` is unavoidable, add a `// TODO: type this
+  properly — reason` comment.
+- Prefer `type` for unions/utility types, `interface` for object shapes that
+  might be extended (e.g. repository contracts, entity shapes).
+
+## Naming
+
+- Files: `kebab-case.ts` (`product.service.ts`, `order.repository.ts`).
+- Classes/Interfaces: `PascalCase` (`ProductService`, `IProductRepository`).
+- Variables/functions: `camelCase`.
+- Constants (truly constant, module-level): `UPPER_SNAKE_CASE`.
+- Booleans read as questions: `isActive`, `hasStock`, `canCheckout`.
+
+## Linting & formatting
+
+- ESLint + Prettier, enforced via a pre-commit hook (`husky` + `lint-staged`)
+  and in CI — no formatting bikeshedding in PR review.
+- Import order enforced: external packages → `server/shared/` → relative
+  imports.
+
+## Testing
+
+- Unit tests colocated: `product.service.ts` → `product.service.test.ts`.
+- Integration tests in `server/tests/integration`.
+- Coverage target: meaningful coverage on services/repositories/utils, not a
+  vanity percentage — don't write tests just to hit a number, but don't skip
+  testing business logic either.
+- Test naming: `describe('ProductService.getProduct', () => { it('throws
+  NotFoundError when product does not exist', ...) })` — behavior-driven,
+  not implementation-driven.
+
+## Git
+
+- Conventional commits: `feat:`, `fix:`, `refactor:`, `test:`, `chore:`,
+  `docs:`, `perf:`.
+- Branch naming: `feature/<short-desc>`, `fix/<short-desc>`,
+  `chore/<short-desc>`.
+- No direct commits to `main`; PRs require passing CI (lint, typecheck,
+  test) before merge.
+- Keep PRs scoped to one module/feature where possible — large
+  cross-cutting refactors get their own PR with a clear description.
+
+## Documentation
+
+- Every module (`server/modules/product`, etc.) has a short `README.md` if
+  its business rules are non-obvious (e.g. discount calculation, stock
+  reservation during checkout).
+- Public repository interfaces and service methods get a one-line JSDoc
+  comment describing intent, not implementation.

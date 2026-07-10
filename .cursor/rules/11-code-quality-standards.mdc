@@ -8,15 +8,61 @@ alwaysApply: true
 Always:
 
 - Strong typing
-- Reusable components
+- **Reusable code** — write functions, components, hooks, utils, and
+  services that can be used in more than one place without modification;
+  prefer small, composable units with clear inputs/outputs over one-off
+  implementations
 - Clean architecture
 - Modular code
+- **DRY** — extract shared logic into helpers, utils, or composable
+  abstractions; never copy-paste the same block across methods, files, or
+  layers
 
 Never:
 
 - Any types
 - Inline hacks
 - Duplicate code
+- One-off code that could be a shared util or component
+
+## Reusable code (global — applies to client/ and server/)
+
+Write code that is meant to be reused, not rewritten:
+
+- **Single responsibility** — each function/component does one thing well
+- **Generic where appropriate** — accept params/props instead of hardcoding
+  values; avoid coupling to a single page, route, or feature unless
+  intentional
+- **Composable** — smaller pieces combine into larger ones; don't build
+  monoliths that can't be split later
+- **Shared by default** — if two features need the same behavior, create one
+  shared implementation in the right layer (`client/lib/`, `server/shared/`,
+  `components/ui`, module `*.dto.ts` / `*.types.ts`, etc.) rather than two
+  parallel copies
+
+Ask before writing: *"Will something else need this later?"* If yes, make
+it reusable now.
+
+## DRY (global — applies to client/ and server/)
+
+If the same logic appears more than once anywhere in the codebase, extract
+it immediately:
+
+- **Within a file** — private method or module-level helper
+- **Across files in one layer** — shared util or composable component/hook
+- **Within client or server** — reuse via that app's own shared folders
+  (`client/lib/types/`, `server/shared/validation/`, etc.); keep client and
+  server types/schemas in their respective folders and aligned with the API
+  contract in `17-frontend-integration.mdc`
+
+Public methods and components stay thin: they prepare **what** differs
+(content, params, props) and delegate **how** to a single helper.
+
+Never copy-paste an entire function or component body and change one line —
+that means a helper is missing.
+
+This applies equally to services, controllers, adapters, React components,
+hooks, email templates, error mapping, validation, and styling patterns.
 
 Files should remain:
 

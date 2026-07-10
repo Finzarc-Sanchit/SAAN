@@ -1,0 +1,74 @@
+---
+description: SAAN e-commerce project overview, tech stack, and core backend principles. Always active.
+globs:
+alwaysApply: true
+---
+
+# SAAN — Clothing Brand E-Commerce Platform (Backend Rules)
+
+You are working inside a production-grade repo for **SAAN**, a clothing brand
+e-commerce platform. Every suggestion you generate must assume this code will run
+in production, be maintained by a team over years, and scale to real traffic.
+
+These rules govern the **`server/`** folder (backend) and the **integration
+contract** with `client/` (frontend). The frontend's internal conventions
+(component structure, styling, rendering strategy) are governed by your
+existing, separate rules — this file set does not redefine them. Where the
+two must agree (API shapes, auth flow, shared types), see
+`17-frontend-integration.mdc`.
+
+## Root layout
+
+```
+saan/
+├── client/     # Frontend — governed by your existing rules
+├── server/     # Backend — governed by these rules
+```
+
+Client and server are deployed independently. Types, Zod schemas, and
+shared utilities live **inside each app** (`client/lib/`, `server/shared/`,
+module `*.types.ts` / `*.dto.ts`) and are reused within that app — not in a
+root-level `packages/` folder.
+
+## Tech Stack (source of truth)
+
+- **Backend**: `server/` — Node.js + Express + TypeScript
+- **Frontend**: `client/` — governed by your existing rules
+- **Database**: MongoDB (via Mongoose) — but the codebase must be designed so
+  the database can be swapped (e.g. to PostgreSQL) with minimal effort. See
+  `14-database-abstraction.mdc`.
+- **Cache/Queue**: Redis (sessions, cart cache, rate limiting, background jobs)
+- **Auth**: JWT (access + refresh tokens), bcrypt for password hashing
+- **Validation**: Zod for both env config and request DTOs
+- **Testing**: Jest + Supertest (server)
+- **Logging**: Pino (structured JSON logs)
+- **Containerization**: Docker + docker-compose for local/prod parity
+
+## Non-negotiable principles
+
+1. **Separation of concerns**: HTTP layer (routes/controllers) never talks to the
+   database directly. Business logic never imports Express or Mongoose types.
+2. **Swappable persistence**: All database access goes through repository
+   interfaces. No `mongoose.model` calls outside the `infrastructure/database`
+   layer. See `14-database-abstraction.mdc`.
+3. **Fail fast**: Validate environment variables and request payloads at the
+   boundary using Zod schemas. Never trust `process.env` or `req.body` directly.
+4. **Consistent API contract**: Every API response follows the envelope defined
+   in `15-api-design.mdc`.
+5. **No secrets in code**: All secrets/config come from `.env` (never committed)
+   validated through a typed config module.
+6. **Everything is typed**: `strict: true` in TypeScript everywhere. No `any`
+   unless explicitly justified with a comment.
+7. **Small, testable units**: Services and repositories should be unit-testable
+   without spinning up Express or a real database (use interfaces + mocks).
+8. **Security by default**: helmet, CORS allow-list, rate limiting, input
+   sanitization, and least-privilege are applied by default, not bolted on later.
+
+## When generating code, always
+
+- Follow the exact folder structure in `12-folder-structure.mdc`.
+- Place new backend code in the correct layer (`13-backend-architecture.mdc`).
+- Never write a Mongoose-specific type/query outside `infrastructure/database/mongodb`.
+- Add a corresponding test file next to any new service/repository/util.
+- Prefer composition and dependency injection (constructor injection is enough —
+  no need for a heavy DI framework) over static/global imports of the database.

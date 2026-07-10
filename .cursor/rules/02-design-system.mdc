@@ -9,16 +9,16 @@ alwaysApply: false
 ## Tailwind Color Tokens
 
 theme: {
-  extend: {
-    colors: {
-      'saan-bone': '#FBF9F6',
-      'saan-maroon': '#3B0B14',
-      'saan-charcoal': '#121212',
-      'saan-gold': '#D4AF37',
-      'saan-champagne': '#EBE3D5',
-      'saan-ink': '#1C1A17',
-    }
-  }
+extend: {
+colors: {
+'saan-bone': '#FBF9F6',
+'saan-maroon': '#3B0B14',
+'saan-charcoal': '#121212',
+'saan-gold': '#D4AF37',
+'saan-champagne': '#EBE3D5',
+'saan-ink': '#1C1A17',
+}
+}
 }
 
 ## Color Usage
