@@ -2,14 +2,14 @@ import express, { type Request, type Response } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import { env } from './config/env';
-import { authRoutes } from './modules/auth/auth.routes';
-import { errorHandler } from './middlewares/error-handler';
-import { globalRateLimiter } from './middlewares/rate-limit.middleware';
-import { notFoundHandler, requestLogger } from './middlewares/request-logger';
-import { isMongoConnected } from './infrastructure/database/mongodb/connection';
-import { isRedisConnected } from './infrastructure/database/redis/connection';
-import { successResponse } from './shared/utils/response';
+import { env } from '../config/env';
+import { authRoutes } from '../modules/auth/auth.routes';
+import { errorHandler } from '../middlewares/error-handler';
+import { globalRateLimiter } from '../middlewares/rate-limit.middleware';
+import { notFoundHandler, requestLogger } from '../middlewares/request-logger';
+import { isMongoConnected } from '../infrastructure/database/mongodb/connection';
+import { isRedisConnected } from '../infrastructure/database/redis/connection';
+import { successResponse } from '../shared/utils/response';
 
 export function createApp(): express.Application {
   const app = express();

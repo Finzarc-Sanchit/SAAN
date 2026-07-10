@@ -1,5 +1,5 @@
 import type { Application } from 'express';
-import { createApp } from './app';
+import { createApp } from './http/express-app';
 import { connectMongo } from './infrastructure/database/mongodb/connection';
 import { connectRedis } from './infrastructure/database/redis/connection';
 

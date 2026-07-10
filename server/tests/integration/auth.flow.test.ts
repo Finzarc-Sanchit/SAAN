@@ -25,7 +25,7 @@ jest.mock('../../infrastructure/database/redis/connection', () => {
   };
 });
 
-import { createApp } from '../../app';
+import { createApp } from '../../http/express-app';
 import { UserModel } from '../../infrastructure/database/mongodb/models/user.model';
 import { emailService } from '../../modules/auth/auth.module';
 
