@@ -3,5 +3,5 @@
   "compilerOptions": {
     "types": ["node"]
   },
-  "exclude": ["node_modules", "dist", "tests", "**/*.test.ts", "jest.config.ts", "api"]
+  "exclude": ["node_modules", "dist", "tests", "**/*.test.ts", "jest.config.ts", "dev-server.ts"]
 }

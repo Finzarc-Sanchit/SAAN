@@ -2,4 +2,4 @@ dist
 tests
 **/*.test.ts
 jest.config.ts
-server.ts
+dev-server.ts

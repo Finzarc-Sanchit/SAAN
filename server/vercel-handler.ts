@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getReadyApp } from '../bootstrap';
-import { errorResponse } from '../shared/utils/response';
+import { getReadyApp } from './bootstrap';
+import { errorResponse } from './shared/utils/response';
 
 export default async function handler(
   req: VercelRequest,
