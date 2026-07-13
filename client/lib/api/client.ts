@@ -8,7 +8,9 @@ import {
   csrfHeader,
   ensureCsrfToken,
   getCsrfToken,
+  syncCsrfHeaderForRequest,
 } from '@/lib/auth/csrf';
+import { writeStoredSession } from '@/lib/auth/session-storage';
 import { clearAccessToken, getAccessToken, setAccessToken } from '@/lib/auth/token-store';
 
 type RequestOptions = Omit<RequestInit, 'body'> & {
@@ -36,6 +38,12 @@ function needsCsrf(path: string, withCsrf?: boolean): boolean {
   return withCsrf ?? AUTH_MUTATION_PATHS.has(path);
 }
 
+function persistSession(session: AuthSession): void {
+  setAccessToken(session.accessToken, session.user);
+  writeStoredSession({ accessToken: session.accessToken, user: session.user });
+  applyAuthSession(session);
+}
+
 async function parseResponse<T>(response: Response): Promise<T> {
   const json = (await response.json()) as ApiResponse<T>;
 
@@ -57,16 +65,13 @@ async function performRefresh(): Promise<AuthSession | null> {
     });
     const json = (await response.json()) as ApiResponse<AuthSession>;
 
-    if (!json.success) {
-      clearAccessToken();
+    if (!response.ok || !json.success) {
       return null;
     }
 
-    setAccessToken(json.data.accessToken);
-    applyAuthSession(json.data);
+    persistSession(json.data);
     return json.data;
   } catch {
-    clearAccessToken();
     return null;
   }
 }
@@ -99,12 +104,9 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  let csrf: string | undefined;
   if (needsCsrf(path, withCsrf)) {
-    csrf = await ensureCsrfToken();
-    for (const [key, value] of Object.entries(csrfHeader(csrf))) {
-      headers.set(key, value as string);
-    }
+    const csrf = await ensureCsrfToken();
+    syncCsrfHeaderForRequest(headers, csrf);
   }
 
   const requestInit: RequestInit = {
@@ -127,11 +129,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     if (refreshed) {
       const retryHeaders = new Headers(headers);
       retryHeaders.set('Authorization', `Bearer ${getAccessToken()}`);
-
-      const retryCsrf = getCsrfToken();
-      if (retryCsrf) {
-        retryHeaders.set(CSRF_HEADER, retryCsrf);
-      }
+      syncCsrfHeaderForRequest(retryHeaders, getCsrfToken());
 
       response = await fetch(resolveUrl(path), {
         ...requestInit,

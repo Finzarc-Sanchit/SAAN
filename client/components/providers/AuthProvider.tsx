@@ -15,6 +15,7 @@ import * as authApi from '@/lib/api/auth';
 import { clearSession, restoreSession } from '@/lib/api/client';
 import { broadcastAuthSync, subscribeToAuthSync } from '@/lib/auth/auth-sync';
 import { applyAuthSession } from '@/lib/auth/csrf';
+import { readStoredSession } from '@/lib/auth/session-storage';
 import { setAccessToken } from '@/lib/auth/token-store';
 
 export type AuthDialogStep =
@@ -46,7 +47,7 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => readStoredSession()?.user ?? null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogStep, setDialogStep] = useState<AuthDialogStep>('login');
@@ -54,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pendingActionRef = useRef<(() => void) | null>(null);
 
   const completeAuth = useCallback((session: { user: User; accessToken: string; csrfToken?: string }) => {
-    setAccessToken(session.accessToken);
+    setAccessToken(session.accessToken, session.user);
     applyAuthSession(session);
     setUser(session.user);
     broadcastAuthSync({ type: 'login' });
@@ -97,6 +98,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session.user);
       return;
     }
+
+    if (readStoredSession()) {
+      return;
+    }
+
     setUser(null);
   }, []);
 
@@ -127,11 +133,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let active = true;
 
+    const stored = readStoredSession();
+    if (stored) {
+      setAccessToken(stored.accessToken, stored.user);
+      setUser(stored.user);
+    }
+
     void (async () => {
       try {
         const session = await restoreSession();
         if (!active) return;
-        setUser(session?.user ?? null);
+
+        if (session) {
+          setUser(session.user);
+          return;
+        }
+
+        // Keep a still-valid stored session when refresh is temporarily unavailable.
+        if (stored && readStoredSession()) {
+          return;
+        }
+
+        setUser(null);
       } finally {
         if (active) setIsLoading(false);
       }

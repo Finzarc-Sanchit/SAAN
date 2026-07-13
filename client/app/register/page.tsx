@@ -80,7 +80,7 @@ function RegisterPageContent() {
   };
 
   const handleVerified = (session: AuthSession) => {
-    setAccessToken(session.accessToken);
+    setAccessToken(session.accessToken, session.user);
     applyAuthSession(session);
     completeAuth(session);
     setFlowStep(3);

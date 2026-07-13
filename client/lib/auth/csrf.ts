@@ -49,6 +49,12 @@ export function csrfHeader(token: string): HeadersInit {
   return { [CSRF_HEADER]: token };
 }
 
+export function syncCsrfHeaderForRequest(headers: Headers, token: string | null): void {
+  if (token) {
+    headers.set(CSRF_HEADER, token);
+  }
+}
+
 export function storeCsrfFromResponse(json: ApiResponse<{ csrfToken: string }>): string | null {
   if (json.success && json.data.csrfToken) {
     setCsrfToken(json.data.csrfToken);

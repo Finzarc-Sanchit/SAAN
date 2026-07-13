@@ -59,10 +59,6 @@ export function CampaignSlide({ campaign, onExpire, isFirst = false }: CampaignS
             className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
             priority={isFirst}
           />
-          <div
-            className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-white via-white/70 to-transparent lg:bg-gradient-to-r lg:from-white lg:via-white/60 lg:to-transparent"
-            aria-hidden
-          />
         </div>
       </div>
     </article>
