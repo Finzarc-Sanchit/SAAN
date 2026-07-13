@@ -9,6 +9,14 @@ const config: Config = {
   clearMocks: true,
   setupFiles: ['<rootDir>/tests/setup.ts'],
   collectCoverageFrom: ['modules/**/*.ts', 'shared/**/*.ts', '!**/*.test.ts'],
+  transform: {
+    '^.+\\.ts$': [
+      'ts-jest',
+      {
+        tsconfig: 'tsconfig.test.json',
+      },
+    ],
+  },
 };
 
 export default config;

@@ -19,13 +19,16 @@ if (!global.mongooseCache) {
 }
 
 export async function connectMongo(): Promise<void> {
-  if (cache.conn && mongoose.connection.readyState === 1) {
+  const uri = process.env.MONGO_URI ?? env.MONGO_URI;
+
+  if (mongoose.connection.readyState === 1) {
+    cache.conn = mongoose;
     return;
   }
 
   if (!cache.promise) {
     mongoose.set('strictQuery', true);
-    cache.promise = mongoose.connect(env.MONGO_URI);
+    cache.promise = mongoose.connect(uri);
   }
 
   cache.conn = await cache.promise;

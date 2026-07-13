@@ -14,6 +14,7 @@ import type { LoginInput, RegisterInput } from '@/lib/types/auth.schemas';
 import * as authApi from '@/lib/api/auth';
 import { clearSession, restoreSession } from '@/lib/api/client';
 import { broadcastAuthSync, subscribeToAuthSync } from '@/lib/auth/auth-sync';
+import { applyAuthSession } from '@/lib/auth/csrf';
 import { setAccessToken } from '@/lib/auth/token-store';
 
 export type AuthDialogStep =
@@ -35,7 +36,7 @@ type AuthContextValue = {
   setDialogStep: (step: AuthDialogStep) => void;
   setPendingEmail: (email: string | null) => void;
   queuePendingAction: (action: () => void) => void;
-  completeAuth: (session: { user: User; accessToken: string }) => void;
+  completeAuth: (session: { user: User; accessToken: string; csrfToken?: string }) => void;
   login: (input: LoginInput) => Promise<void>;
   register: (input: RegisterInput) => Promise<void>;
   logout: () => Promise<void>;
@@ -52,8 +53,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
   const pendingActionRef = useRef<(() => void) | null>(null);
 
-  const completeAuth = useCallback((session: { user: User; accessToken: string }) => {
+  const completeAuth = useCallback((session: { user: User; accessToken: string; csrfToken?: string }) => {
     setAccessToken(session.accessToken);
+    applyAuthSession(session);
     setUser(session.user);
     broadcastAuthSync({ type: 'login' });
 
@@ -115,7 +117,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       void restoreSession().then((session) => {
-        setUser(session?.user ?? null);
+        if (session) {
+          setUser(session.user);
+        }
       });
     });
   }, []);

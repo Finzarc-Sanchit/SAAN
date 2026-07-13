@@ -1,12 +1,39 @@
 import type { ApiResponse } from '@/lib/types/api';
-import { CSRF_HEADER } from '@/lib/api/config';
+import { CSRF_HEADER, CSRF_TOKEN_COOKIE_NAME } from '@/lib/api/config';
 
-/** In-memory CSRF token — sole source of truth for the X-CSRF-Token header. */
+/** Cached CSRF token — kept in sync with the readable double-submit cookie. */
 let csrfToken: string | null = null;
 let csrfFetchPromise: Promise<string> | null = null;
 
+/** Read the CSRF cookie — authoritative for the X-CSRF-Token header (double-submit). */
+export function readCsrfFromCookie(): string | null {
+  if (typeof document === 'undefined') {
+    return null;
+  }
+
+  const prefix = `${CSRF_TOKEN_COOKIE_NAME}=`;
+
+  for (const part of document.cookie.split(';')) {
+    const trimmed = part.trim();
+    if (trimmed.startsWith(prefix)) {
+      const value = trimmed.slice(prefix.length);
+      return value ? decodeURIComponent(value) : null;
+    }
+  }
+
+  return null;
+}
+
+function syncCsrfFromCookie(): string | null {
+  const fromCookie = readCsrfFromCookie();
+  if (fromCookie) {
+    setCsrfToken(fromCookie);
+  }
+  return fromCookie;
+}
+
 export function getCsrfToken(): string | null {
-  return csrfToken;
+  return syncCsrfFromCookie() ?? csrfToken;
 }
 
 export function setCsrfToken(token: string | null): void {
@@ -31,6 +58,10 @@ export function storeCsrfFromResponse(json: ApiResponse<{ csrfToken: string }>):
 }
 
 export function applyAuthSession(session: { csrfToken?: string }): void {
+  if (syncCsrfFromCookie()) {
+    return;
+  }
+
   if (session.csrfToken) {
     setCsrfToken(session.csrfToken);
   }
@@ -48,31 +79,27 @@ async function fetchCsrfFromServer(): Promise<string> {
     throw new Error('Failed to obtain CSRF token');
   }
 
-  return token;
+  // Prefer the cookie the server just set — header must match what the browser sends.
+  return syncCsrfFromCookie() ?? token;
 }
 
 /**
- * Returns a CSRF token, fetching from the server when needed.
- * Concurrent callers share one in-flight fetch unless `force` is set.
+ * Returns a CSRF token for the X-CSRF-Token header.
+ * Uses the readable cookie when present; otherwise fetches from GET /auth/csrf.
  */
-export async function ensureCsrfToken(options?: { force?: boolean }): Promise<string> {
-  if (!options?.force && csrfToken) {
-    return csrfToken;
+export async function ensureCsrfToken(): Promise<string> {
+  const fromCookie = syncCsrfFromCookie();
+  if (fromCookie) {
+    return fromCookie;
   }
 
-  if (!options?.force && csrfFetchPromise) {
+  if (csrfFetchPromise) {
     return csrfFetchPromise;
   }
 
-  const promise = fetchCsrfFromServer().finally(() => {
-    if (csrfFetchPromise === promise) {
-      csrfFetchPromise = null;
-    }
+  csrfFetchPromise = fetchCsrfFromServer().finally(() => {
+    csrfFetchPromise = null;
   });
 
-  if (!options?.force) {
-    csrfFetchPromise = promise;
-  }
-
-  return promise;
+  return csrfFetchPromise;
 }

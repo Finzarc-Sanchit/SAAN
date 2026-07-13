@@ -22,3 +22,6 @@ process.env.SMTP_USER = 'test-user';
 process.env.SMTP_PASSWORD = 'test-password';
 process.env.EMAIL_FROM_NAME = 'SAAN';
 process.env.EMAIL_FROM_ADDRESS = 'noreply@test.local';
+process.env.RAZORPAY_KEY_ID = 'rzp_test_key_id';
+process.env.RAZORPAY_KEY_SECRET = 'rzp_test_key_secret';
+process.env.RAZORPAY_WEBHOOK_SECRET = 'whsec_test_webhook_secret';

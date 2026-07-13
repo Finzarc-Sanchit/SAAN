@@ -34,7 +34,35 @@ const envSchema = z.object({
   EMAIL_FROM_NAME: z.string().min(1).default('SAAN'),
   EMAIL_FROM_ADDRESS: z.string().email().default('no-reply@saan.com'),
   APP_URL: z.string().url().default('http://localhost:3000'),
-});
+  RAZORPAY_KEY_ID: z.string().min(1).optional(),
+  RAZORPAY_KEY_SECRET: z.string().min(1).optional(),
+  RAZORPAY_WEBHOOK_SECRET: z.string().min(1).optional(),
+})
+  .superRefine((data, ctx) => {
+    if (data.NODE_ENV !== 'production') {
+      return;
+    }
+
+    for (const key of [
+      'RAZORPAY_KEY_ID',
+      'RAZORPAY_KEY_SECRET',
+      'RAZORPAY_WEBHOOK_SECRET',
+    ] as const) {
+      if (!data[key]) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Required in production',
+          path: [key],
+        });
+      }
+    }
+  })
+  .transform((data) => ({
+    ...data,
+    RAZORPAY_KEY_ID: data.RAZORPAY_KEY_ID ?? 'rzp_test_dev_placeholder',
+    RAZORPAY_KEY_SECRET: data.RAZORPAY_KEY_SECRET ?? 'dev_razorpay_secret_placeholder',
+    RAZORPAY_WEBHOOK_SECRET: data.RAZORPAY_WEBHOOK_SECRET ?? 'whsec_dev_webhook_placeholder',
+  }));
 
 export type Env = z.infer<typeof envSchema>;
 

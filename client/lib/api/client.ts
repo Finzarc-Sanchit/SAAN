@@ -1,12 +1,13 @@
 import type { ApiResponse } from '@/lib/types/api';
 import type { AuthSession } from '@/lib/types/auth';
-import { API_BASE_PATH } from '@/lib/api/config';
+import { API_BASE_PATH, CSRF_HEADER } from '@/lib/api/config';
 import { ApiError } from '@/lib/api/errors';
 import {
   applyAuthSession,
   clearCsrfToken,
   csrfHeader,
   ensureCsrfToken,
+  getCsrfToken,
 } from '@/lib/auth/csrf';
 import { clearAccessToken, getAccessToken, setAccessToken } from '@/lib/auth/token-store';
 
@@ -23,6 +24,9 @@ const AUTH_MUTATION_PATHS = new Set([
   '/api/v1/auth/logout',
   '/api/v1/auth/reset-password',
 ]);
+
+/** Deduplicates concurrent refresh calls — only one may rotate the refresh token at a time. */
+let refreshPromise: Promise<AuthSession | null> | null = null;
 
 function resolveUrl(path: string): string {
   return `${API_BASE_PATH}${path}`;
@@ -42,9 +46,9 @@ async function parseResponse<T>(response: Response): Promise<T> {
   return json.data;
 }
 
-async function refreshSession(): Promise<boolean> {
+async function performRefresh(): Promise<AuthSession | null> {
   try {
-    const csrf = await ensureCsrfToken({ force: true });
+    const csrf = await ensureCsrfToken();
 
     const response = await fetch(resolveUrl('/api/v1/auth/refresh'), {
       method: 'POST',
@@ -55,16 +59,31 @@ async function refreshSession(): Promise<boolean> {
 
     if (!json.success) {
       clearAccessToken();
-      return false;
+      return null;
     }
 
     setAccessToken(json.data.accessToken);
     applyAuthSession(json.data);
-    return true;
+    return json.data;
   } catch {
     clearAccessToken();
-    return false;
+    return null;
   }
+}
+
+function refreshSessionOnce(): Promise<AuthSession | null> {
+  if (!refreshPromise) {
+    refreshPromise = performRefresh().finally(() => {
+      refreshPromise = null;
+    });
+  }
+
+  return refreshPromise;
+}
+
+async function refreshSession(): Promise<boolean> {
+  const session = await refreshSessionOnce();
+  return session !== null;
 }
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -82,7 +101,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
 
   let csrf: string | undefined;
   if (needsCsrf(path, withCsrf)) {
-    csrf = await ensureCsrfToken({ force: true });
+    csrf = await ensureCsrfToken();
     for (const [key, value] of Object.entries(csrfHeader(csrf))) {
       headers.set(key, value as string);
     }
@@ -108,6 +127,12 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     if (refreshed) {
       const retryHeaders = new Headers(headers);
       retryHeaders.set('Authorization', `Bearer ${getAccessToken()}`);
+
+      const retryCsrf = getCsrfToken();
+      if (retryCsrf) {
+        retryHeaders.set(CSRF_HEADER, retryCsrf);
+      }
+
       response = await fetch(resolveUrl(path), {
         ...requestInit,
         headers: retryHeaders,
@@ -119,31 +144,11 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
 }
 
 export async function restoreSession(): Promise<AuthSession | null> {
-  try {
-    const csrf = await ensureCsrfToken();
-
-    const response = await fetch(resolveUrl('/api/v1/auth/refresh'), {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: csrfHeader(csrf),
-    });
-    const json = (await response.json()) as ApiResponse<AuthSession>;
-
-    if (!json.success) {
-      clearAccessToken();
-      return null;
-    }
-
-    setAccessToken(json.data.accessToken);
-    applyAuthSession(json.data);
-    return json.data;
-  } catch {
-    clearAccessToken();
-    return null;
-  }
+  return refreshSessionOnce();
 }
 
 export function clearSession(): void {
+  refreshPromise = null;
   clearAccessToken();
   clearCsrfToken();
 }

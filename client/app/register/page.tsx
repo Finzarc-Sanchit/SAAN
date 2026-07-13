@@ -18,6 +18,7 @@ import {
   type AuthPageMode,
 } from '@/lib/auth/auth-page';
 import { useGuestOnly } from '@/hooks/useGuestOnly';
+import { applyAuthSession } from '@/lib/auth/csrf';
 import { setAccessToken } from '@/lib/auth/token-store';
 
 type RegisterFlowStep = 1 | 2 | 3;
@@ -80,6 +81,7 @@ function RegisterPageContent() {
 
   const handleVerified = (session: AuthSession) => {
     setAccessToken(session.accessToken);
+    applyAuthSession(session);
     completeAuth(session);
     setFlowStep(3);
 

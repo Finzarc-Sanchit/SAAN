@@ -10,7 +10,7 @@ import type {
 import type { UserRole } from '../../../../shared/constants';
 import { UserModel, type UserDocument } from '../models/user.model';
 
-const sensitiveSelect = '+passwordHash +refreshTokenHash +otpHash +otpExpiresAt +otpAttempts +passwordResetTokenHash +passwordResetExpiresAt';
+const sensitiveSelect = '+passwordHash +refreshTokenHash +refreshTokenVersion +otpHash +otpExpiresAt +otpAttempts +passwordResetTokenHash +passwordResetExpiresAt';
 
 function toDomainUser(doc: UserDocument): User {
   return {
@@ -187,6 +187,7 @@ export class MongoAuthRepository implements IAuthRepository {
       { $inc: { refreshTokenVersion: 1 }, refreshTokenHash: null },
       { new: true },
     )
+      .select('+refreshTokenVersion')
       .lean<UserDocument>()
       .exec();
 

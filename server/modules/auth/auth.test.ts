@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import bcrypt from 'bcrypt';
 import { createHash } from 'crypto';
 import { AuthService } from './auth.service';
@@ -18,10 +19,13 @@ import {
 import { USER_ROLES } from '../../shared/constants';
 
 jest.mock('bcrypt');
-jest.mock('jsonwebtoken', () => ({
-  sign: jest.fn(() => 'mock-token'),
-  verify: jest.fn(() => ({ sub: 'user-1', ver: 0 })),
-}));
+jest.mock('jsonwebtoken', () => {
+  const { jest: jestGlobals } = require('@jest/globals');
+  return {
+    sign: jestGlobals.fn(() => 'mock-token'),
+    verify: jestGlobals.fn(() => ({ sub: 'user-1', ver: 0 })),
+  };
+});
 
 const mockedBcrypt = bcrypt as jest.Mocked<typeof bcrypt>;
 
@@ -61,8 +65,8 @@ function createMockLoginLockout(): jest.Mocked<ILoginLockoutStore> {
     isLocked: jest.fn(),
     recordFailure: jest.fn(),
     clearFailures: jest.fn(),
-    getMaxAttempts: jest.fn().mockReturnValue(5),
-    getLockoutSeconds: jest.fn().mockReturnValue(900),
+    getMaxAttempts: jest.fn<() => number>().mockReturnValue(5),
+    getLockoutSeconds: jest.fn<() => number>().mockReturnValue(900),
   };
 }
 
@@ -305,6 +309,22 @@ describe('AuthService', () => {
       expect(result.message).toBe(GENERIC_RESET_MESSAGE);
       expect(repository.setPasswordResetToken).toHaveBeenCalled();
       expect(emailService.sendPasswordResetEmail).toHaveBeenCalled();
+    });
+  });
+
+  describe('refresh', () => {
+    it('rejects when refresh token version does not match', async () => {
+      const jwt = await import('jsonwebtoken');
+      (jwt.verify as jest.Mock).mockReturnValue({ sub: 'user-1', ver: 0 });
+
+      repository.findByRefreshTokenHash.mockResolvedValue({
+        ...verifiedUser,
+        refreshTokenVersion: 2,
+      });
+
+      await expect(service.refresh('stale-refresh-token')).rejects.toThrow(
+        new UnauthorizedError('Invalid or expired refresh token'),
+      );
     });
   });
 

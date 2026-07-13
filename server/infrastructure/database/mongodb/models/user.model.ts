@@ -1,6 +1,61 @@
 import { Schema, model } from 'mongoose';
 import { USER_ROLES } from '../../../../shared/constants';
 
+const addressSchema = new Schema(
+  {
+    addressId: {
+      type: String,
+      required: true,
+    },
+    firstName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    lastName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    phone: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    address: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    apartment: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+    city: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    state: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    postalCode: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    isDefault: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+  },
+  { _id: false },
+);
+
 const userSchema = new Schema(
   {
     email: {
@@ -71,6 +126,11 @@ const userSchema = new Schema(
       type: Number,
       default: 0,
       required: true,
+      select: false,
+    },
+    addresses: {
+      type: [addressSchema],
+      default: [],
     },
   },
   {
@@ -82,6 +142,7 @@ const userSchema = new Schema(
         delete ret.__v;
         delete ret.passwordHash;
         delete ret.refreshTokenHash;
+        delete ret.refreshTokenVersion;
         delete ret.otpHash;
         delete ret.otpExpiresAt;
         delete ret.otpAttempts;
@@ -94,6 +155,19 @@ const userSchema = new Schema(
 );
 
 export const UserModel = model('User', userSchema);
+
+export type AddressDocument = {
+  addressId: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  address: string;
+  apartment: string | null;
+  city: string;
+  state: string;
+  postalCode: string;
+  isDefault: boolean;
+};
 
 export type UserDocument = {
   _id: { toString(): string };
@@ -110,6 +184,7 @@ export type UserDocument = {
   passwordResetExpiresAt: Date | null;
   refreshTokenHash: string | null;
   refreshTokenVersion: number;
+  addresses: AddressDocument[];
   createdAt: Date;
   updatedAt: Date;
 };

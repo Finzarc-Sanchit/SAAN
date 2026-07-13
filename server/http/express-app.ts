@@ -1,9 +1,19 @@
 import express, { type Request, type Response } from 'express';
+import { orderPaymentRoutes, paymentWebhookRoutes } from '../modules/payment/payment.module';
 import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { env } from '../config/env';
 import { authRoutes } from '../modules/auth/auth.routes';
+import { categoryRoutes } from '../modules/category/category.routes';
+import { sizeRoutes } from '../modules/size/size.routes';
+import { discountRoutes } from '../modules/discount/discount.routes';
+import { productRoutes } from '../modules/product/product.module';
+import { productReviewRoutes, reviewRoutes } from '../modules/review/review.module';
+import { cartRoutes } from '../modules/cart/cart.module';
+import { orderRoutes } from '../modules/order/order.module';
+import { userRoutes } from '../modules/user/user.routes';
+import { wishlistRoutes } from '../modules/wishlist/wishlist.module';
 import { errorHandler } from '../middlewares/error-handler';
 import { ensureConnectionsMiddleware } from '../middlewares/ensure-connections.middleware';
 import { globalRateLimiter } from '../middlewares/rate-limit.middleware';
@@ -36,6 +46,11 @@ export function createApp(): express.Application {
       },
       credentials: true,
     }),
+  );
+  app.use(
+    '/api/v1/payments',
+    express.raw({ type: 'application/json', limit: '256kb' }),
+    paymentWebhookRoutes,
   );
   app.use(express.json({ limit: '1mb' }));
   app.use(cookieParser());
@@ -71,6 +86,17 @@ export function createApp(): express.Application {
   });
 
   app.use('/api/v1/auth', authRoutes);
+  app.use('/api/v1/categories', categoryRoutes);
+  app.use('/api/v1/sizes', sizeRoutes);
+  app.use('/api/v1/discounts', discountRoutes);
+  app.use('/api/v1/products', productReviewRoutes);
+  app.use('/api/v1/products', productRoutes);
+  app.use('/api/v1/reviews', reviewRoutes);
+  app.use('/api/v1/users', userRoutes);
+  app.use('/api/v1/cart', cartRoutes);
+  app.use('/api/v1/orders', orderRoutes);
+  app.use('/api/v1/wishlist', wishlistRoutes);
+  app.use('/api/v1/orders', orderPaymentRoutes);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

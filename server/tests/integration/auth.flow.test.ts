@@ -1,32 +1,38 @@
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import mongoose from 'mongoose';
 import request from 'supertest';
 import type { Application } from 'express';
 
-jest.mock('rate-limit-redis', () => ({
-  RedisStore: jest.fn().mockImplementation(() => ({
-    init: jest.fn(),
-    increment: jest.fn().mockResolvedValue({ totalHits: 1, resetTime: new Date() }),
-    decrement: jest.fn(),
-    resetKey: jest.fn(),
-  })),
-}));
+jest.mock('rate-limit-redis', () => {
+  const { jest: jestGlobals } = require('@jest/globals');
+  return {
+    RedisStore: jestGlobals.fn().mockImplementation(() => ({
+      init: jestGlobals.fn(),
+      increment: jestGlobals.fn().mockResolvedValue({ totalHits: 1, resetTime: new Date() }),
+      decrement: jestGlobals.fn(),
+      resetKey: jestGlobals.fn(),
+    })),
+  };
+});
 
 jest.mock('../../infrastructure/database/redis/connection', () => {
+  const { jest: jestGlobals } = require('@jest/globals');
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const RedisMock = require('ioredis-mock');
   const client = new RedisMock();
 
   return {
     getRedisClient: () => client,
-    connectRedis: jest.fn().mockResolvedValue(undefined),
-    disconnectRedis: jest.fn().mockResolvedValue(undefined),
+    connectRedis: jestGlobals.fn().mockResolvedValue(undefined),
+    disconnectRedis: jestGlobals.fn().mockResolvedValue(undefined),
     isRedisConnected: () => true,
   };
 });
 
 import { createApp } from '../../http/express-app';
+import { connectMongo, disconnectMongo } from '../../infrastructure/database/mongodb/connection';
 import { UserModel } from '../../infrastructure/database/mongodb/models/user.model';
+import { resetConnectionsForTests } from '../../middlewares/ensure-connections.middleware';
 import { emailService } from '../../modules/auth/auth.module';
 
 describe('Auth flow integration', () => {
@@ -37,12 +43,15 @@ describe('Auth flow integration', () => {
 
   beforeAll(async () => {
     mongod = await MongoMemoryServer.create();
-    await mongoose.connect(mongod.getUri());
+    process.env.MONGO_URI = mongod.getUri();
+    resetConnectionsForTests();
+    await connectMongo();
     app = createApp();
   });
 
   afterAll(async () => {
-    await mongoose.disconnect();
+    resetConnectionsForTests();
+    await disconnectMongo();
     await mongod.stop();
   });
 
