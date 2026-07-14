@@ -212,10 +212,10 @@ export const ATELIER_LANDING_COPY = {
   stats: [
     { value: 40, suffix: '+', label: 'Pieces made a year' },
     { value: 14, suffix: '', label: 'Hands per piece' },
-    { value: 0, suffix: '', label: 'Fast fashion', accent: true },
+    { value: 0, suffix: '', label: 'Fast fashion' },
   ],
   heroImage: {
-    src: '/images/atelier/classic-portrait.png',
+    src: '/images/atelier/bg-img.webp',
     alt: 'SAAN artisan portrait from the Bandra atelier',
   },
   cta: {

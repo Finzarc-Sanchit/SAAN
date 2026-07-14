@@ -3,7 +3,6 @@
 import { useRouter } from 'next/navigation';
 import { ForgotPasswordStep } from '@/components/auth/ForgotPasswordStep';
 import { LoginStep } from '@/components/auth/LoginStep';
-import { RegisterStep } from '@/components/auth/RegisterStep';
 import { VerifyOtpStep } from '@/components/auth/VerifyOtpStep';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { ModalShell } from '@/components/ui/ModalShell';
@@ -50,14 +49,13 @@ export function LoginDialog() {
     >
       {dialogStep === 'login' && (
         <LoginStep
-          onSwitchRegister={() => setDialogStep('register')}
+          onSwitchRegister={() => {
+            closeLoginDialog();
+            router.push('/register');
+          }}
           onForgotPassword={() => setDialogStep('forgot-password')}
           onSuccess={handleAuthSuccess}
         />
-      )}
-
-      {dialogStep === 'register' && (
-        <RegisterStep onSwitchLogin={() => setDialogStep('login')} />
       )}
 
       {dialogStep === 'verify-otp' && pendingEmail && (

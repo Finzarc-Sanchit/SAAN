@@ -1,6 +1,7 @@
 'use client';
 
-import { notFound } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 
@@ -8,9 +9,26 @@ type AdminAccessGateProps = {
   children: React.ReactNode;
 };
 
+function RedirectHome() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace('/');
+  }, [router]);
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-saan-bone">
+      <p className="font-body text-sm text-saan-ink/60" role="status">
+        Returning home…
+      </p>
+    </div>
+  );
+}
+
 /**
  * Client-side admin gate. Shows a bootstrap loading state until auth resolves,
- * then triggers a 404 for non-admins / guests without rendering dashboard content.
+ * then triggers a 404 for authenticated non-admins. Guests / cleared sessions
+ * (e.g. logout) are sent home so the dashboard does not flash a 404.
  */
 export function AdminAccessGate({ children }: AdminAccessGateProps) {
   const { user, isAuthenticated, isBootstrapping } = useCurrentUser();
@@ -28,6 +46,9 @@ export function AdminAccessGate({ children }: AdminAccessGateProps) {
   }
 
   if (!isAdmin) {
+    if (!isAuthenticated) {
+      return <RedirectHome />;
+    }
     notFound();
   }
 

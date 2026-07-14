@@ -1,9 +1,11 @@
 'use client';
 
-import { LogOut, User } from 'lucide-react';
+import { LayoutDashboard, LogOut, User } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useId, useRef, useState } from 'react';
 import { useAuth } from '@/components/providers/AuthProvider';
+import { ADMIN_DASHBOARD_PATH } from '@/lib/auth/post-auth-redirect';
 import { cn } from '@/lib/utils';
 
 const iconClass = 'h-[18px] w-[18px] text-saan-charcoal';
@@ -14,11 +16,13 @@ type AccountMenuProps = {
 };
 
 export function AccountMenu({ className }: AccountMenuProps) {
+  const router = useRouter();
   const { isAuthenticated, isLoading, user, openLoginDialog, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
+  const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
     if (!open) return;
@@ -47,8 +51,9 @@ export function AccountMenu({ className }: AccountMenuProps) {
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
-      await logout();
       setOpen(false);
+      await logout();
+      router.replace('/');
     } finally {
       setIsLoggingOut(false);
     }
@@ -102,14 +107,26 @@ export function AccountMenu({ className }: AccountMenuProps) {
               {user.firstName}
             </p>
           )}
-          <Link
-            href="/account"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className="text-label-caps block px-4 py-2.5 text-saan-charcoal transition-colors hover:bg-saan-champagne/20"
-          >
-            Profile
-          </Link>
+          {isAdmin ? (
+            <Link
+              href={ADMIN_DASHBOARD_PATH}
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className="text-label-caps flex items-center gap-2 px-4 py-2.5 text-saan-charcoal transition-colors hover:bg-saan-champagne/20"
+            >
+              <LayoutDashboard className="h-3.5 w-3.5" strokeWidth={1.25} aria-hidden />
+              Dashboard
+            </Link>
+          ) : (
+            <Link
+              href="/account"
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className="text-label-caps block px-4 py-2.5 text-saan-charcoal transition-colors hover:bg-saan-champagne/20"
+            >
+              Profile
+            </Link>
+          )}
           <button
             type="button"
             role="menuitem"

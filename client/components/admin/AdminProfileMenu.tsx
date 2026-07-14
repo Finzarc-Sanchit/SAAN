@@ -48,9 +48,10 @@ export function AdminProfileMenu({ displayName, email, initials }: AdminProfileM
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
-      await logout();
+      // Leave /admin before clearing the session so AdminAccessGate does not 404.
       setOpen(false);
-      router.push('/');
+      router.replace('/');
+      await logout();
     } finally {
       setIsLoggingOut(false);
     }

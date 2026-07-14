@@ -2,11 +2,13 @@
 
 import { Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { NavLink } from '@/components/layout/NavLink';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useCart } from '@/components/providers/CartProvider';
 import { useWishlist } from '@/hooks/useWishlist';
+import { ADMIN_DASHBOARD_PATH } from '@/lib/auth/post-auth-redirect';
 import { NAV_LINKS } from '@/lib/site-content';
 import { cn } from '@/lib/utils';
 
@@ -15,10 +17,12 @@ type MobileNavProps = {
 };
 
 export function MobileNav({ className }: MobileNavProps) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const { count: wishlistCount } = useWishlist();
   const { count: cartCount, openCart, lastAddedAt } = useCart();
-  const { isAuthenticated, isLoading, openLoginDialog, logout } = useAuth();
+  const { isAuthenticated, isLoading, user, openLoginDialog, logout } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [cartPop, setCartPop] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -90,8 +94,8 @@ export function MobileNav({ className }: MobileNavProps) {
               ))}
               {isAuthenticated && (
                 <NavLink
-                  href="/account"
-                  label="Profile"
+                  href={isAdmin ? ADMIN_DASHBOARD_PATH : '/account'}
+                  label={isAdmin ? 'Dashboard' : 'Profile'}
                   onNavigate={() => setOpen(false)}
                 />
               )}
@@ -127,8 +131,9 @@ export function MobileNav({ className }: MobileNavProps) {
                     void (async () => {
                       setIsLoggingOut(true);
                       try {
-                        await logout();
                         setOpen(false);
+                        await logout();
+                        router.replace('/');
                       } finally {
                         setIsLoggingOut(false);
                       }

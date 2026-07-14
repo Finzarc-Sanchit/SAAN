@@ -239,12 +239,7 @@ export function AtelierStatsSection() {
               {stats.map((stat, index) => (
                 <AnimatedStat key={stat.label} index={index}>
                   <div className="text-left">
-                    <p
-                      className={cn(
-                        'inline-flex w-fit text-[clamp(3rem,8vw,5.5rem)] leading-none font-bold tracking-tight',
-                        'accent' in stat && stat.accent && 'bg-white/15 px-4 py-2'
-                      )}
-                    >
+                    <p className="inline-flex w-fit text-[clamp(3rem,8vw,5.5rem)] leading-none font-bold tracking-tight">
                       <CountUpNumber value={stat.value} suffix={stat.suffix} />
                     </p>
                     <p className="mt-4 text-xs font-bold tracking-[0.18em] uppercase sm:text-sm">
