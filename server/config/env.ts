@@ -18,6 +18,24 @@ function normalizeCloudinaryEnv(): void {
 
 normalizeCloudinaryEnv();
 
+function trimOptionalString(value: unknown): unknown {
+  if (typeof value !== 'string') {
+    return value;
+  }
+  const trimmed = value.trim();
+  return trimmed === '' ? undefined : trimmed;
+}
+
+function isRazorpayTestMode(data: {
+  RAZORPAY_TEST_MODE: boolean;
+  RAZORPAY_KEY_ID?: string;
+}): boolean {
+  if (data.RAZORPAY_TEST_MODE) {
+    return true;
+  }
+  return data.RAZORPAY_KEY_ID?.startsWith('rzp_test_') ?? false;
+}
+
 const envSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -50,9 +68,13 @@ const envSchema = z
     EMAIL_FROM_NAME: z.string().min(1).default('SAAN'),
     EMAIL_FROM_ADDRESS: z.string().email().default('no-reply@saan.com'),
     APP_URL: z.string().url().default('http://localhost:3000'),
-    RAZORPAY_KEY_ID: z.string().min(1).optional(),
-    RAZORPAY_KEY_SECRET: z.string().min(1).optional(),
-    RAZORPAY_WEBHOOK_SECRET: z.string().min(1).optional(),
+    RAZORPAY_TEST_MODE: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((value) => value === 'true'),
+    RAZORPAY_KEY_ID: z.preprocess(trimOptionalString, z.string().min(1).optional()),
+    RAZORPAY_KEY_SECRET: z.preprocess(trimOptionalString, z.string().min(1).optional()),
+    RAZORPAY_WEBHOOK_SECRET: z.preprocess(trimOptionalString, z.string().min(1).optional()),
     CLOUDINARY_CLOUD_NAME: z.preprocess(
       (value) => (value === '' ? undefined : value),
       z.string().min(1).optional(),
@@ -72,10 +94,23 @@ const envSchema = z
       return;
     }
 
+    const razorpayKeys = isRazorpayTestMode(data)
+      ? (['RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET'] as const)
+      : (['RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET', 'RAZORPAY_WEBHOOK_SECRET'] as const);
+
+    for (const key of razorpayKeys) {
+      if (!data[key]) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: isRazorpayTestMode(data)
+            ? 'Required in production (test mode)'
+            : 'Required in production',
+          path: [key],
+        });
+      }
+    }
+
     for (const key of [
-      'RAZORPAY_KEY_ID',
-      'RAZORPAY_KEY_SECRET',
-      'RAZORPAY_WEBHOOK_SECRET',
       'CLOUDINARY_CLOUD_NAME',
       'CLOUDINARY_API_KEY',
       'CLOUDINARY_API_SECRET',
@@ -91,6 +126,7 @@ const envSchema = z
   })
   .transform((data) => ({
     ...data,
+    RAZORPAY_TEST_MODE: isRazorpayTestMode(data),
     RAZORPAY_KEY_ID: data.RAZORPAY_KEY_ID ?? 'rzp_test_dev_placeholder',
     RAZORPAY_KEY_SECRET: data.RAZORPAY_KEY_SECRET ?? 'dev_razorpay_secret_placeholder',
     RAZORPAY_WEBHOOK_SECRET: data.RAZORPAY_WEBHOOK_SECRET ?? 'whsec_dev_webhook_placeholder',
