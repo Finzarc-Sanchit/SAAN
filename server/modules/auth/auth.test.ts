@@ -47,6 +47,7 @@ function createMockRepository(): jest.Mocked<IAuthRepository> {
     setPasswordResetToken: jest.fn(),
     clearPasswordResetToken: jest.fn(),
     updatePassword: jest.fn(),
+    updateProfile: jest.fn(),
     updateRefreshTokenHash: jest.fn(),
     incrementRefreshTokenVersion: jest.fn(),
   };

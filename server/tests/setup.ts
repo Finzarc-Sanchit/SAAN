@@ -25,3 +25,7 @@ process.env.EMAIL_FROM_ADDRESS = 'noreply@test.local';
 process.env.RAZORPAY_KEY_ID = 'rzp_test_key_id';
 process.env.RAZORPAY_KEY_SECRET = 'rzp_test_key_secret';
 process.env.RAZORPAY_WEBHOOK_SECRET = 'whsec_test_webhook_secret';
+process.env.CLOUDINARY_CLOUD_NAME = 'test_cloud';
+process.env.CLOUDINARY_API_KEY = 'test_key';
+process.env.CLOUDINARY_API_SECRET = 'test_secret';
+process.env.CLOUDINARY_FOLDER = 'saan/products';

@@ -17,6 +17,7 @@ import {
   parseAuthPageMode,
   type AuthPageMode,
 } from '@/lib/auth/auth-page';
+import { getPostAuthPath, ADMIN_DASHBOARD_PATH } from '@/lib/auth/post-auth-redirect';
 import { useGuestOnly } from '@/hooks/useGuestOnly';
 import { applyAuthSession } from '@/lib/auth/csrf';
 import { setAccessToken } from '@/lib/auth/token-store';
@@ -43,7 +44,10 @@ function RegisterPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { completeAuth } = useAuth();
-  const { isLoading: isAuthLoading } = useGuestOnly({ redirectTo: '/' });
+  const { isLoading: isAuthLoading } = useGuestOnly({
+    redirectTo: '/',
+    adminRedirectTo: ADMIN_DASHBOARD_PATH,
+  });
 
   const mode = useMemo(
     () => parseAuthPageMode(searchParams.get('mode')),
@@ -68,11 +72,21 @@ function RegisterPageContent() {
     [router, returnTo],
   );
 
-  const redirectAfterAuth = useCallback(() => {
-    const destination = sessionStorage.getItem(AUTH_RETURN_KEY) ?? '/';
-    sessionStorage.removeItem(AUTH_RETURN_KEY);
-    router.push(destination);
-  }, [router]);
+  const redirectAfterAuth = useCallback(
+    (session?: AuthSession) => {
+      const storedReturn = sessionStorage.getItem(AUTH_RETURN_KEY);
+      sessionStorage.removeItem(AUTH_RETURN_KEY);
+
+      const role = session?.user.role;
+      if (role === 'admin') {
+        router.push(getPostAuthPath('admin'));
+        return;
+      }
+
+      router.push(getPostAuthPath('customer', storedReturn));
+    },
+    [router],
+  );
 
   const handleRegistered = (email: string) => {
     setPendingEmail(email);
@@ -86,7 +100,7 @@ function RegisterPageContent() {
     setFlowStep(3);
 
     window.setTimeout(() => {
-      redirectAfterAuth();
+      redirectAfterAuth(session);
     }, 1800);
   };
 

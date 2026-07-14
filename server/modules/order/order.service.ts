@@ -5,6 +5,7 @@ import { NotFoundError } from '../../shared/errors/not-found-error';
 import { ValidationError } from '../../shared/errors/validation-error';
 import type { IIdempotencyStore } from '../../shared/idempotency/idempotency-store.interface';
 import type { Paginated, Pagination } from '../../shared/types/pagination';
+import type { IAuthRepository } from '../auth/auth.repository.interface';
 import type { CartService } from '../cart/cart.service';
 import type { ProductService } from '../product/product.service';
 import type { UserService } from '../user/user.service';
@@ -12,6 +13,9 @@ import { ORDER_CONSTANTS } from './order.constants';
 import { computeOrderTotals } from './order.pricing';
 import type { IOrderRepository } from './order.repository.interface';
 import type {
+  AdminOrderDetail,
+  AdminOrderListFilter,
+  AdminOrderListItem,
   Order,
   OrderAddressSnapshot,
   OrderPaymentStatus,
@@ -69,10 +73,42 @@ export class OrderService {
     private readonly userService: UserService,
     private readonly productService: ProductService,
     private readonly idempotencyStore: IIdempotencyStore,
+    private readonly authRepository: IAuthRepository,
   ) {}
 
   async listOrdersForUser(userId: string, pagination: Pagination): Promise<Paginated<Order>> {
     return this.orderRepository.findByUser(userId, pagination);
+  }
+
+  async listOrdersAdmin(
+    filter: AdminOrderListFilter,
+    pagination: Pagination,
+  ): Promise<Paginated<AdminOrderListItem>> {
+    return this.orderRepository.findManyAdmin(filter, pagination);
+  }
+
+  async getOrderAdminDetail(orderId: string): Promise<AdminOrderDetail> {
+    const order = await this.orderRepository.findById(orderId);
+    if (!order) {
+      throw new NotFoundError('Order not found');
+    }
+
+    const user = await this.authRepository.findById(order.userId);
+
+    return {
+      ...order,
+      customer: user
+        ? {
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+          }
+        : {
+            email: 'Unknown',
+            firstName: '',
+            lastName: '',
+          },
+    };
   }
 
   async getOrderById(orderId: string, requesterId: string, isAdmin: boolean): Promise<Order> {

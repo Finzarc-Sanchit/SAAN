@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { USER_ROLES } from '../../shared/constants';
 import { successResponse } from '../../shared/utils/response';
-import type { OrderListQueryDto, PlaceOrderDto, UpdateOrderStatusDto } from './order.dto';
+import type { AdminOrderListQueryDto, OrderListQueryDto, PlaceOrderDto, UpdateOrderStatusDto } from './order.dto';
 import type { OrderService } from './order.service';
 
 export class OrderController {
@@ -37,6 +37,30 @@ export class OrderController {
     const { id } = req.params as { id: string };
     const { status } = req.body as UpdateOrderStatusDto;
     const order = await this.orderService.updateStatus(id, status);
+    res.status(200).json(successResponse(order));
+  };
+
+  listOrdersAdmin = async (req: Request, res: Response): Promise<void> => {
+    const query = req.query as unknown as AdminOrderListQueryDto;
+    const { page, limit, status, paymentStatus, search, from, to } = query;
+
+    const result = await this.orderService.listOrdersAdmin(
+      { status, paymentStatus, search, from, to },
+      { page, limit },
+    );
+
+    res.status(200).json(
+      successResponse(result.items, {
+        page: result.page,
+        limit: result.limit,
+        total: result.total,
+      }),
+    );
+  };
+
+  getOrderAdmin = async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params as { id: string };
+    const order = await this.orderService.getOrderAdminDetail(id);
     res.status(200).json(successResponse(order));
   };
 }

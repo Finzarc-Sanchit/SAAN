@@ -46,6 +46,11 @@ export interface UpdateUnverifiedUserInput {
   otpExpiresAt: Date;
 }
 
+export interface UpdateProfileInput {
+  firstName: string;
+  lastName: string;
+}
+
 export interface OtpUpdateInput {
   otpHash: string;
   otpExpiresAt: Date;

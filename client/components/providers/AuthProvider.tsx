@@ -9,14 +9,14 @@ import {
   useRef,
   useState,
 } from 'react';
-import type { User } from '@/lib/types/auth';
-import type { LoginInput, RegisterInput } from '@/lib/types/auth.schemas';
+import type { AuthSession, User } from '@/lib/types/auth';
+import type { LoginInput, RegisterInput, UpdateProfileInput } from '@/lib/types/auth.schemas';
 import * as authApi from '@/lib/api/auth';
 import { clearSession, restoreSession } from '@/lib/api/client';
 import { broadcastAuthSync, subscribeToAuthSync } from '@/lib/auth/auth-sync';
 import { applyAuthSession } from '@/lib/auth/csrf';
 import { readStoredSession } from '@/lib/auth/session-storage';
-import { setAccessToken } from '@/lib/auth/token-store';
+import { getAccessToken, setAccessToken } from '@/lib/auth/token-store';
 
 export type AuthDialogStep =
   | 'login'
@@ -38,9 +38,10 @@ type AuthContextValue = {
   setPendingEmail: (email: string | null) => void;
   queuePendingAction: (action: () => void) => void;
   completeAuth: (session: { user: User; accessToken: string; csrfToken?: string }) => void;
-  login: (input: LoginInput) => Promise<void>;
+  login: (input: LoginInput) => Promise<AuthSession>;
   register: (input: RegisterInput) => Promise<void>;
   logout: () => Promise<void>;
+  updateProfile: (input: UpdateProfileInput) => Promise<User>;
   refreshUser: () => Promise<void>;
 };
 
@@ -166,9 +167,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = useCallback(
-    async (input: LoginInput) => {
+    async (input: LoginInput): Promise<AuthSession> => {
       const session = await authApi.login(input);
       completeAuth(session);
+      return session;
     },
     [completeAuth],
   );
@@ -189,6 +191,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const updateProfile = useCallback(async (input: UpdateProfileInput) => {
+    const updatedUser = await authApi.updateProfile(input);
+    setUser(updatedUser);
+    const token = getAccessToken();
+    if (token) {
+      setAccessToken(token, updatedUser);
+    }
+    return updatedUser;
+  }, []);
+
   const value = useMemo(
     () => ({
       user,
@@ -206,6 +218,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       login,
       register,
       logout,
+      updateProfile,
       refreshUser,
     }),
     [
@@ -221,6 +234,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       login,
       register,
       logout,
+      updateProfile,
       refreshUser,
     ],
   );

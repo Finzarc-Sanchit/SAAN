@@ -1,7 +1,17 @@
+import { Types } from 'mongoose';
 import { NotFoundError } from '../../../../shared/errors/not-found-error';
+import { USER_ROLES, type UserRole } from '../../../../shared/constants';
 import type { IUserRepository } from '../../../../modules/user/user.repository.interface';
+import type {
+  AdminCustomerDetail,
+  AdminCustomerListFilter,
+  AdminCustomerListItem,
+} from '../../../../modules/user/customer.admin.types';
 import type { Address, UpdateAddressInput } from '../../../../modules/user/user.types';
+import type { Paginated, Pagination } from '../../../../shared/types/pagination';
+import { normalizePagination } from '../../../../shared/utils/pagination';
 import { UserModel } from '../models/user.model';
+import { OrderModel } from '../models/order.model';
 
 type RawAddress = {
   addressId: string;
@@ -255,5 +265,187 @@ export class MongoUserRepository implements IUserRepository {
     }
 
     return findAddressInDoc((doc.addresses ?? []) as RawAddress[], addressId);
+  }
+
+  async countUsersBetween(from: Date, to: Date, role?: UserRole): Promise<number> {
+    const filter: Record<string, unknown> = {
+      createdAt: { $gte: from, $lt: to },
+    };
+
+    if (role) {
+      filter.role = role;
+    }
+
+    return UserModel.countDocuments(filter).exec();
+  }
+
+  async findCustomersAdmin(
+    filter: AdminCustomerListFilter,
+    pagination: Pagination,
+  ): Promise<Paginated<AdminCustomerListItem>> {
+    const match: Record<string, unknown> = {
+      role: USER_ROLES.CUSTOMER,
+    };
+
+    if (filter.isVerified !== undefined) {
+      match.isVerified = filter.isVerified;
+    }
+
+    if (filter.from || filter.to) {
+      const createdAt: Record<string, Date> = {};
+      if (filter.from) {
+        createdAt.$gte = filter.from;
+      }
+      if (filter.to) {
+        createdAt.$lt = filter.to;
+      }
+      match.createdAt = createdAt;
+    }
+
+    const searchTerm = filter.search?.trim();
+    if (searchTerm) {
+      const escaped = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(escaped, 'i');
+      match.$or = [{ email: regex }, { firstName: regex }, { lastName: regex }];
+    }
+
+    const { page, limit, skip } = normalizePagination(pagination);
+
+    const [facet] = await UserModel.aggregate<{
+      items: Array<{
+        _id: Types.ObjectId;
+        email: string;
+        firstName: string;
+        lastName: string;
+        isVerified: boolean;
+        createdAt: Date;
+        orderCount: number;
+        totalSpent: number;
+      }>;
+      total: Array<{ count: number }>;
+    }>([
+      { $match: match },
+      {
+        $lookup: {
+          from: 'orders',
+          let: { userId: '$_id' },
+          pipeline: [
+            { $match: { $expr: { $eq: ['$userId', '$$userId'] } } },
+            {
+              $group: {
+                _id: null,
+                orderCount: { $sum: 1 },
+                totalSpent: {
+                  $sum: {
+                    $cond: [{ $eq: ['$paymentStatus', 'paid'] }, '$total', 0],
+                  },
+                },
+              },
+            },
+          ],
+          as: 'orderStats',
+        },
+      },
+      {
+        $addFields: {
+          orderCount: {
+            $ifNull: [{ $arrayElemAt: ['$orderStats.orderCount', 0] }, 0],
+          },
+          totalSpent: {
+            $ifNull: [{ $arrayElemAt: ['$orderStats.totalSpent', 0] }, 0],
+          },
+        },
+      },
+      { $project: { orderStats: 0 } },
+      { $sort: { createdAt: -1 } },
+      {
+        $facet: {
+          items: [{ $skip: skip }, { $limit: limit }],
+          total: [{ $count: 'count' }],
+        },
+      },
+    ]).exec();
+
+    const rows = facet?.items ?? [];
+    const total = facet?.total[0]?.count ?? 0;
+
+    return {
+      items: rows.map((row) => ({
+        id: row._id.toString(),
+        email: row.email,
+        firstName: row.firstName,
+        lastName: row.lastName,
+        isVerified: row.isVerified,
+        orderCount: row.orderCount,
+        totalSpent: row.totalSpent,
+        createdAt: row.createdAt,
+      })),
+      page,
+      limit,
+      total,
+    };
+  }
+
+  async findCustomerAdminById(id: string): Promise<AdminCustomerDetail | null> {
+    if (!Types.ObjectId.isValid(id)) {
+      return null;
+    }
+
+    const userObjectId = new Types.ObjectId(id);
+
+    const [userDoc, orderStatsRows, recentOrderDocs] = await Promise.all([
+      UserModel.findOne({ _id: userObjectId, role: USER_ROLES.CUSTOMER })
+        .select('email firstName lastName isVerified addresses createdAt updatedAt')
+        .lean()
+        .exec(),
+      OrderModel.aggregate<{ orderCount: number; totalSpent: number; lastOrderAt: Date | null }>([
+        { $match: { userId: userObjectId } },
+        {
+          $group: {
+            _id: null,
+            orderCount: { $sum: 1 },
+            totalSpent: {
+              $sum: {
+                $cond: [{ $eq: ['$paymentStatus', 'paid'] }, '$total', 0],
+              },
+            },
+            lastOrderAt: { $max: '$createdAt' },
+          },
+        },
+      ]).exec(),
+      OrderModel.find({ userId: userObjectId })
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .select('total status paymentStatus createdAt')
+        .lean()
+        .exec(),
+    ]);
+
+    if (!userDoc) {
+      return null;
+    }
+
+    const orderStats = orderStatsRows[0];
+
+    return {
+      id: userDoc._id.toString(),
+      email: userDoc.email,
+      firstName: userDoc.firstName,
+      lastName: userDoc.lastName,
+      isVerified: userDoc.isVerified,
+      addresses: (userDoc.addresses ?? []).map((entry) => toDomainAddress(entry as RawAddress)),
+      orderCount: orderStats?.orderCount ?? 0,
+      totalSpent: orderStats?.totalSpent ?? 0,
+      lastOrderAt: orderStats?.lastOrderAt ?? null,
+      recentOrders: recentOrderDocs.map((order) => ({
+        id: order._id.toString(),
+        total: order.total,
+        status: order.status,
+        paymentStatus: order.paymentStatus,
+        createdAt: order.createdAt,
+      })),
+      createdAt: userDoc.createdAt,
+      updatedAt: userDoc.updatedAt,
+    };
   }
 }

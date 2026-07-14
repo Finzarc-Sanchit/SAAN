@@ -1,8 +1,10 @@
+import { NotFoundError } from '../../../../shared/errors/not-found-error';
 import type { IAuthRepository } from '../../../../modules/auth/auth.repository.interface';
 import type {
   CreateUserInput,
   OtpUpdateInput,
   PasswordResetUpdateInput,
+  UpdateProfileInput,
   UpdateUnverifiedUserInput,
   User,
   UserWithCredentials,
@@ -175,6 +177,25 @@ export class MongoAuthRepository implements IAuthRepository {
 
   async updatePassword(userId: string, passwordHash: string): Promise<void> {
     await UserModel.findByIdAndUpdate(userId, { passwordHash }).exec();
+  }
+
+  async updateProfile(userId: string, data: UpdateProfileInput): Promise<User> {
+    const doc = await UserModel.findByIdAndUpdate(
+      userId,
+      {
+        firstName: data.firstName.trim(),
+        lastName: data.lastName.trim(),
+      },
+      { new: true },
+    )
+      .lean<UserDocument>()
+      .exec();
+
+    if (!doc) {
+      throw new NotFoundError('User not found');
+    }
+
+    return toDomainUser(doc);
   }
 
   async updateRefreshTokenHash(userId: string, tokenHash: string | null): Promise<void> {

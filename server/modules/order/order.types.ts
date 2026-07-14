@@ -73,3 +73,34 @@ export type PlaceOrderAddressInput =
       state: string;
       postalCode: string;
     };
+
+export type AdminOrderCustomer = {
+  email: string;
+  firstName: string;
+  lastName: string;
+};
+
+export type AdminOrderListItem = {
+  id: string;
+  userId: string;
+  customerEmail: string;
+  customerName: string;
+  itemCount: number;
+  total: number;
+  currency: string;
+  status: OrderStatus;
+  paymentStatus: OrderPaymentStatus;
+  createdAt: Date;
+};
+
+export type AdminOrderListFilter = {
+  status?: OrderStatus;
+  paymentStatus?: OrderPaymentStatus;
+  search?: string;
+  from?: Date;
+  to?: Date;
+};
+
+export type AdminOrderDetail = Order & {
+  customer: AdminOrderCustomer;
+};

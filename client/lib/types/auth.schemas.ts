@@ -59,6 +59,11 @@ export const resetPasswordFormSchema = resetPasswordSchema
     path: ['confirmPassword'],
   });
 
+export const updateProfileSchema = z.object({
+  firstName: z.string().min(1, 'First name is required').max(100),
+  lastName: z.string().min(1, 'Last name is required').max(100),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type RegisterFormInput = z.infer<typeof registerFormSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
@@ -67,3 +72,4 @@ export type ResendOtpInput = z.infer<typeof resendOtpSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type ResetPasswordFormInput = z.infer<typeof resetPasswordFormSchema>;
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;

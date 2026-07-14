@@ -63,6 +63,7 @@ const orderSchema = new Schema(
       type: String,
       enum: ['pending', 'paid', 'failed', 'refunded'],
       default: 'pending',
+      index: true,
     },
   },
   {
@@ -93,6 +94,7 @@ const orderSchema = new Schema(
 );
 
 orderSchema.index({ createdAt: -1 });
+orderSchema.index({ paymentStatus: 1, createdAt: -1 });
 
 export const OrderModel = model('Order', orderSchema);
 

@@ -35,9 +35,15 @@ export const resetPasswordDto = z.object({
   newPassword: passwordSchema,
 });
 
+export const updateProfileDto = z.object({
+  firstName: z.string().min(1, 'First name is required').max(100),
+  lastName: z.string().min(1, 'Last name is required').max(100),
+});
+
 export type RegisterDto = z.infer<typeof registerDto>;
 export type LoginDto = z.infer<typeof loginDto>;
 export type VerifyOtpDto = z.infer<typeof verifyOtpDto>;
 export type ResendOtpDto = z.infer<typeof resendOtpDto>;
 export type ForgotPasswordDto = z.infer<typeof forgotPasswordDto>;
 export type ResetPasswordDto = z.infer<typeof resetPasswordDto>;
+export type UpdateProfileDto = z.infer<typeof updateProfileDto>;

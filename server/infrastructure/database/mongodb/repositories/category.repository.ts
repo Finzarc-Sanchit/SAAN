@@ -2,11 +2,13 @@ import { Types } from 'mongoose';
 import type { ICategoryRepository } from '../../../../modules/category/category.repository.interface';
 import type {
   Category,
+  CategoryListItem,
   CategoryRepositoryCreateInput,
   CategoryRepositoryUpdateInput,
 } from '../../../../modules/category/category.types';
 import { NotFoundError } from '../../../../shared/errors/not-found-error';
 import { CategoryModel, type CategoryDocument } from '../models/category.model';
+import { ProductModel } from '../models/product.model';
 
 function toDomainCategory(doc: CategoryDocument): Category {
   return {
@@ -15,6 +17,11 @@ function toDomainCategory(doc: CategoryDocument): Category {
     slug: doc.slug,
   };
 }
+
+type CategoryProductCountRow = {
+  _id: Types.ObjectId;
+  count: number;
+};
 
 export class MongoCategoryRepository implements ICategoryRepository {
   async findById(id: string): Promise<Category | null> {
@@ -33,9 +40,22 @@ export class MongoCategoryRepository implements ICategoryRepository {
     return doc ? toDomainCategory(doc) : null;
   }
 
-  async findMany(): Promise<Category[]> {
-    const docs = await CategoryModel.find().sort({ name: 1 }).lean<CategoryDocument[]>().exec();
-    return docs.map(toDomainCategory);
+  async findMany(): Promise<CategoryListItem[]> {
+    const [docs, countRows] = await Promise.all([
+      CategoryModel.find().sort({ name: 1 }).lean<CategoryDocument[]>().exec(),
+      ProductModel.aggregate<CategoryProductCountRow>([
+        { $group: { _id: '$categoryId', count: { $sum: 1 } } },
+      ]).exec(),
+    ]);
+
+    const countByCategoryId = new Map(
+      countRows.map((row) => [row._id.toString(), row.count] as const),
+    );
+
+    return docs.map((doc) => ({
+      ...toDomainCategory(doc),
+      productCount: countByCategoryId.get(doc._id.toString()) ?? 0,
+    }));
   }
 
   async create(data: CategoryRepositoryCreateInput): Promise<Category> {

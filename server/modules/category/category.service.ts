@@ -3,6 +3,7 @@ import { resolveUniqueSlug } from '../../shared/utils/slug';
 import type { ICategoryRepository } from './category.repository.interface';
 import type {
   Category,
+  CategoryListItem,
   CategoryRepositoryUpdateInput,
   CreateCategoryInput,
 } from './category.types';
@@ -10,7 +11,7 @@ import type {
 export class CategoryService {
   constructor(private readonly categoryRepository: ICategoryRepository) {}
 
-  async listCategories(): Promise<Category[]> {
+  async listCategories(): Promise<CategoryListItem[]> {
     return this.categoryRepository.findMany();
   }
 

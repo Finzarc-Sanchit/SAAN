@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "types": ["node"]
+    "types": ["node", "multer"]
   },
   "exclude": ["node_modules", "dist", "tests", "**/*.test.ts", "jest.config.ts", "dev-server.ts"]
 }

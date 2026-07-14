@@ -1,10 +1,9 @@
-import { sanityClient } from '@/lib/sanity/client';
-import { isSanityConfigured } from '@/lib/sanity/env';
-import { urlFor } from '@/lib/sanity/image';
-import { ACTIVE_CAMPAIGNS_QUERY } from '@/lib/sanity/queries';
-import type { Campaign, SanityCampaignDoc } from '@/lib/types/campaign';
+import type { ApiResponse } from '@/lib/types/api';
+import type { Campaign } from '@/lib/types/campaign';
+import { getBackendOrigin } from '@/lib/api/config';
 
-const FALLBACK_CAMPAIGNS: Campaign[] = [
+/** Temporary static slides — always included until CMS content fully replaces them. */
+const STATIC_CAMPAIGNS: Campaign[] = [
   {
     id: 'fallback-resort-2026',
     tag: 'Resort 2026',
@@ -45,37 +44,68 @@ export function isCampaignActive(campaign: Campaign, now = Date.now()): boolean 
   return now >= start && now < end;
 }
 
-function mapSanityCampaign(doc: SanityCampaignDoc): Campaign {
-  return {
-    id: doc._id,
-    tag: doc.tag,
-    title: doc.title,
-    description: doc.description,
-    image: {
-      url: urlFor(doc.image).width(1400).auto('format').url(),
-      alt: doc.image?.alt ?? doc.title,
-    },
-    discountPercent: doc.discountPercent ?? null,
-    cta: { label: doc.ctaText, href: doc.ctaLink },
-    startDate: doc.startDate,
-    endDate: doc.endDate,
-    priority: doc.priority,
-  };
+function getStaticCampaigns(): Campaign[] {
+  return STATIC_CAMPAIGNS.filter((campaign) => isCampaignActive(campaign));
 }
 
-export async function getActiveCampaigns(): Promise<Campaign[]> {
-  if (!isSanityConfigured() || !sanityClient) {
-    return FALLBACK_CAMPAIGNS.filter((campaign) => isCampaignActive(campaign)).sort(
-      (a, b) => a.priority - b.priority
-    );
+/**
+ * Merge static + API campaigns. Backend entries win on matching `id`.
+ * Sorted by priority (ascending).
+ */
+function mergeCampaigns(staticCampaigns: Campaign[], fromApi: Campaign[]): Campaign[] {
+  const byId = new Map<string, Campaign>();
+
+  for (const campaign of staticCampaigns) {
+    byId.set(campaign.id, campaign);
   }
 
-  try {
-    const docs = await sanityClient.fetch<SanityCampaignDoc[]>(ACTIVE_CAMPAIGNS_QUERY);
-    return docs.map(mapSanityCampaign);
-  } catch {
-    return FALLBACK_CAMPAIGNS.filter((campaign) => isCampaignActive(campaign)).sort(
-      (a, b) => a.priority - b.priority
-    );
+  for (const campaign of fromApi) {
+    byId.set(campaign.id, campaign);
   }
+
+  return [...byId.values()]
+    .filter((campaign) => isCampaignActive(campaign))
+    .sort((a, b) => a.priority - b.priority);
+}
+
+async function parseActiveCampaignsResponse(response: Response): Promise<Campaign[]> {
+  if (!response.ok) {
+    return [];
+  }
+
+  const json = (await response.json()) as ApiResponse<Campaign[]>;
+  if (!json.success || !Array.isArray(json.data)) {
+    return [];
+  }
+
+  return json.data;
+}
+
+async function fetchFromBackend(url: string): Promise<Campaign[]> {
+  try {
+    const response = await fetch(url, { cache: 'no-store' });
+    return await parseActiveCampaignsResponse(response);
+  } catch {
+    return [];
+  }
+}
+
+/** Browser: static slides + `GET /api/v1/campaigns/active` (via Next rewrite). */
+export async function fetchActiveCampaignsClient(): Promise<Campaign[]> {
+  const fromApi = await fetchFromBackend('/api/v1/campaigns/active');
+  return mergeCampaigns(getStaticCampaigns(), fromApi);
+}
+
+/** Server Component: static slides + Express `/api/v1/campaigns/active`. */
+export async function getActiveCampaigns(): Promise<Campaign[]> {
+  let fromApi: Campaign[] = [];
+
+  try {
+    const origin = getBackendOrigin();
+    fromApi = await fetchFromBackend(`${origin}/api/v1/campaigns/active`);
+  } catch {
+    fromApi = [];
+  }
+
+  return mergeCampaigns(getStaticCampaigns(), fromApi);
 }

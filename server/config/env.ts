@@ -3,41 +3,70 @@ import { z } from 'zod';
 
 loadEnv();
 
-const envSchema = z.object({
-  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  PORT: z.coerce.number().default(4000),
-  MONGO_URI: z.string().min(1),
-  REDIS_URL: z.string().min(1),
-  JWT_ACCESS_SECRET: z.string().min(32),
-  JWT_REFRESH_SECRET: z.string().min(32),
-  JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),
-  JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
-  CORS_ORIGINS: z
-    .string()
-    .default('http://localhost:3000')
-    .transform((value) => value.split(',').map((origin) => origin.trim())),
-  BCRYPT_ROUNDS: z.coerce.number().min(12).default(12),
-  COOKIE_SECURE: z
-    .enum(['true', 'false'])
-    .default('false')
-    .transform((value) => value === 'true'),
-  COOKIE_SAME_SITE: z.enum(['strict', 'lax', 'none']).default('lax'),
-  REFRESH_TOKEN_COOKIE_NAME: z.string().default('saan_refresh_token'),
-  CSRF_TOKEN_COOKIE_NAME: z.string().default('saan_csrf_token'),
-  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
-  OTP_EXPIRY_MINUTES: z.coerce.number().min(1).default(10),
-  PASSWORD_RESET_EXPIRY_MINUTES: z.coerce.number().min(1).default(30),
-  SMTP_HOST: z.string().min(1),
-  SMTP_PORT: z.coerce.number().default(587),
-  SMTP_USER: z.string().min(1),
-  SMTP_PASSWORD: z.string().min(1),
-  EMAIL_FROM_NAME: z.string().min(1).default('SAAN'),
-  EMAIL_FROM_ADDRESS: z.string().email().default('no-reply@saan.com'),
-  APP_URL: z.string().url().default('http://localhost:3000'),
-  RAZORPAY_KEY_ID: z.string().min(1).optional(),
-  RAZORPAY_KEY_SECRET: z.string().min(1).optional(),
-  RAZORPAY_WEBHOOK_SECRET: z.string().min(1).optional(),
-})
+/** Accept common alternate names (e.g. CLOUD_NAME) so server/.env typos still work. */
+function normalizeCloudinaryEnv(): void {
+  if (!process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUD_NAME) {
+    process.env.CLOUDINARY_CLOUD_NAME = process.env.CLOUD_NAME;
+  }
+  if (!process.env.CLOUDINARY_API_KEY && process.env.CLOUD_API_KEY) {
+    process.env.CLOUDINARY_API_KEY = process.env.CLOUD_API_KEY;
+  }
+  if (!process.env.CLOUDINARY_API_SECRET && process.env.CLOUD_API_SECRET) {
+    process.env.CLOUDINARY_API_SECRET = process.env.CLOUD_API_SECRET;
+  }
+}
+
+normalizeCloudinaryEnv();
+
+const envSchema = z
+  .object({
+    NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+    PORT: z.coerce.number().default(4000),
+    MONGO_URI: z.string().min(1),
+    REDIS_URL: z.string().min(1),
+    JWT_ACCESS_SECRET: z.string().min(32),
+    JWT_REFRESH_SECRET: z.string().min(32),
+    JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),
+    JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
+    CORS_ORIGINS: z
+      .string()
+      .default('http://localhost:3000')
+      .transform((value) => value.split(',').map((origin) => origin.trim())),
+    BCRYPT_ROUNDS: z.coerce.number().min(12).default(12),
+    COOKIE_SECURE: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((value) => value === 'true'),
+    COOKIE_SAME_SITE: z.enum(['strict', 'lax', 'none']).default('lax'),
+    REFRESH_TOKEN_COOKIE_NAME: z.string().default('saan_refresh_token'),
+    CSRF_TOKEN_COOKIE_NAME: z.string().default('saan_csrf_token'),
+    LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
+    OTP_EXPIRY_MINUTES: z.coerce.number().min(1).default(10),
+    PASSWORD_RESET_EXPIRY_MINUTES: z.coerce.number().min(1).default(30),
+    SMTP_HOST: z.string().min(1),
+    SMTP_PORT: z.coerce.number().default(587),
+    SMTP_USER: z.string().min(1),
+    SMTP_PASSWORD: z.string().min(1),
+    EMAIL_FROM_NAME: z.string().min(1).default('SAAN'),
+    EMAIL_FROM_ADDRESS: z.string().email().default('no-reply@saan.com'),
+    APP_URL: z.string().url().default('http://localhost:3000'),
+    RAZORPAY_KEY_ID: z.string().min(1).optional(),
+    RAZORPAY_KEY_SECRET: z.string().min(1).optional(),
+    RAZORPAY_WEBHOOK_SECRET: z.string().min(1).optional(),
+    CLOUDINARY_CLOUD_NAME: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z.string().min(1).optional(),
+    ),
+    CLOUDINARY_API_KEY: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z.string().min(1).optional(),
+    ),
+    CLOUDINARY_API_SECRET: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z.string().min(1).optional(),
+    ),
+    CLOUDINARY_FOLDER: z.string().min(1).default('saan/products'),
+  })
   .superRefine((data, ctx) => {
     if (data.NODE_ENV !== 'production') {
       return;
@@ -47,6 +76,9 @@ const envSchema = z.object({
       'RAZORPAY_KEY_ID',
       'RAZORPAY_KEY_SECRET',
       'RAZORPAY_WEBHOOK_SECRET',
+      'CLOUDINARY_CLOUD_NAME',
+      'CLOUDINARY_API_KEY',
+      'CLOUDINARY_API_SECRET',
     ] as const) {
       if (!data[key]) {
         ctx.addIssue({
@@ -62,6 +94,9 @@ const envSchema = z.object({
     RAZORPAY_KEY_ID: data.RAZORPAY_KEY_ID ?? 'rzp_test_dev_placeholder',
     RAZORPAY_KEY_SECRET: data.RAZORPAY_KEY_SECRET ?? 'dev_razorpay_secret_placeholder',
     RAZORPAY_WEBHOOK_SECRET: data.RAZORPAY_WEBHOOK_SECRET ?? 'whsec_dev_webhook_placeholder',
+    CLOUDINARY_CLOUD_NAME: data.CLOUDINARY_CLOUD_NAME ?? 'dev_cloudinary_cloud',
+    CLOUDINARY_API_KEY: data.CLOUDINARY_API_KEY ?? 'dev_cloudinary_key',
+    CLOUDINARY_API_SECRET: data.CLOUDINARY_API_SECRET ?? 'dev_cloudinary_secret',
   }));
 
 export type Env = z.infer<typeof envSchema>;

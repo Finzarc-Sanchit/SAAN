@@ -28,7 +28,7 @@ export function HeroCtaButton({
       <Link
         href={href}
         className={cn(
-          'chamfer-btn text-label-caps inline-flex items-center justify-center px-10 py-4 tracking-[0.12em] transition-all duration-300 ease-out',
+          'chamfer-btn text-label-caps inline-flex cursor-pointer items-center justify-center px-10 py-4 tracking-[0.12em] transition-all duration-300 ease-out',
           variant === 'primary'
             ? 'bg-saan-maroon/90 text-saan-bone backdrop-blur-sm hover:bg-saan-gold hover:text-saan-bone'
             : 'border border-saan-bone/80 bg-black/20 text-saan-bone backdrop-blur-sm hover:border-saan-gold hover:text-saan-gold'

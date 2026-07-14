@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { ConflictError } from '../../shared/errors/conflict-error';
 import { InsufficientStockError } from '../../shared/errors/insufficient-stock-error';
 import { ValidationError } from '../../shared/errors/validation-error';
-import type { IIdempotencyStore } from '../../shared/idempotency/idempotency-store.interface';
+import type { IAuthRepository } from '../auth/auth.repository.interface';
 import type { CartService } from '../cart/cart.service';
 import type { ProductService } from '../product/product.service';
 import type { UserService } from '../user/user.service';
@@ -101,6 +101,12 @@ function createOrderRepositoryMock(): jest.Mocked<IOrderRepository> {
     create: jest.fn(),
     updateStatus: jest.fn(),
     updatePaymentStatus: jest.fn(),
+    getMonthlySales: jest.fn(),
+    getRevenueBetween: jest.fn(),
+    countOrdersBetween: jest.fn(),
+    getTimeSeries: jest.fn(),
+    getTopSellingProducts: jest.fn(),
+    findRecent: jest.fn(),
   };
 }
 
@@ -127,6 +133,12 @@ function createProductServiceMock(): jest.Mocked<
   };
 }
 
+function createAuthRepositoryMock(): jest.Mocked<Pick<IAuthRepository, 'findById'>> {
+  return {
+    findById: jest.fn(),
+  };
+}
+
 function createIdempotencyStoreMock(): jest.Mocked<IIdempotencyStore> {
   return {
     claimOrGetExisting: jest.fn(),
@@ -143,6 +155,7 @@ describe('OrderService.placeOrder', () => {
     Pick<ProductService, 'getProductById' | 'computeEffectivePrice' | 'adjustStock'>
   >;
   let idempotencyStore: jest.Mocked<IIdempotencyStore>;
+  let authRepository: jest.Mocked<Pick<IAuthRepository, 'findById'>>;
   let orderService: OrderService;
 
   beforeEach(() => {
@@ -151,12 +164,14 @@ describe('OrderService.placeOrder', () => {
     userService = createUserServiceMock();
     productService = createProductServiceMock();
     idempotencyStore = createIdempotencyStoreMock();
+    authRepository = createAuthRepositoryMock();
     orderService = new OrderService(
       orderRepository,
       cartService as unknown as CartService,
       userService as unknown as UserService,
       productService as unknown as ProductService,
       idempotencyStore,
+      authRepository as unknown as IAuthRepository,
     );
 
     idempotencyStore.claimOrGetExisting.mockResolvedValue({ type: 'claimed' });

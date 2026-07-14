@@ -215,8 +215,8 @@ export const ATELIER_LANDING_COPY = {
     { value: 0, suffix: '', label: 'Fast fashion', accent: true },
   ],
   heroImage: {
-    src: '/images/atelier/workshop-sewing.png',
-    alt: 'Industrial sewing machine and artisan fabric work in the SAAN Bandra atelier',
+    src: '/images/atelier/classic-portrait.png',
+    alt: 'SAAN artisan portrait from the Bandra atelier',
   },
   cta: {
     label: 'Visit the atelier',

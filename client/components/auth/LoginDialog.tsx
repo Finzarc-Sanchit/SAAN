@@ -1,11 +1,14 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { ForgotPasswordStep } from '@/components/auth/ForgotPasswordStep';
 import { LoginStep } from '@/components/auth/LoginStep';
 import { RegisterStep } from '@/components/auth/RegisterStep';
 import { VerifyOtpStep } from '@/components/auth/VerifyOtpStep';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { ModalShell } from '@/components/ui/ModalShell';
+import { getPostAuthPath } from '@/lib/auth/post-auth-redirect';
+import type { AuthSession } from '@/lib/types/auth';
 
 const TITLES = {
   login: 'Sign In',
@@ -16,6 +19,7 @@ const TITLES = {
 } as const;
 
 export function LoginDialog() {
+  const router = useRouter();
   const {
     isAuthenticated,
     isDialogOpen,
@@ -23,7 +27,16 @@ export function LoginDialog() {
     pendingEmail,
     closeLoginDialog,
     setDialogStep,
+    completeAuth,
   } = useAuth();
+
+  const handleAuthSuccess = (session: AuthSession) => {
+    completeAuth(session);
+    const destination = getPostAuthPath(session.user.role);
+    if (destination !== '/') {
+      router.push(destination);
+    }
+  };
 
   if (isAuthenticated) {
     return null;
@@ -39,6 +52,7 @@ export function LoginDialog() {
         <LoginStep
           onSwitchRegister={() => setDialogStep('register')}
           onForgotPassword={() => setDialogStep('forgot-password')}
+          onSuccess={handleAuthSuccess}
         />
       )}
 
@@ -50,6 +64,7 @@ export function LoginDialog() {
         <VerifyOtpStep
           email={pendingEmail}
           onBack={() => setDialogStep('login')}
+          onSuccess={handleAuthSuccess}
         />
       )}
 

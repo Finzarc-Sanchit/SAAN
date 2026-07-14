@@ -23,7 +23,7 @@ export function CtaButton({
   disabled = false,
 }: CtaButtonProps) {
   const base =
-    'inline-flex items-center justify-center text-label-caps transition-colors duration-300 ease-out';
+    'inline-flex cursor-pointer items-center justify-center text-label-caps transition-colors duration-300 ease-out disabled:cursor-not-allowed';
 
   const variants = {
     primary: cn(

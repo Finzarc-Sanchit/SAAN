@@ -2,6 +2,7 @@ import type {
   CreateUserInput,
   OtpUpdateInput,
   PasswordResetUpdateInput,
+  UpdateProfileInput,
   UpdateUnverifiedUserInput,
   User,
   UserWithCredentials,
@@ -20,6 +21,7 @@ export interface IAuthRepository {
   setPasswordResetToken(userId: string, data: PasswordResetUpdateInput): Promise<void>;
   clearPasswordResetToken(userId: string): Promise<void>;
   updatePassword(userId: string, passwordHash: string): Promise<void>;
+  updateProfile(userId: string, data: UpdateProfileInput): Promise<User>;
   updateRefreshTokenHash(userId: string, tokenHash: string | null): Promise<void>;
   incrementRefreshTokenVersion(userId: string): Promise<number>;
 }

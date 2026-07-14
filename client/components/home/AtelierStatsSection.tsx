@@ -21,6 +21,11 @@ const STAT_VARIANTS = [collectionSlideLeft, statSlideUp, collectionSlideRight] a
 const TYPEWRITER_SPEED = 42;
 const HEADLINE_LINE_1 = ATELIER_LANDING_COPY.headline;
 const HEADLINE_LINE_2 = ATELIER_LANDING_COPY.headlineAccent;
+/**
+ * Titles repeated inside each half so one segment stays wider than the viewport.
+ * The track always has exactly 2 identical segments for a seamless translateX(-50%) loop.
+ */
+const PRESS_SEGMENT_REPEATS = 6;
 
 function AnimatedStat({
   index,
@@ -49,14 +54,36 @@ function AnimatedStat({
   );
 }
 
+function PressSegment({
+  press,
+  keyPrefix,
+}: {
+  press: readonly { id: string; name: string }[];
+  keyPrefix: string;
+}) {
+  const items = Array.from({ length: PRESS_SEGMENT_REPEATS }, () => press).flat();
+
+  return (
+    <div className="press-segment">
+      {items.map((item, index) => (
+        <span
+          key={`${keyPrefix}-${item.id}-${index}`}
+          className="press-marquee-item font-display text-lg tracking-[0.08em] text-saan-bone/70 sm:text-xl md:text-2xl"
+        >
+          {item.name}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function PressMarquee() {
   const { pressEyebrow, press } = ATELIER_LANDING_COPY;
   const prefersReducedMotion = useReducedMotion();
-  const items = [...press, ...press];
 
   if (prefersReducedMotion) {
     return (
-      <div className="pb-8">
+      <div className="border-t border-saan-bone/10 bg-gradient-to-t from-black/70 to-transparent pb-8 pt-8">
         <Container>
           <p className="text-label-caps mb-4 text-saan-bone/60">{pressEyebrow}</p>
           <p className="text-sm font-light text-saan-bone/70">
@@ -68,8 +95,8 @@ function PressMarquee() {
   }
 
   return (
-    <div className="pb-6 pt-10">
-      <Container className="mb-4">
+    <div className="border-t border-saan-bone/10 bg-gradient-to-t from-black/75 via-black/35 to-transparent pb-8 pt-10 md:pb-10 md:pt-12">
+      <Container className="mb-5 md:mb-6">
         <p id="as-seen-in-heading" className="text-label-caps text-saan-bone/60">
           {pressEyebrow}
         </p>
@@ -80,18 +107,56 @@ function PressMarquee() {
         ))}
       </ul>
       <div className="marquee-container w-full" aria-hidden>
-        <div className="press-track animate-marquee-slow">
-          {items.map((item, index) => (
-            <span
-              key={`${item.id}-${index}`}
-              className="press-marquee-item font-display text-lg text-saan-bone/70 sm:text-xl"
-            >
-              {item.name}
-            </span>
-          ))}
+        <div className="press-track animate-marquee-press">
+          <PressSegment press={press} keyPrefix="a" />
+          <PressSegment press={press} keyPrefix="b" />
         </div>
       </div>
     </div>
+  );
+}
+
+function AtelierCta({ href, label }: { href: string; label: string }) {
+  const prefersReducedMotion = useReducedMotion();
+
+  if (prefersReducedMotion) {
+    return (
+      <CtaButton
+        href={href}
+        variant="primary"
+        tone="light"
+        className="chamfer-btn atelier-cta min-w-[12rem]"
+      >
+        {label}
+      </CtaButton>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.7, ease: [...LUXURY_EASE], delay: 0.15 }}
+      whileHover={{ y: -2 }}
+      whileTap={{ scale: 0.98 }}
+      className="inline-flex"
+    >
+      <CtaButton
+        href={href}
+        variant="primary"
+        tone="light"
+        className={cn(
+          'chamfer-btn atelier-cta min-w-[12rem]',
+          'shadow-[0_0_0_0_rgba(171,140,82,0)]',
+          'transition-[box-shadow,background-color,color,transform] duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]',
+          'hover:shadow-[0_8px_28px_-8px_rgba(171,140,82,0.55)]',
+          'focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-saan-gold',
+        )}
+      >
+        {label}
+      </CtaButton>
+    </motion.div>
   );
 }
 
@@ -107,7 +172,6 @@ export function AtelierStatsSection() {
   const introY = useTransform(scrollYProgress, [0, 1], prefersReducedMotion ? [0, 0] : [24, -48]);
   const bodyY = useTransform(scrollYProgress, [0, 1], prefersReducedMotion ? [0, 0] : [40, -72]);
   const statsY = useTransform(scrollYProgress, [0, 1], prefersReducedMotion ? [0, 0] : [56, -96]);
-  const ctaY = useTransform(scrollYProgress, [0, 1], prefersReducedMotion ? [0, 0] : [32, -40]);
 
   const { eyebrow, body, stats, heroImage, cta } = ATELIER_LANDING_COPY;
 
@@ -118,7 +182,7 @@ export function AtelierStatsSection() {
       aria-labelledby="atelier-landing-heading"
       className="relative z-10 text-saan-bone"
     >
-      <div className="sticky top-0 min-h-[90vh] overflow-hidden">
+      <div className="sticky top-0 flex min-h-[90vh] flex-col overflow-hidden">
         <div className="absolute inset-0">
           <Image
             src={heroImage.src}
@@ -131,8 +195,8 @@ export function AtelierStatsSection() {
         </div>
         <div className="absolute inset-0 bg-black/65" aria-hidden />
 
-        <div className="relative flex min-h-[90vh] flex-col justify-between pb-36 py-16 md:py-20 lg:py-24">
-          <Container className="flex flex-1 flex-col">
+        <div className="relative z-10 flex min-h-[90vh] flex-1 flex-col">
+          <Container className="flex flex-1 flex-col pb-10 pt-16 md:pb-12 md:pt-20 lg:pt-24">
             <motion.div style={{ y: introY }} className="max-w-3xl text-left">
               <div className="mb-6 flex items-center gap-4">
                 <span className="h-px w-10 bg-saan-bone/60" aria-hidden />
@@ -190,23 +254,13 @@ export function AtelierStatsSection() {
                 </AnimatedStat>
               ))}
             </motion.div>
+
+            <div className="mt-12 flex justify-start sm:mt-14 md:mt-16">
+              <AtelierCta href={cta.href} label={cta.label} />
+            </div>
           </Container>
 
-          <motion.div
-            style={{ y: ctaY }}
-            className="mt-16 flex justify-center px-5 md:mt-20 lg:justify-start lg:pl-5"
-          >
-            <CtaButton href={cta.href} variant="primary" className="chamfer-btn">
-              {cta.label}
-            </CtaButton>
-          </motion.div>
-        </div>
-
-        <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/80 via-black/40 to-transparent"
-          aria-labelledby="as-seen-in-heading"
-        >
-          <div className="pointer-events-auto">
+          <div className="relative z-10 mt-auto" aria-labelledby="as-seen-in-heading">
             <PressMarquee />
           </div>
         </div>

@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
 import { Karla, Playfair_Display } from 'next/font/google';
-import { Footer } from '@/components/layout/Footer';
-import { Header } from '@/components/layout/Header';
-import { MarqueeBar } from '@/components/layout/MarqueeBar';
+import { AppChrome } from '@/components/layout/AppChrome';
 import { LenisProvider } from '@/components/providers/LenisProvider';
 import { AppProviders } from '@/components/providers/AppProviders';
 import './globals.css';
@@ -44,10 +42,7 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         <LenisProvider>
           <AppProviders>
-            <MarqueeBar />
-            <Header />
-            {children}
-            <Footer />
+            <AppChrome>{children}</AppChrome>
           </AppProviders>
         </LenisProvider>
       </body>

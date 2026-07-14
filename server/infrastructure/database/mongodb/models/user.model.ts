@@ -154,6 +154,8 @@ const userSchema = new Schema(
   },
 );
 
+userSchema.index({ role: 1, createdAt: -1 });
+
 export const UserModel = model('User', userSchema);
 
 export type AddressDocument = {

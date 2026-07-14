@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import type { AuthSession } from '@/lib/types/auth';
 import { loginSchema } from '@/lib/types/auth.schemas';
 import { AuthFormField } from '@/components/auth/AuthFormField';
 import { AuthPasswordField } from '@/components/auth/AuthPasswordField';
@@ -14,7 +15,7 @@ type LoginStepProps = {
   onSwitchRegister: () => void;
   onForgotPassword: () => void;
   idPrefix?: string;
-  onSuccess?: () => void;
+  onSuccess?: (session: AuthSession) => void;
   onResendVerification?: (email: string) => void;
   showModeSwitch?: boolean;
 };
@@ -56,8 +57,8 @@ export function LoginStep({
     setIsSubmitting(true);
 
     try {
-      await login(parsed.data);
-      onSuccess?.();
+      const session = await login(parsed.data);
+      onSuccess?.(session);
     } catch (error) {
       if (error instanceof ApiError) {
         setFormError(getApiErrorMessage(error));

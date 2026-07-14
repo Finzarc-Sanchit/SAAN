@@ -6,6 +6,7 @@ import type { IEmailService } from '../../infrastructure/email/email.interface';
 import { logger } from '../../middlewares/request-logger';
 import { USER_ROLES } from '../../shared/constants';
 import { ConflictError } from '../../shared/errors/conflict-error';
+import { NotFoundError } from '../../shared/errors/not-found-error';
 import { UnauthorizedError } from '../../shared/errors/unauthorized-error';
 import {
   AUTH_CONSTANTS,
@@ -33,6 +34,7 @@ import type {
   RegisterDto,
   ResendOtpDto,
   ResetPasswordDto,
+  UpdateProfileDto,
   VerifyOtpDto,
 } from './auth.dto';
 import type { ILoginLockoutStore } from './login-lockout.interface';
@@ -194,6 +196,18 @@ export class AuthService {
   /** Invalidate the stored refresh token for the user. */
   async logout(userId: string): Promise<void> {
     await this.authRepository.updateRefreshTokenHash(userId, null);
+  }
+
+  async updateProfile(userId: string, input: UpdateProfileDto): Promise<User> {
+    const user = await this.authRepository.findById(userId);
+    if (!user) {
+      throw new NotFoundError('User not found');
+    }
+
+    return this.authRepository.updateProfile(userId, {
+      firstName: input.firstName.trim(),
+      lastName: input.lastName.trim(),
+    });
   }
 
   /** Send a password reset link without revealing account existence. */

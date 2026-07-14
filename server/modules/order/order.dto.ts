@@ -29,7 +29,23 @@ export const updateOrderStatusDto = z.object({
   status: z.enum(['pending', 'confirmed', 'shipped', 'delivered', 'cancelled']),
 });
 
+export const adminOrderListQueryDto = z.object({
+  status: z.enum(['pending', 'confirmed', 'shipped', 'delivered', 'cancelled']).optional(),
+  paymentStatus: z.enum(['pending', 'paid', 'failed', 'refunded']).optional(),
+  search: z.string().min(1).max(200).optional(),
+  from: z.coerce.date().optional(),
+  to: z.coerce.date().optional(),
+  page: z.coerce.number().int().min(1).default(PAGINATION.DEFAULT_PAGE),
+  limit: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(PAGINATION.MAX_LIMIT)
+    .default(PAGINATION.DEFAULT_LIMIT),
+});
+
 export type PlaceOrderDto = z.infer<typeof placeOrderDto>;
 export type OrderListQueryDto = z.infer<typeof orderListQueryDto>;
 export type OrderIdParamsDto = z.infer<typeof orderIdParamsDto>;
 export type UpdateOrderStatusDto = z.infer<typeof updateOrderStatusDto>;
+export type AdminOrderListQueryDto = z.infer<typeof adminOrderListQueryDto>;

@@ -1,4 +1,4 @@
-import type { ApiResponse } from '@/lib/types/api';
+import type { ApiResponse, PaginationMeta } from '@/lib/types/api';
 import type { AuthSession } from '@/lib/types/auth';
 import { API_BASE_PATH, CSRF_HEADER } from '@/lib/api/config';
 import { ApiError } from '@/lib/api/errors';
@@ -18,6 +18,11 @@ type RequestOptions = Omit<RequestInit, 'body'> & {
   skipAuthRefresh?: boolean;
   /** Send double-submit CSRF header (auth mutation endpoints). */
   withCsrf?: boolean;
+};
+
+export type ApiResultWithMeta<T> = {
+  data: T;
+  meta?: PaginationMeta;
 };
 
 const AUTH_MUTATION_PATHS = new Set([
@@ -44,14 +49,14 @@ function persistSession(session: AuthSession): void {
   applyAuthSession(session);
 }
 
-async function parseResponse<T>(response: Response): Promise<T> {
+async function parseResponse<T>(response: Response): Promise<{ data: T; meta?: PaginationMeta }> {
   const json = (await response.json()) as ApiResponse<T>;
 
   if (!json.success) {
     throw new ApiError(json.error.code, json.error.message, json.error.details);
   }
 
-  return json.data;
+  return { data: json.data, meta: json.meta };
 }
 
 async function performRefresh(): Promise<AuthSession | null> {
@@ -92,6 +97,14 @@ async function refreshSession(): Promise<boolean> {
 }
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const result = await apiRequestWithMeta<T>(path, options);
+  return result.data;
+}
+
+export async function apiRequestWithMeta<T>(
+  path: string,
+  options: RequestOptions = {},
+): Promise<ApiResultWithMeta<T>> {
   const { body, skipAuthRefresh, withCsrf, headers: initHeaders, ...rest } = options;
   const headers = new Headers(initHeaders);
 

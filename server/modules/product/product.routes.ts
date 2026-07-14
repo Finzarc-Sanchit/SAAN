@@ -1,5 +1,9 @@
 import { Router } from 'express';
-import { authMiddleware, requireRole } from '../../middlewares/auth.middleware';
+import {
+  authMiddleware,
+  optionalAuthMiddleware,
+  requireRole,
+} from '../../middlewares/auth.middleware';
 import { validate } from '../../middlewares/validate.middleware';
 import { USER_ROLES } from '../../shared/constants';
 import type { ProductController } from './product.controller';
@@ -17,7 +21,12 @@ export function createProductRoutes(productController: ProductController): Route
   const router = Router();
   const adminOnly = [authMiddleware, requireRole(USER_ROLES.ADMIN)] as const;
 
-  router.get('/', validate(productFilterDto, 'query'), productController.listProducts);
+  router.get(
+    '/',
+    optionalAuthMiddleware,
+    validate(productFilterDto, 'query'),
+    productController.listProducts,
+  );
   router.post('/', ...adminOnly, validate(createProductDto), productController.createProduct);
   router.patch(
     '/:id/sizes/:sizeId/stock',

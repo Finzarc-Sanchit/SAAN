@@ -15,7 +15,7 @@ export default function HomePage() {
       <CategorySection className="-mt-[12vh] pt-[12vh] md:-mt-[24vh] md:pt-[24vh]" />
       <TrendingSection />
       <AtelierStatsSection />
-      <JournalSection />
+      {/* <JournalSection /> */}
       <FeaturedCollectionSection />
       <TestimonialsSection />
     </main>

@@ -117,6 +117,12 @@ function createOrderRepositoryMock(): jest.Mocked<IOrderRepository> {
     create: jest.fn(),
     updateStatus: jest.fn(),
     updatePaymentStatus: jest.fn(),
+    getMonthlySales: jest.fn(),
+    getRevenueBetween: jest.fn(),
+    countOrdersBetween: jest.fn(),
+    getTimeSeries: jest.fn(),
+    getTopSellingProducts: jest.fn(),
+    findRecent: jest.fn(),
   };
 }
 

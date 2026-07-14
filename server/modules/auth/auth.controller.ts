@@ -87,6 +87,15 @@ export class AuthController {
     res.status(200).json(successResponse({ message: 'Logged out successfully' }));
   };
 
+  updateProfile = async (req: Request, res: Response): Promise<void> => {
+    if (!req.user) {
+      throw new UnauthorizedError('Authentication required');
+    }
+
+    const user = await this.authService.updateProfile(req.user.id, req.body);
+    res.status(200).json(successResponse(user));
+  };
+
   forgotPassword = async (req: Request, res: Response): Promise<void> => {
     const result = await this.authService.forgotPassword(req.body);
     res.status(200).json(successResponse(result));

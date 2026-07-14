@@ -3,6 +3,7 @@ import type {
   GenericMessageResponse,
   LogoutResponse,
   RegisterResponse,
+  User,
 } from '@/lib/types/auth';
 import type {
   ForgotPasswordInput,
@@ -10,6 +11,7 @@ import type {
   RegisterInput,
   ResendOtpInput,
   ResetPasswordInput,
+  UpdateProfileInput,
   VerifyOtpInput,
 } from '@/lib/types/auth.schemas';
 import { apiRequest } from '@/lib/api/client';
@@ -65,6 +67,13 @@ export async function refresh(): Promise<AuthSession> {
 export async function logout(): Promise<LogoutResponse> {
   return apiRequest<LogoutResponse>(`${AUTH_BASE}/logout`, {
     method: 'POST',
+  });
+}
+
+export async function updateProfile(input: UpdateProfileInput): Promise<User> {
+  return apiRequest<User>(`${AUTH_BASE}/me`, {
+    method: 'PATCH',
+    body: input,
   });
 }
 

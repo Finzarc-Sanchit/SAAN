@@ -3,7 +3,6 @@ import jwt from 'jsonwebtoken';
 import { env } from '../config/env';
 import { UnauthorizedError } from '../shared/errors/unauthorized-error';
 import { ForbiddenError } from '../shared/errors/forbidden-error';
-import type { AuthenticatedUser } from '../modules/auth/auth.types';
 import type { UserRole } from '../shared/constants';
 
 type AccessTokenPayload = {
@@ -12,12 +11,11 @@ type AccessTokenPayload = {
   role: UserRole;
 };
 
-export function authMiddleware(req: Request, _res: Response, next: NextFunction): void {
+function attachUserFromBearer(req: Request): boolean {
   const authHeader = req.headers.authorization;
 
   if (!authHeader?.startsWith('Bearer ')) {
-    next(new UnauthorizedError('Missing or invalid authorization header'));
-    return;
+    return false;
   }
 
   const token = authHeader.slice(7);
@@ -25,17 +23,30 @@ export function authMiddleware(req: Request, _res: Response, next: NextFunction)
   try {
     const payload = jwt.verify(token, env.JWT_ACCESS_SECRET) as AccessTokenPayload;
 
-    const user: AuthenticatedUser = {
+    req.user = {
       id: payload.sub,
       email: payload.email,
       role: payload.role,
     };
-
-    req.user = user;
-    next();
+    return true;
   } catch {
-    next(new UnauthorizedError('Invalid or expired access token'));
+    return false;
   }
+}
+
+export function authMiddleware(req: Request, _res: Response, next: NextFunction): void {
+  if (!attachUserFromBearer(req)) {
+    next(new UnauthorizedError('Missing or invalid authorization header'));
+    return;
+  }
+
+  next();
+}
+
+/** Sets `req.user` when a valid Bearer token is present; never rejects. */
+export function optionalAuthMiddleware(req: Request, _res: Response, next: NextFunction): void {
+  attachUserFromBearer(req);
+  next();
 }
 
 export function requireRole(...roles: UserRole[]) {

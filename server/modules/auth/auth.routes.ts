@@ -13,6 +13,7 @@ import {
   registerDto,
   resendOtpDto,
   resetPasswordDto,
+  updateProfileDto,
   verifyOtpDto,
 } from './auth.dto';
 import { authController } from './auth.module';
@@ -31,6 +32,7 @@ router.post(
 );
 router.post('/login', authRateLimiter, verifyCsrfToken, validate(loginDto), authController.login);
 router.post('/refresh', authRateLimiter, verifyCsrfToken, authController.refresh);
+router.patch('/me', authMiddleware, verifyCsrfToken, validate(updateProfileDto), authController.updateProfile);
 router.post('/logout', authMiddleware, verifyCsrfToken, authController.logout);
 router.post(
   '/forgot-password',

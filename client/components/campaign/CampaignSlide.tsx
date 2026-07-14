@@ -19,8 +19,8 @@ export function CampaignSlide({ campaign, onExpire, isFirst = false }: CampaignS
   }, [campaign.id, onExpire]);
 
   return (
-    <article className="grid min-h-[550px] grid-cols-1 items-center gap-10 lg:min-h-[650px] lg:grid-cols-[45%_55%] lg:gap-16">
-      <div className="order-2 flex flex-col justify-center lg:order-1">
+    <article className="grid min-h-[550px] min-w-0 grid-cols-1 items-center gap-10 lg:min-h-[650px] lg:grid-cols-[minmax(0,9fr)_minmax(0,11fr)] lg:items-stretch lg:gap-16">
+      <div className="order-2 flex min-w-0 flex-col justify-center lg:order-1">
         <p className="text-[12px] font-semibold tracking-[0.2em] text-saan-maroon uppercase">
           {campaign.tag}
         </p>
@@ -45,18 +45,14 @@ export function CampaignSlide({ campaign, onExpire, isFirst = false }: CampaignS
         </div>
       </div>
 
-      <div className="order-1 lg:order-2">
-        <div
-          className={cn(
-            'group relative aspect-[4/5] overflow-hidden rounded-[32px] shadow-sm lg:aspect-auto lg:min-h-[520px]'
-          )}
-        >
+      <div className="order-1 min-h-0 min-w-0 lg:order-2 lg:flex lg:h-full">
+        <div className="relative aspect-[4/5] w-full max-w-full overflow-hidden rounded-[32px] shadow-sm lg:aspect-auto lg:h-full lg:min-h-[520px]">
           <Image
             src={campaign.image.url}
             alt={campaign.image.alt}
             fill
             sizes="(max-width: 1024px) 100vw, 55vw"
-            className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+            className="object-cover object-center"
             priority={isFirst}
           />
         </div>

@@ -4,6 +4,11 @@ export interface Category {
   slug: string;
 }
 
+/** List payload includes product totals for admin catalog tables. */
+export type CategoryListItem = Category & {
+  productCount: number;
+};
+
 export type CreateCategoryInput = {
   name: string;
 };

@@ -6,21 +6,24 @@ import { LoginDialog } from '@/components/auth/LoginDialog';
 import { CartDrawer } from '@/components/layout/CartDrawer';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import { CartProvider } from '@/components/providers/CartProvider';
+import { QueryProvider } from '@/components/providers/QueryProvider';
 import { WishlistProvider } from '@/components/providers/WishlistProvider';
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
-    <WishlistProvider>
-      <CartProvider>
-        <AuthProvider>
-          {children}
-          <CartDrawer />
-          <LoginDialog />
-          <Suspense fallback={null}>
-            <AuthBootstrap />
-          </Suspense>
-        </AuthProvider>
-      </CartProvider>
-    </WishlistProvider>
+    <QueryProvider>
+      <WishlistProvider>
+        <CartProvider>
+          <AuthProvider>
+            {children}
+            <CartDrawer />
+            <LoginDialog />
+            <Suspense fallback={null}>
+              <AuthBootstrap />
+            </Suspense>
+          </AuthProvider>
+        </CartProvider>
+      </WishlistProvider>
+    </QueryProvider>
   );
 }

@@ -30,6 +30,7 @@ function createMockRepository(): jest.Mocked<IUserRepository> {
     updateAddress: jest.fn(),
     removeAddress: jest.fn(),
     setDefaultAddress: jest.fn(),
+    countUsersBetween: jest.fn(),
   };
 }
 

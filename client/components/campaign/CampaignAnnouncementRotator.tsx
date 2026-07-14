@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { CampaignSlide } from '@/components/campaign/CampaignSlide';
 import { Container } from '@/components/ui/Container';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
-import { isCampaignActive } from '@/lib/data/campaigns';
+import { isCampaignActive, fetchActiveCampaignsClient } from '@/lib/data/campaigns';
 import type { Campaign } from '@/lib/types/campaign';
 import { cn } from '@/lib/utils';
 
@@ -24,21 +24,6 @@ const fadeVariants = {
   exit: { opacity: 0 },
 };
 
-function getSlideVariants(direction: 1 | -1) {
-  return {
-    enter: { x: direction > 0 ? 100 : -100, opacity: 0 },
-    center: { x: 0, opacity: 1 },
-    exit: { x: direction > 0 ? -100 : 100, opacity: 0 },
-  };
-}
-
-async function fetchActiveCampaigns(): Promise<Campaign[]> {
-  const response = await fetch('/api/campaigns', { cache: 'no-store' });
-  if (!response.ok) return [];
-  const data = (await response.json()) as { campaigns?: Campaign[] };
-  return data.campaigns ?? [];
-}
-
 export function CampaignAnnouncementRotator({
   initialCampaigns,
   className,
@@ -47,7 +32,6 @@ export function CampaignAnnouncementRotator({
   const sectionRef = useRef<HTMLElement>(null);
   const [campaigns, setCampaigns] = useState(initialCampaigns);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [direction, setDirection] = useState<1 | -1>(1);
   const [rotationPausedUntil, setRotationPausedUntil] = useState(0);
   const isRefetchingRef = useRef(false);
 
@@ -56,7 +40,6 @@ export function CampaignAnnouncementRotator({
   const safeIndex = campaignCount > 0 ? currentIndex % campaignCount : 0;
   const currentCampaign = activeCampaigns[safeIndex];
   const isMulti = campaignCount > 1;
-  const variants = prefersReducedMotion ? fadeVariants : getSlideVariants(direction);
 
   const pauseRotation = useCallback(() => {
     setRotationPausedUntil(Date.now() + MANUAL_PAUSE_MS);
@@ -64,14 +47,12 @@ export function CampaignAnnouncementRotator({
 
   const goNext = useCallback(() => {
     if (!isMulti) return;
-    setDirection(1);
     setCurrentIndex((prev) => (prev + 1) % campaignCount);
     pauseRotation();
   }, [campaignCount, isMulti, pauseRotation]);
 
   const goPrev = useCallback(() => {
     if (!isMulti) return;
-    setDirection(-1);
     setCurrentIndex((prev) => (prev - 1 + campaignCount) % campaignCount);
     pauseRotation();
   }, [campaignCount, isMulti, pauseRotation]);
@@ -81,7 +62,6 @@ export function CampaignAnnouncementRotator({
 
     const tick = () => {
       if (Date.now() < rotationPausedUntil) return;
-      setDirection(1);
       setCurrentIndex((prev) => (prev + 1) % campaignCount);
     };
 
@@ -125,7 +105,7 @@ export function CampaignAnnouncementRotator({
     isRefetchingRef.current = true;
 
     try {
-      const refreshed = await fetchActiveCampaigns();
+      const refreshed = await fetchActiveCampaignsClient();
       if (refreshed.length > 0) {
         setCampaigns(refreshed);
         setCurrentIndex(0);
@@ -137,7 +117,7 @@ export function CampaignAnnouncementRotator({
 
   useEffect(() => {
     if (campaigns.length === 0 && !isRefetchingRef.current) {
-      void fetchActiveCampaigns().then((refreshed) => {
+      void fetchActiveCampaignsClient().then((refreshed) => {
         if (refreshed.length > 0) {
           setCampaigns(refreshed);
           setCurrentIndex(0);
@@ -164,21 +144,22 @@ export function CampaignAnnouncementRotator({
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.8, ease: [0.25, 1, 0.5, 1] }}
+          className="min-w-0"
         >
-          <div className="border border-saan-champagne/50 bg-white p-6 md:p-10 lg:p-12">
+          <div className="min-w-0 overflow-hidden border border-saan-champagne/50 bg-white p-6 md:p-10 lg:p-12">
             <p className="sr-only">
               Campaign {safeIndex + 1} of {campaignCount}: {currentCampaign.title}.
             </p>
-            <div className="relative overflow-hidden">
-              <AnimatePresence mode="wait" initial={false} custom={direction}>
+            <div className="relative min-w-0">
+              <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                   key={currentCampaign.id}
-                  custom={direction}
-                  variants={variants}
+                  variants={fadeVariants}
                   initial="enter"
                   animate="center"
                   exit="exit"
                   transition={{ duration: 0.7, ease: 'easeInOut' }}
+                  className="w-full min-w-0"
                 >
                   <CampaignSlide
                     campaign={currentCampaign}

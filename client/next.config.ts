@@ -21,6 +21,15 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'cdn.sanity.io',
       },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'saanlabel.com',
+        pathname: '/cdn/shop/**',
+      },
     ],
   },
 };
