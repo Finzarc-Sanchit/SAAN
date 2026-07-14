@@ -81,9 +81,9 @@ export function uploadImageWithProgress(
     }
 
     let displayPercent = 0;
-    let processingTimer: ReturnType<typeof setInterval> | null = null;
+    let processingTimer: number | null = null;
     let completeFrame: number | null = null;
-    let completeHoldTimer: ReturnType<typeof setTimeout> | null = null;
+    let completeHoldTimer: number | null = null;
     let settled = false;
 
     function cleanup() {
@@ -116,7 +116,7 @@ export function uploadImageWithProgress(
 
       if (processingTimer) return;
 
-      processingTimer = setInterval(() => {
+      processingTimer = window.setInterval(() => {
         if (displayPercent >= PROCESSING_MAX) return;
         emit(displayPercent + 1, 'processing');
       }, PROCESSING_TICK_MS);

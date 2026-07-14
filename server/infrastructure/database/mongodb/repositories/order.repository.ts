@@ -1,4 +1,4 @@
-import { Types } from 'mongoose';
+import { Types, type PipelineStage } from 'mongoose';
 import { NotFoundError } from '../../../../shared/errors/not-found-error';
 import type {
   AnalyticsPeriod,
@@ -372,7 +372,7 @@ export class MongoOrderRepository implements IOrderRepository {
         ? new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
         : null;
 
-    const pipeline: Record<string, unknown>[] = [{ $match: match }];
+    const pipeline: PipelineStage[] = [{ $match: match }];
 
     pipeline.push(
       {
