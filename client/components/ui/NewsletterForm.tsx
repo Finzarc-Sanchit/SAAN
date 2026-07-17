@@ -90,10 +90,10 @@ export function NewsletterForm({
           aria-describedby={feedback ? feedbackId : undefined}
           placeholder={NEWSLETTER_COPY.placeholder}
           className={cn(
-            'flex-grow border-b bg-transparent px-2 py-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60',
+            'flex-grow border-0 border-b bg-transparent px-2 py-3 transition-colors duration-300 focus:outline-none focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60',
             isDark
-              ? 'border-paper/30 text-paper placeholder:text-paper/40 focus:border-ink focus-visible:ring-ink/60 focus-visible:ring-offset-midnight'
-              : 'border-neutral-500 text-ink placeholder:text-neutral-500 focus:border-ink focus-visible:ring-ink/40',
+              ? 'border-paper/30 text-paper placeholder:text-paper/40 hover:border-paper/70 focus:border-paper focus-visible:border-paper'
+              : 'border-neutral-500 text-ink placeholder:text-neutral-500 focus:border-ink focus-visible:border-ink',
           )}
         />
         <CtaButton
@@ -101,7 +101,11 @@ export function NewsletterForm({
           variant={isDark ? 'secondary' : 'primary'}
           tone={isDark ? 'light' : 'dark'}
           disabled={isSubmitting}
-          className="gap-2"
+          className={cn(
+            'gap-2',
+            isDark &&
+              'transition-[transform,letter-spacing,box-shadow] duration-300 hover:-translate-y-0.5 hover:border-white hover:text-white hover:tracking-[0.16em] hover:shadow-[0_8px_24px_rgba(255,255,255,0.08)] focus-visible:border-white focus-visible:text-white motion-reduce:hover:translate-y-0',
+          )}
         >
           {isSubmitting ? (
             <>
