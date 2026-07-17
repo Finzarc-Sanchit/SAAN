@@ -5,8 +5,10 @@ import { validate } from '../../middlewares/validate.middleware';
 import { USER_ROLES } from '../../shared/constants';
 import type { NewsletterController } from './newsletter.controller';
 import {
+  newsletterCampaignListQueryDto,
   newsletterIdParamsDto,
   newsletterListQueryDto,
+  sendNewsletterCampaignDto,
   subscribeNewsletterDto,
   updateNewsletterStatusDto,
 } from './newsletter.dto';
@@ -21,6 +23,16 @@ export function createNewsletterRoutes(controller: NewsletterController): {
   publicRoutes.post('/', publicFormRateLimiter, validate(subscribeNewsletterDto), controller.subscribe);
 
   adminRoutes.use(authMiddleware, requireRole(USER_ROLES.ADMIN));
+  adminRoutes.get(
+    '/campaigns',
+    validate(newsletterCampaignListQueryDto, 'query'),
+    controller.listCampaigns,
+  );
+  adminRoutes.post(
+    '/campaigns/send',
+    validate(sendNewsletterCampaignDto),
+    controller.sendCampaign,
+  );
   adminRoutes.get('/', validate(newsletterListQueryDto, 'query'), controller.list);
   adminRoutes.patch(
     '/:id/status',

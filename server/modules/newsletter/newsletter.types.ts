@@ -25,3 +25,33 @@ export type NewsletterListFilter = {
   status?: NewsletterStatus;
   search?: string;
 };
+
+export const NEWSLETTER_CAMPAIGN_STATUSES = [
+  'sending',
+  'queued',
+  'partially_failed',
+  'failed',
+] as const;
+
+export type NewsletterCampaignStatus =
+  (typeof NEWSLETTER_CAMPAIGN_STATUSES)[number];
+
+export interface NewsletterCampaign {
+  id: string;
+  subject: string;
+  preheader: string | null;
+  content: string;
+  status: NewsletterCampaignStatus;
+  createdByAdminId: string;
+  recipientCount: number;
+  queuedCount: number;
+  failedCount: number;
+  queuedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type CreateNewsletterCampaignInput = Pick<
+  NewsletterCampaign,
+  'subject' | 'preheader' | 'content' | 'createdByAdminId' | 'recipientCount'
+>;

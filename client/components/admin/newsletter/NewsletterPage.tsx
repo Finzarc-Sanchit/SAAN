@@ -3,6 +3,8 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { RefreshCw, Trash2 } from 'lucide-react';
+import { NewsletterComposer } from '@/components/admin/newsletter/NewsletterComposer';
+import { NewsletterHistory } from '@/components/admin/newsletter/NewsletterHistory';
 import { AdminButton } from '@/components/admin/ui/AdminButton';
 import { AdminCard } from '@/components/admin/ui/AdminCard';
 import {
@@ -189,6 +191,11 @@ export function NewsletterPage() {
         <h1 className="mt-1 font-display text-2xl text-saan-charcoal dark:text-paper md:text-3xl">
           Newsletter
         </h1>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-2 lg:gap-6">
+        <NewsletterComposer />
+        <NewsletterHistory />
       </div>
 
       <AdminCard>

@@ -38,3 +38,39 @@ export type AdminNewsletterListParams = {
 export type UpdateNewsletterStatusInput = {
   status: NewsletterStatus;
 };
+
+export const newsletterCampaignSchema = z.object({
+  subject: z.string().trim().min(1, 'Subject is required').max(200),
+  preheader: z.string().trim().max(200).optional(),
+  content: z.string().trim().min(1, 'Message is required').max(20_000),
+});
+
+export type SendNewsletterCampaignInput = z.infer<
+  typeof newsletterCampaignSchema
+>;
+
+export type NewsletterCampaignStatus =
+  | 'sending'
+  | 'queued'
+  | 'partially_failed'
+  | 'failed';
+
+export type NewsletterCampaign = {
+  id: string;
+  subject: string;
+  preheader: string | null;
+  content: string;
+  status: NewsletterCampaignStatus;
+  createdByAdminId: string;
+  recipientCount: number;
+  queuedCount: number;
+  failedCount: number;
+  queuedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminNewsletterCampaignListParams = {
+  page?: number;
+  limit?: number;
+};

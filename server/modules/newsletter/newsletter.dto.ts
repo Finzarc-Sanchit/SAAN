@@ -27,6 +27,23 @@ export const updateNewsletterStatusDto = z.object({
   status: z.enum(NEWSLETTER_STATUSES),
 });
 
+export const sendNewsletterCampaignDto = z.object({
+  subject: z.string().trim().min(1).max(200),
+  preheader: z.string().trim().max(200).optional(),
+  content: z.string().trim().min(1).max(20_000),
+});
+
+export const newsletterCampaignListQueryDto = z.object({
+  page: z.coerce.number().int().min(1).default(PAGINATION.DEFAULT_PAGE),
+  limit: z.coerce.number().int().min(1).max(PAGINATION.MAX_LIMIT).default(20),
+});
+
 export type SubscribeNewsletterDto = z.infer<typeof subscribeNewsletterDto>;
 export type NewsletterListQueryDto = z.infer<typeof newsletterListQueryDto>;
 export type UpdateNewsletterStatusDto = z.infer<typeof updateNewsletterStatusDto>;
+export type SendNewsletterCampaignDto = z.infer<
+  typeof sendNewsletterCampaignDto
+>;
+export type NewsletterCampaignListQueryDto = z.infer<
+  typeof newsletterCampaignListQueryDto
+>;

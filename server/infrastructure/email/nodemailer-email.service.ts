@@ -29,6 +29,18 @@ function wrapEmail(content: string): string {
   return `<div style="font-family:Arial,sans-serif;color:#28241f;line-height:1.6;max-width:640px;margin:0 auto"><p style="font-family:Georgia,serif;font-size:24px;letter-spacing:.08em">SAAN</p>${content}<p style="margin-top:32px;color:#6f685f;font-size:12px">This is an automated transactional message from SAAN.</p></div>`;
 }
 
+function wrapNewsletter(content: string, preheader?: string): string {
+  const hiddenPreheader = preheader
+    ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0">${escapeHtml(preheader)}</div>`
+    : '';
+  const paragraphs = escapeHtml(content)
+    .split(/\r?\n\r?\n/)
+    .map((paragraph) => `<p style="margin:0 0 18px">${paragraph.replaceAll('\n', '<br>')}</p>`)
+    .join('');
+
+  return `${hiddenPreheader}<div style="font-family:Arial,sans-serif;color:#0b0a09;line-height:1.7;max-width:640px;margin:0 auto;padding:32px 20px"><p style="font-family:Georgia,serif;font-size:26px;letter-spacing:.08em;margin:0 0 32px">SAAN</p>${paragraphs}<p style="margin-top:36px;padding-top:20px;border-top:1px solid #e5e5e5;color:#666;font-size:12px">You received this email because you subscribed to SAAN updates. Contact SAAN if you would like to unsubscribe.</p></div>`;
+}
+
 export class NodemailerEmailService implements IEmailDeliveryService {
   private readonly transporter = nodemailer.createTransport({
     pool: true,
@@ -52,7 +64,7 @@ export class NodemailerEmailService implements IEmailDeliveryService {
       from: getFromAddress(),
       ...content,
     });
-    logger.info({ emailType: job.type }, 'Transactional email delivered');
+    logger.info({ emailType: job.type }, 'Email delivered');
   }
 
   private createContent(job: EmailJob): EmailContent {
@@ -107,6 +119,13 @@ export class NodemailerEmailService implements IEmailDeliveryService {
           html: wrapEmail(
             `<p><strong>New contact enquiry</strong></p><p><strong>Name:</strong> ${escapeHtml(job.name)}<br><strong>Email:</strong> ${escapeHtml(job.email)}<br><strong>Phone:</strong> ${escapeHtml(job.phone)}<br><strong>Subject:</strong> ${escapeHtml(job.subject)}</p><p style="white-space:pre-wrap">${escapeHtml(job.message)}</p>`,
           ),
+        };
+      case 'newsletter':
+        return {
+          to: job.to,
+          subject: job.subject,
+          text: `${job.preheader ? `${job.preheader}\n\n` : ''}${job.content}\n\nYou received this email because you subscribed to SAAN updates.`,
+          html: wrapNewsletter(job.content, job.preheader),
         };
     }
   }

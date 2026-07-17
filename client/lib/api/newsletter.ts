@@ -1,9 +1,12 @@
 import { apiRequest, apiRequestWithMeta } from '@/lib/api/client';
 import type { PaginationMeta } from '@/lib/types/api';
 import type {
+  AdminNewsletterCampaignListParams,
   AdminNewsletterListParams,
+  NewsletterCampaign,
   NewsletterSubscriber,
   NewsletterSubscribeInput,
+  SendNewsletterCampaignInput,
   UpdateNewsletterStatusInput,
 } from '@/lib/types/newsletter.schemas';
 
@@ -14,6 +17,8 @@ export const newsletterQueryKeys = {
   all: ['admin', 'newsletter'] as const,
   list: (params: AdminNewsletterListParams) =>
     [...newsletterQueryKeys.all, 'list', params] as const,
+  campaigns: (params: AdminNewsletterCampaignListParams) =>
+    [...newsletterQueryKeys.all, 'campaigns', params] as const,
 };
 
 function buildListQuery(params: AdminNewsletterListParams): string {
@@ -72,4 +77,42 @@ export async function deleteAdminNewsletter(id: string): Promise<{ message: stri
   return apiRequest<{ message: string }>(`${ADMIN_NEWSLETTER_BASE}/${id}`, {
     method: 'DELETE',
   });
+}
+
+export type AdminNewsletterCampaignListResult = {
+  items: NewsletterCampaign[];
+  meta: PaginationMeta;
+};
+
+export async function sendAdminNewsletterCampaign(
+  input: SendNewsletterCampaignInput,
+): Promise<NewsletterCampaign> {
+  return apiRequest<NewsletterCampaign>(
+    `${ADMIN_NEWSLETTER_BASE}/campaigns/send`,
+    {
+      method: 'POST',
+      body: input,
+    },
+  );
+}
+
+export async function listAdminNewsletterCampaigns(
+  params: AdminNewsletterCampaignListParams = {},
+): Promise<AdminNewsletterCampaignListResult> {
+  const search = new URLSearchParams();
+  if (params.page) search.set('page', String(params.page));
+  if (params.limit) search.set('limit', String(params.limit));
+  const query = search.toString();
+  const { data, meta } = await apiRequestWithMeta<NewsletterCampaign[]>(
+    `${ADMIN_NEWSLETTER_BASE}/campaigns${query ? `?${query}` : ''}`,
+  );
+
+  return {
+    items: data,
+    meta: meta ?? {
+      page: params.page ?? 1,
+      limit: params.limit ?? 20,
+      total: data.length,
+    },
+  };
 }
