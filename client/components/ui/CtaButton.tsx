@@ -8,7 +8,7 @@ type CtaButtonProps = {
   tone?: 'light' | 'dark';
   className?: string;
   type?: 'button' | 'submit';
-  onClick?: () => void;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
   disabled?: boolean;
 };
 
