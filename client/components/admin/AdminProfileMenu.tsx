@@ -66,24 +66,24 @@ export function AdminProfileMenu({ displayName, email, initials }: AdminProfileM
         aria-haspopup="menu"
         aria-controls={menuId}
         onClick={() => setOpen((prev) => !prev)}
-        className="flex items-center gap-2.5 rounded-lg px-1 py-1 transition-colors hover:bg-saan-bone dark:hover:bg-white/10"
+        className="flex items-center gap-2.5 rounded-lg px-1 py-1 transition-colors hover:bg-paper dark:hover:bg-white/10"
       >
         <div
           className={cn(
-            'flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-saan-maroon/10 font-body text-xs font-bold text-saan-maroon dark:bg-saan-gold/20 dark:text-saan-gold',
+            'flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-saan-maroon/10 font-body text-xs font-bold text-ink dark:bg-ink/20 dark:text-ink',
           )}
           aria-hidden
         >
           {initials}
         </div>
         <div className="hidden min-w-0 text-left sm:block">
-          <p className="truncate font-body text-sm font-medium text-saan-charcoal dark:text-saan-bone">
+          <p className="truncate font-body text-sm font-medium text-saan-charcoal dark:text-paper">
             {displayName}
           </p>
         </div>
         <ChevronDown
           className={cn(
-            'hidden h-4 w-4 shrink-0 text-saan-ink/50 transition-transform dark:text-saan-bone/50 sm:block',
+            'hidden h-4 w-4 shrink-0 text-saan-ink/50 transition-transform dark:text-paper/50 sm:block',
             open && 'rotate-180',
           )}
           strokeWidth={1.5}
@@ -99,10 +99,10 @@ export function AdminProfileMenu({ displayName, email, initials }: AdminProfileM
           className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-64 overflow-hidden rounded-xl border border-saan-champagne/60 bg-white shadow-lg dark:border-white/10 dark:bg-[#1a1c1a]"
         >
           <div className="border-b border-saan-champagne/50 px-4 py-3 dark:border-white/10">
-            <p className="truncate font-body text-sm font-semibold text-saan-charcoal dark:text-saan-bone">
+            <p className="truncate font-body text-sm font-semibold text-saan-charcoal dark:text-paper">
               {displayName}
             </p>
-            <p className="mt-0.5 truncate font-body text-xs text-saan-ink/55 dark:text-saan-bone/55">
+            <p className="mt-0.5 truncate font-body text-xs text-saan-ink/55 dark:text-paper/55">
               {email}
             </p>
           </div>
@@ -112,9 +112,9 @@ export function AdminProfileMenu({ displayName, email, initials }: AdminProfileM
               href="/admin/profile"
               role="menuitem"
               onClick={() => setOpen(false)}
-              className="flex w-full items-center gap-3 px-4 py-2.5 font-body text-sm text-saan-charcoal transition-colors hover:bg-saan-bone/80 dark:text-saan-bone dark:hover:bg-white/5"
+              className="flex w-full items-center gap-3 px-4 py-2.5 font-body text-sm text-saan-charcoal transition-colors hover:bg-paper/80 dark:text-paper dark:hover:bg-white/5"
             >
-              <CircleUser className="h-[18px] w-[18px] text-saan-ink/60 dark:text-saan-bone/60" strokeWidth={1.5} />
+              <CircleUser className="h-[18px] w-[18px] text-saan-ink/60 dark:text-paper/60" strokeWidth={1.5} />
               Edit profile
             </Link>
           </div>
@@ -125,9 +125,9 @@ export function AdminProfileMenu({ displayName, email, initials }: AdminProfileM
               role="menuitem"
               disabled={isLoggingOut}
               onClick={() => void handleLogout()}
-              className="flex w-full items-center gap-3 px-4 py-2.5 font-body text-sm text-saan-charcoal transition-colors hover:bg-saan-bone/80 disabled:opacity-50 dark:text-saan-bone dark:hover:bg-white/5"
+              className="flex w-full items-center gap-3 px-4 py-2.5 font-body text-sm text-saan-charcoal transition-colors hover:bg-paper/80 disabled:opacity-50 dark:text-paper dark:hover:bg-white/5"
             >
-              <LogOut className="h-[18px] w-[18px] text-saan-ink/60 dark:text-saan-bone/60" strokeWidth={1.5} />
+              <LogOut className="h-[18px] w-[18px] text-saan-ink/60 dark:text-paper/60" strokeWidth={1.5} />
               {isLoggingOut ? 'Signing out…' : 'Sign out'}
             </button>
           </div>

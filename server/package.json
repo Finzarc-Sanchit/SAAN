@@ -10,11 +10,13 @@
     "test:watch": "jest --watch",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write .",
+    "seed:collections": "ts-node-dev --transpile-only --project tsconfig.json infrastructure/database/mongodb/seeds/collection.seed.ts",
     "typecheck": "tsc --noEmit -p tsconfig.build.json",
     "typecheck:test": "tsc --noEmit -p tsconfig.test.json"
   },
   "dependencies": {
     "@types/node": "^22.17.2",
+    "@upstash/qstash": "^2.11.2",
     "@vercel/node": "^5.8.23",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.10.0",

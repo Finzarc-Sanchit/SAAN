@@ -35,9 +35,30 @@ export const resetPasswordDto = z.object({
   newPassword: passwordSchema,
 });
 
+const mobileNumberSchema = z
+  .string()
+  .trim()
+  .min(7, 'Mobile number is too short')
+  .max(20, 'Mobile number is too long')
+  .regex(/^[+]?[\d\s()-]+$/, 'Invalid mobile number format');
+
+const dateOfBirthSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date of birth must use YYYY-MM-DD format')
+  .refine((value) => {
+    const date = new Date(`${value}T00:00:00.000Z`);
+    return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(value);
+  }, 'Invalid date of birth')
+  .refine(
+    (value) => new Date(`${value}T00:00:00.000Z`) <= new Date(),
+    'Date of birth cannot be in the future',
+  );
+
 export const updateProfileDto = z.object({
-  firstName: z.string().min(1, 'First name is required').max(100),
-  lastName: z.string().min(1, 'Last name is required').max(100),
+  firstName: z.string().trim().min(1, 'First name is required').max(100),
+  lastName: z.string().trim().min(1, 'Last name is required').max(100),
+  mobileNumber: mobileNumberSchema.nullable(),
+  dateOfBirth: dateOfBirthSchema.nullable(),
 });
 
 export type RegisterDto = z.infer<typeof registerDto>;

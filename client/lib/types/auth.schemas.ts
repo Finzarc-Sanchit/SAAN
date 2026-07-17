@@ -60,8 +60,29 @@ export const resetPasswordFormSchema = resetPasswordSchema
   });
 
 export const updateProfileSchema = z.object({
-  firstName: z.string().min(1, 'First name is required').max(100),
-  lastName: z.string().min(1, 'Last name is required').max(100),
+  firstName: z.string().trim().min(1, 'First name is required').max(100),
+  lastName: z.string().trim().min(1, 'Last name is required').max(100),
+  mobileNumber: z
+    .string()
+    .trim()
+    .max(20, 'Mobile number is too long')
+    .refine(
+      (value) => value.length === 0 || /^[+]?[\d\s()-]{7,20}$/.test(value),
+      'Invalid mobile number format',
+    )
+    .transform((value) => value || null)
+    .nullable(),
+  dateOfBirth: z
+    .string()
+    .refine(
+      (value) =>
+        value.length === 0 ||
+        (/^\d{4}-\d{2}-\d{2}$/.test(value) &&
+          new Date(`${value}T00:00:00.000Z`) <= new Date()),
+      'Enter a valid date of birth',
+    )
+    .transform((value) => value || null)
+    .nullable(),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;

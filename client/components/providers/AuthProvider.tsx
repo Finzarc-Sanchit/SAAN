@@ -17,6 +17,7 @@ import { broadcastAuthSync, subscribeToAuthSync } from '@/lib/auth/auth-sync';
 import { applyAuthSession } from '@/lib/auth/csrf';
 import { readStoredSession } from '@/lib/auth/session-storage';
 import { getAccessToken, setAccessToken } from '@/lib/auth/token-store';
+import { syncGuestCommerceToServer } from '@/lib/commerce/guest-sync';
 
 export type AuthDialogStep =
   | 'login'
@@ -61,14 +62,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(session.user);
     broadcastAuthSync({ type: 'login' });
 
-    if (pendingActionRef.current) {
-      const action = pendingActionRef.current;
-      pendingActionRef.current = null;
-      action();
-    }
+    const pendingAction = pendingActionRef.current;
+    pendingActionRef.current = null;
 
-    setIsDialogOpen(false);
-    setDialogStep('login');
+    void (async () => {
+      try {
+        await syncGuestCommerceToServer();
+      } catch {
+        // Auth still succeeds even if commerce sync fails; user can retry adds.
+      } finally {
+        if (pendingAction) {
+          pendingAction();
+        }
+        setIsDialogOpen(false);
+        setDialogStep('login');
+      }
+    })();
   }, []);
 
   const openLoginDialog = useCallback(

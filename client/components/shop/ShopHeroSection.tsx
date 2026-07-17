@@ -2,8 +2,9 @@
 
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import { CtaButton } from '@/components/ui/CtaButton';
 import { LUXURY_EASE } from '@/lib/motion';
-import { cn } from '@/lib/utils';
+import { SAANLABEL_SECTIONS } from '@/lib/saanlabel-images';
 
 export function ShopHeroSection() {
   const handleScrollToCatalog = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -15,11 +16,11 @@ export function ShopHeroSection() {
   };
 
   return (
-    <div className="relative h-full w-full bg-saan-bone">
+    <div className="relative h-full w-full bg-paper">
       {/* Background Image */}
       <div className="absolute inset-0 overflow-hidden">
         <Image
-          src="/images/shop/shop-hero.jpg"
+          src={SAANLABEL_SECTIONS.shopHero}
           alt="SAAN Women's Wear Collection"
           fill
           priority
@@ -71,15 +72,14 @@ export function ShopHeroSection() {
             transition={{ duration: 1.2, ease: LUXURY_EASE, delay: 0.6 }}
             className="mt-10 md:mt-12"
           >
-            <button
+            <CtaButton
+              type="button"
+              variant="primary"
+              tone="light"
               onClick={handleScrollToCatalog}
-              className={cn(
-                'inline-flex items-center justify-center text-label-caps tracking-[0.2em] transition-all duration-300 ease-out',
-                'rounded-none border border-white/85 px-10 py-4 text-white hover:bg-white hover:text-saan-maroon hover:border-white text-xs md:text-sm'
-              )}
             >
               Shop Now
-            </button>
+            </CtaButton>
           </motion.div>
         </div>
       </div>

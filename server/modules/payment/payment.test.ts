@@ -123,6 +123,7 @@ function createOrderRepositoryMock(): jest.Mocked<IOrderRepository> {
     getTimeSeries: jest.fn(),
     getTopSellingProducts: jest.fn(),
     findRecent: jest.fn(),
+    findManyAdmin: jest.fn(),
   };
 }
 
@@ -130,8 +131,15 @@ function createPaymentGatewayMock(): jest.Mocked<IPaymentGateway> {
   return {
     createGatewayOrder: jest.fn(),
     verifyWebhookSignature: jest.fn(),
+    verifyCheckoutSignature: jest.fn(),
     getPublicKeyId: jest.fn<() => string>().mockReturnValue('rzp_test_key_id'),
     getGatewayName: jest.fn<() => string>().mockReturnValue('razorpay'),
+  };
+}
+
+function createCartServiceMock(): { clearCart: jest.MockedFunction<(userId: string) => Promise<void>> } {
+  return {
+    clearCart: jest.fn<(userId: string) => Promise<void>>().mockResolvedValue(undefined),
   };
 }
 
@@ -139,13 +147,20 @@ describe('PaymentService', () => {
   let paymentRepository: jest.Mocked<IPaymentRepository>;
   let orderRepository: jest.Mocked<IOrderRepository>;
   let paymentGateway: jest.Mocked<IPaymentGateway>;
+  let cartService: { clearCart: jest.MockedFunction<(userId: string) => Promise<void>> };
   let service: PaymentService;
 
   beforeEach(() => {
     paymentRepository = createPaymentRepositoryMock();
     orderRepository = createOrderRepositoryMock();
     paymentGateway = createPaymentGatewayMock();
-    service = new PaymentService(paymentRepository, orderRepository, paymentGateway);
+    cartService = createCartServiceMock();
+    service = new PaymentService(
+      paymentRepository,
+      orderRepository,
+      paymentGateway,
+      cartService as unknown as import('../cart/cart.service').CartService,
+    );
   });
 
   describe('initiatePayment', () => {
@@ -167,6 +182,7 @@ describe('PaymentService', () => {
       const payment = createPayment();
 
       orderRepository.findById.mockResolvedValue(order);
+      paymentRepository.findByOrderId.mockResolvedValue([]);
       paymentGateway.createGatewayOrder.mockResolvedValue({ gatewayOrderId: 'order_DEX6pnlpxyJrHo' });
       paymentRepository.create.mockResolvedValue(payment);
 
@@ -177,7 +193,7 @@ describe('PaymentService', () => {
         'card',
       );
 
-      expect(paymentGateway.createGatewayOrder).toHaveBeenCalledWith(10000, 'INR', 'order-1');
+      expect(paymentGateway.createGatewayOrder).toHaveBeenCalledWith(1_000_000, 'INR', 'order-1');
       expect(paymentRepository.create).toHaveBeenCalledWith({
         orderId: 'order-1',
         paymentMethod: 'card',
@@ -188,7 +204,79 @@ describe('PaymentService', () => {
         status: 'created',
       });
       expect(result.gatewayOrderId).toBe('order_DEX6pnlpxyJrHo');
+      expect(result.amount).toBe(1_000_000);
       expect(result.keyId).toBe('rzp_test_key_id');
+    });
+
+    it('reuses an existing created payment instead of creating another gateway order', async () => {
+      const order = createOrder();
+      const existing = createPayment({ status: 'created' });
+
+      orderRepository.findById.mockResolvedValue(order);
+      paymentRepository.findByOrderId.mockResolvedValue([existing]);
+
+      const result = await service.initiatePayment(
+        'order-1',
+        'user-1',
+        USER_ROLES.CUSTOMER,
+        'card',
+      );
+
+      expect(paymentGateway.createGatewayOrder).not.toHaveBeenCalled();
+      expect(paymentRepository.create).not.toHaveBeenCalled();
+      expect(result.paymentId).toBe(existing.id);
+      expect(result.gatewayOrderId).toBe(existing.gatewayOrderId);
+    });
+  });
+
+  describe('verifyCheckoutPayment', () => {
+    it('marks payment and order paid when checkout signature is valid', async () => {
+      const order = createOrder();
+      const payment = createPayment();
+      const paidPayment = createPayment({
+        status: 'paid',
+        gatewayPaymentId: 'pay_DEX6ipHsLiO4XX',
+        transactionId: 'pay_DEX6ipHsLiO4XX',
+        paidAt: new Date('2026-01-02'),
+      });
+
+      orderRepository.findById.mockResolvedValue(order);
+      paymentRepository.findByGatewayOrderId.mockResolvedValue(payment);
+      paymentGateway.verifyCheckoutSignature.mockReturnValue(true);
+      paymentRepository.updateStatus.mockResolvedValue(paidPayment);
+      orderRepository.updatePaymentStatus.mockResolvedValue(
+        createOrder({ paymentStatus: 'paid', status: 'confirmed' }),
+      );
+      orderRepository.updateStatus.mockResolvedValue(
+        createOrder({ paymentStatus: 'paid', status: 'confirmed' }),
+      );
+
+      const result = await service.verifyCheckoutPayment('order-1', 'user-1', USER_ROLES.CUSTOMER, {
+        razorpayOrderId: 'order_DEX6pnlpxyJrHo',
+        razorpayPaymentId: 'pay_DEX6ipHsLiO4XX',
+        razorpaySignature: 'valid-signature',
+      });
+
+      expect(result.status).toBe('paid');
+      expect(orderRepository.updatePaymentStatus).toHaveBeenCalledWith('order-1', 'paid');
+      expect(orderRepository.updateStatus).toHaveBeenCalledWith('order-1', 'confirmed');
+      expect(cartService.clearCart).toHaveBeenCalledWith('user-1');
+    });
+
+    it('rejects invalid checkout signatures', async () => {
+      orderRepository.findById.mockResolvedValue(createOrder());
+      paymentRepository.findByGatewayOrderId.mockResolvedValue(createPayment());
+      paymentGateway.verifyCheckoutSignature.mockReturnValue(false);
+
+      await expect(
+        service.verifyCheckoutPayment('order-1', 'user-1', USER_ROLES.CUSTOMER, {
+          razorpayOrderId: 'order_DEX6pnlpxyJrHo',
+          razorpayPaymentId: 'pay_DEX6ipHsLiO4XX',
+          razorpaySignature: 'bad-signature',
+        }),
+      ).rejects.toThrow(UnauthorizedError);
+
+      expect(paymentRepository.updateStatus).not.toHaveBeenCalled();
     });
   });
 

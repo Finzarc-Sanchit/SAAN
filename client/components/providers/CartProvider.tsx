@@ -8,9 +8,12 @@ import {
   useMemo,
   useState,
 } from 'react';
+import {
+  CART_STORAGE_KEY,
+  COMMERCE_HYDRATED_EVENT,
+  type CommerceHydratedDetail,
+} from '@/lib/commerce/guest-sync';
 import type { CartItem } from '@/lib/types/cart';
-
-const STORAGE_KEY = 'saan-cart';
 
 type CartContextValue = {
   items: CartItem[];
@@ -19,6 +22,8 @@ type CartContextValue = {
   lastAddedAt: number | null;
   openCart: () => void;
   closeCart: () => void;
+  clearCart: () => void;
+  replaceItems: (items: CartItem[]) => void;
   addItem: (item: Omit<CartItem, 'quantity'> & { quantity?: number }) => void;
   removeItem: (productId: string, size?: string) => void;
   updateQuantity: (productId: string, delta: number, size?: string) => void;
@@ -29,13 +34,19 @@ const CartContext = createContext<CartContextValue | null>(null);
 function readStoredCart(): CartItem[] {
   if (typeof window === 'undefined') return [];
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(CART_STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as unknown;
     return Array.isArray(parsed) ? (parsed as CartItem[]) : [];
   } catch {
     return [];
   }
+}
+
+function sameLine(a: CartItem, b: Pick<CartItem, 'productId' | 'size' | 'sizeId'>): boolean {
+  if (a.productId !== b.productId) return false;
+  if (a.sizeId && b.sizeId) return a.sizeId === b.sizeId;
+  return a.size === b.size;
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
@@ -51,24 +62,42 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!hydrated) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
   }, [items, hydrated]);
+
+  useEffect(() => {
+    function onCommerceHydrated(event: Event) {
+      const detail = (event as CustomEvent<CommerceHydratedDetail>).detail;
+      if (!detail) return;
+      setItems(detail.cart);
+      setHydrated(true);
+    }
+
+    window.addEventListener(COMMERCE_HYDRATED_EVENT, onCommerceHydrated);
+    return () => window.removeEventListener(COMMERCE_HYDRATED_EVENT, onCommerceHydrated);
+  }, []);
 
   const openCart = useCallback(() => setIsOpen(true), []);
   const closeCart = useCallback(() => setIsOpen(false), []);
+
+  const clearCart = useCallback(() => {
+    setItems([]);
+  }, []);
+
+  const replaceItems = useCallback((next: CartItem[]) => {
+    setItems(next);
+  }, []);
 
   const addItem = useCallback((item: Omit<CartItem, 'quantity'> & { quantity?: number }) => {
     const qty = item.quantity ?? 1;
     const { quantity: _q, ...cartFields } = item;
     setItems((prev) => {
-      const existing = prev.find(
-        (i) => i.productId === cartFields.productId && i.size === cartFields.size
-      );
+      const existing = prev.find((entry) => sameLine(entry, cartFields));
       if (existing) {
-        return prev.map((i) =>
-          i.productId === cartFields.productId && i.size === cartFields.size
-            ? { ...i, quantity: i.quantity + qty }
-            : i
+        return prev.map((entry) =>
+          sameLine(entry, cartFields)
+            ? { ...entry, ...cartFields, quantity: entry.quantity + qty }
+            : entry,
         );
       }
       return [...prev, { ...cartFields, quantity: qty }];
@@ -79,7 +108,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const removeItem = useCallback((productId: string, size?: string) => {
     setItems((prev) =>
-      prev.filter((i) => i.productId !== productId || i.size !== size)
+      prev.filter((entry) => entry.productId !== productId || entry.size !== size),
     );
   }, []);
 
@@ -91,13 +120,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           const nextQty = item.quantity + delta;
           return nextQty > 0 ? { ...item, quantity: nextQty } : item;
         })
-        .filter((item) => item.quantity > 0)
+        .filter((item) => item.quantity > 0),
     );
   }, []);
 
   const count = useMemo(
     () => items.reduce((sum, item) => sum + item.quantity, 0),
-    [items]
+    [items],
   );
 
   const value = useMemo(
@@ -108,11 +137,25 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       lastAddedAt,
       openCart,
       closeCart,
+      clearCart,
+      replaceItems,
       addItem,
       removeItem,
       updateQuantity,
     }),
-    [items, count, isOpen, lastAddedAt, openCart, closeCart, addItem, removeItem, updateQuantity]
+    [
+      items,
+      count,
+      isOpen,
+      lastAddedAt,
+      openCart,
+      closeCart,
+      clearCart,
+      replaceItems,
+      addItem,
+      removeItem,
+      updateQuantity,
+    ],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

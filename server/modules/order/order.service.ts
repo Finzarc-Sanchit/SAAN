@@ -180,6 +180,42 @@ export class OrderService {
     return this.orderRepository.updatePaymentStatus(orderId, paymentStatus);
   }
 
+  /**
+   * Cancels a customer’s unpaid pending order and restores reserved stock.
+   * Used when checkout payment is abandoned so the next attempt can succeed.
+   */
+  async cancelPendingOrder(orderId: string, userId: string): Promise<Order> {
+    const order = await this.orderRepository.findById(orderId);
+
+    if (!order) {
+      throw new NotFoundError('Order not found');
+    }
+
+    if (order.userId !== userId) {
+      throw new ForbiddenError('You do not have access to this order');
+    }
+
+    if (order.status === 'cancelled') {
+      return order;
+    }
+
+    if (order.status !== 'pending' || order.paymentStatus !== 'pending') {
+      throw new ConflictError('Only unpaid pending orders can be cancelled');
+    }
+
+    await this.rollbackStock(
+      order.items.map((line) => ({
+        productId: line.productId,
+        sizeId: line.sizeId,
+        quantity: line.quantity,
+        productNameSnapshot: line.productNameSnapshot,
+      })),
+    );
+
+    await this.orderRepository.updatePaymentStatus(orderId, 'failed');
+    return this.orderRepository.updateStatus(orderId, 'cancelled');
+  }
+
   private async createOrderFromCart(
     userId: string,
     addressInput: PlaceOrderAddressInput,
@@ -205,7 +241,7 @@ export class OrderService {
     await this.decrementStockForLines(preparedLines);
 
     try {
-      const order = await this.orderRepository.create({
+      const order =       await this.orderRepository.create({
         userId,
         addressSnapshot,
         items: preparedLines.map((line) => ({
@@ -225,7 +261,7 @@ export class OrderService {
         paymentStatus: 'pending',
       });
 
-      await this.cartService.clearCart(userId);
+      // Keep cart lines until payment succeeds so abandoned checkouts can retry.
       return order;
     } catch (error) {
       await this.rollbackStock(

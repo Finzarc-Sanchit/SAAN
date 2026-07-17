@@ -34,7 +34,7 @@ function statusBadge(status: RecentOrderRow['status']) {
     case 'confirmed':
       return {
         label: 'Confirmed',
-        className: 'bg-saan-gold/20 text-saan-charcoal dark:text-saan-gold',
+        className: 'bg-ink/20 text-saan-charcoal dark:text-ink',
       };
     default:
       return {
@@ -58,14 +58,14 @@ export function RecentOrdersCard() {
           <button
             type="button"
             disabled
-            className="inline-flex items-center gap-1.5 rounded-lg border border-saan-champagne/60 px-3 py-1.5 font-body text-xs text-saan-ink/50 dark:border-white/10 dark:text-saan-bone/50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-saan-champagne/60 px-3 py-1.5 font-body text-xs text-saan-ink/50 dark:border-white/10 dark:text-paper/50"
           >
             <Filter className="h-3.5 w-3.5" aria-hidden />
             Filter
           </button>
           <Link
             href="/admin/orders"
-            className="rounded-lg border border-saan-champagne/60 px-3 py-1.5 font-body text-xs text-saan-charcoal hover:bg-saan-bone dark:border-white/10 dark:text-saan-bone dark:hover:bg-white/5"
+            className="rounded-lg border border-saan-champagne/60 px-3 py-1.5 font-body text-xs text-saan-charcoal hover:bg-paper dark:border-white/10 dark:text-paper dark:hover:bg-white/5"
             aria-disabled
             onClick={(event) => event.preventDefault()}
           >
@@ -80,7 +80,7 @@ export function RecentOrdersCard() {
       ) : query.isError ? (
         <AdminInlineError onRetry={() => void query.refetch()} />
       ) : (query.data?.length ?? 0) === 0 ? (
-        <p className="py-16 text-center font-body text-sm text-saan-ink/50 dark:text-saan-bone/50">
+        <p className="py-16 text-center font-body text-sm text-saan-ink/50 dark:text-paper/50">
           No orders yet.
         </p>
       ) : (
@@ -91,7 +91,7 @@ export function RecentOrdersCard() {
                 {['Products', 'Category', 'Price', 'Status'].map((heading) => (
                   <th
                     key={heading}
-                    className="px-5 py-3 font-body text-xs font-medium text-saan-ink/45 dark:text-saan-bone/45"
+                    className="px-5 py-3 font-body text-xs font-medium text-saan-ink/45 dark:text-paper/45"
                   >
                     {heading}
                   </th>
@@ -114,10 +114,10 @@ export function RecentOrdersCard() {
                         subtitle={`${row.variantCount} ${row.variantCount === 1 ? 'Variant' : 'Variants'}`}
                       />
                     </td>
-                    <td className="px-5 py-3.5 font-body text-sm text-saan-ink/70 dark:text-saan-bone/70">
+                    <td className="px-5 py-3.5 font-body text-sm text-saan-ink/70 dark:text-paper/70">
                       {row.categoryName ?? '—'}
                     </td>
-                    <td className="px-5 py-3.5 font-body text-sm text-saan-charcoal dark:text-saan-bone">
+                    <td className="px-5 py-3.5 font-body text-sm text-saan-charcoal dark:text-paper">
                       {formatInr(row.price)}
                     </td>
                     <td className="px-5 py-3.5">

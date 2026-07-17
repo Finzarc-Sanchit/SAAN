@@ -68,7 +68,7 @@ function PressSegment({
       {items.map((item, index) => (
         <span
           key={`${keyPrefix}-${item.id}-${index}`}
-          className="press-marquee-item font-display text-lg tracking-[0.08em] text-saan-bone/70 sm:text-xl md:text-2xl"
+          className="press-marquee-item font-display text-lg tracking-[0.08em] text-paper/70 sm:text-xl md:text-2xl"
         >
           {item.name}
         </span>
@@ -83,10 +83,10 @@ function PressMarquee() {
 
   if (prefersReducedMotion) {
     return (
-      <div className="border-t border-saan-bone/10 bg-gradient-to-t from-black/70 to-transparent pb-8 pt-8">
+      <div className="border-t border-paper/10 bg-gradient-to-t from-black/70 to-transparent pb-8 pt-8">
         <Container>
-          <p className="text-label-caps mb-4 text-saan-bone/60">{pressEyebrow}</p>
-          <p className="text-sm font-light text-saan-bone/70">
+          <p className="text-label-caps mb-4 text-paper/60">{pressEyebrow}</p>
+          <p className="text-sm font-light text-paper/70">
             {press.map((item) => item.name).join('   ·   ')}
           </p>
         </Container>
@@ -95,9 +95,9 @@ function PressMarquee() {
   }
 
   return (
-    <div className="border-t border-saan-bone/10 bg-gradient-to-t from-black/75 via-black/35 to-transparent pb-8 pt-10 md:pb-10 md:pt-12">
+    <div className="border-t border-paper/10 bg-gradient-to-t from-black/75 via-black/35 to-transparent pb-8 pt-10 md:pb-10 md:pt-12">
       <Container className="mb-5 md:mb-6">
-        <p id="as-seen-in-heading" className="text-label-caps text-saan-bone/60">
+        <p id="as-seen-in-heading" className="text-label-caps text-paper/60">
           {pressEyebrow}
         </p>
       </Container>
@@ -121,12 +121,7 @@ function AtelierCta({ href, label }: { href: string; label: string }) {
 
   if (prefersReducedMotion) {
     return (
-      <CtaButton
-        href={href}
-        variant="primary"
-        tone="light"
-        className="chamfer-btn atelier-cta min-w-[12rem]"
-      >
+      <CtaButton href={href} variant="primary" tone="light" className="min-w-[12rem]">
         {label}
       </CtaButton>
     );
@@ -142,18 +137,7 @@ function AtelierCta({ href, label }: { href: string; label: string }) {
       whileTap={{ scale: 0.98 }}
       className="inline-flex"
     >
-      <CtaButton
-        href={href}
-        variant="primary"
-        tone="light"
-        className={cn(
-          'chamfer-btn atelier-cta min-w-[12rem]',
-          'shadow-[0_0_0_0_rgba(171,140,82,0)]',
-          'transition-[box-shadow,background-color,color,transform] duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]',
-          'hover:shadow-[0_8px_28px_-8px_rgba(171,140,82,0.55)]',
-          'focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-saan-gold',
-        )}
-      >
+      <CtaButton href={href} variant="primary" tone="light" className="min-w-[12rem]">
         {label}
       </CtaButton>
     </motion.div>
@@ -180,7 +164,7 @@ export function AtelierStatsSection() {
       id="atelier"
       ref={sectionRef}
       aria-labelledby="atelier-landing-heading"
-      className="relative z-10 text-saan-bone"
+      className="relative z-10 text-paper"
     >
       <div className="sticky top-0 flex min-h-[90vh] flex-col overflow-hidden">
         <div className="absolute inset-0">
@@ -199,8 +183,8 @@ export function AtelierStatsSection() {
           <Container className="flex flex-1 flex-col pb-10 pt-16 md:pb-12 md:pt-20 lg:pt-24">
             <motion.div style={{ y: introY }} className="max-w-3xl text-left">
               <div className="mb-6 flex items-center gap-4">
-                <span className="h-px w-10 bg-saan-bone/60" aria-hidden />
-                <p className="text-label-caps text-saan-bone/80">{eyebrow}</p>
+                <span className="h-px w-10 bg-paper/60" aria-hidden />
+                <p className="text-label-caps text-paper/80">{eyebrow}</p>
               </div>
               <h2
                 id="atelier-landing-heading"
@@ -225,7 +209,7 @@ export function AtelierStatsSection() {
 
             <motion.div
               style={{ y: bodyY }}
-              className="mt-8 max-w-xl space-y-5 text-left text-sm leading-relaxed font-light text-saan-bone/85 sm:text-[15px]"
+              className="mt-8 max-w-xl space-y-5 text-left text-sm leading-relaxed font-light text-paper/85 sm:text-[15px]"
             >
               {body.map((paragraph) => (
                 <p key={paragraph.slice(0, 28)}>{paragraph}</p>
@@ -261,7 +245,7 @@ export function AtelierStatsSection() {
         </div>
       </div>
 
-      <div className="h-[30vh] bg-saan-bone" aria-hidden />
+      <div className="h-[30vh] bg-paper" aria-hidden />
     </section>
   );
 }

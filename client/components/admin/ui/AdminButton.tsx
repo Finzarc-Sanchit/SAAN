@@ -11,13 +11,13 @@ type AdminButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const VARIANT_CLASSES: Record<AdminButtonVariant, string> = {
   primary:
-    'bg-saan-maroon text-saan-bone hover:bg-saan-maroon/90 disabled:bg-saan-maroon/40 dark:bg-saan-gold dark:text-saan-charcoal dark:hover:bg-saan-gold/90',
+    'bg-saan-maroon text-paper hover:bg-saan-maroon/90 disabled:bg-saan-maroon/40 dark:bg-ink dark:text-saan-charcoal dark:hover:bg-ink/90',
   secondary:
-    'border border-saan-champagne/70 bg-white text-saan-charcoal hover:bg-saan-bone disabled:opacity-50 dark:border-white/15 dark:bg-transparent dark:text-saan-bone dark:hover:bg-white/5',
+    'border border-saan-champagne/70 bg-white text-saan-charcoal hover:bg-paper disabled:opacity-50 dark:border-white/15 dark:bg-transparent dark:text-paper dark:hover:bg-white/5',
   ghost:
-    'text-saan-maroon hover:bg-saan-maroon/5 disabled:opacity-40 dark:text-saan-gold dark:hover:bg-saan-gold/10',
+    'text-ink hover:bg-saan-maroon/5 disabled:opacity-40 dark:text-ink dark:hover:bg-ink/10',
   danger:
-    'border border-saan-maroon/30 text-saan-maroon hover:bg-saan-maroon/5 disabled:opacity-40 dark:border-red-400/30 dark:text-red-300 dark:hover:bg-red-400/10',
+    'border border-saan-maroon/30 text-ink hover:bg-saan-maroon/5 disabled:opacity-40 dark:border-red-400/30 dark:text-red-300 dark:hover:bg-red-400/10',
 };
 
 export function AdminButton({

@@ -9,7 +9,7 @@ const STATUS_STYLES: Record<DateRangeStatus, string> = {
   upcoming:
     'bg-sky-50 text-sky-800 dark:bg-sky-500/15 dark:text-sky-300',
   expired:
-    'bg-saan-champagne/40 text-saan-ink/70 dark:bg-white/10 dark:text-saan-bone/70',
+    'bg-saan-champagne/40 text-saan-ink/70 dark:bg-white/10 dark:text-paper/70',
 };
 
 const STATUS_LABELS: Record<DateRangeStatus, string> = {

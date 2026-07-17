@@ -22,7 +22,7 @@ export function AuthModeTabs({ mode, onChange }: AuthModeTabsProps) {
           className={cn(
             'text-label-caps flex-1 pb-3 transition-colors',
             mode === tab.id
-              ? 'border-b-2 border-saan-maroon text-saan-maroon'
+              ? 'border-b-2 border-saan-maroon text-ink'
               : 'text-saan-ink/40 hover:text-saan-ink',
           )}
         >

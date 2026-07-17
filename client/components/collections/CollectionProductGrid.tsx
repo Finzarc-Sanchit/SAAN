@@ -1,37 +1,67 @@
 'use client';
 
-import { ShopProductCard } from '@/components/shop/ShopProductCard';
+import Link from 'next/link';
+import { ProductCard } from '@/components/ui/ProductCard';
 import { Container } from '@/components/ui/Container';
-import type { ShopProduct } from '@/lib/site-content';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { useStorefrontProducts } from '@/hooks/useStorefrontProducts';
+import { getProductHref } from '@/lib/product-url';
 
 type CollectionProductGridProps = {
-  products: ShopProduct[];
   collectionTitle: string;
+  collectionSlug?: string;
 };
 
-export function CollectionProductGrid({ products, collectionTitle }: CollectionProductGridProps) {
+/** Shows the merged server and editorial catalog until backend collections exist. */
+export function CollectionProductGrid({
+  collectionTitle,
+}: CollectionProductGridProps) {
+  const { products: pieces, isLoading } = useStorefrontProducts();
+
   return (
-    <section className="bg-saan-bone py-16 md:py-24">
-      <Container className="max-w-[1600px]">
+    <section className="section-py bg-paper">
+      <Container>
         <div className="mb-10">
-          <h2 className="font-display text-2xl text-saan-maroon md:text-3xl">
-            From {collectionTitle}
-          </h2>
-          <p className="mt-2 font-body text-xs uppercase tracking-widest text-saan-ink/50">
-            {products.length} {products.length === 1 ? 'piece' : 'pieces'}
+          <h2 className="text-h2 text-ink">From {collectionTitle}</h2>
+          <p className="text-caption mt-2 text-neutral-500">
+            {isLoading
+              ? 'Loading pieces…'
+              : `${pieces.length} ${pieces.length === 1 ? 'piece' : 'pieces'}`}
           </p>
         </div>
 
-        {products.length > 0 ? (
-          <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-            {products.map((product, index) => (
-              <ShopProductCard key={product.id} product={product} index={index} />
+        {isLoading ? (
+          <div className="grid grid-cols-2 gap-x-5 gap-y-12 md:grid-cols-3 lg:grid-cols-4 md:gap-x-8 md:gap-y-14">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="flex flex-col gap-3">
+                <Skeleton className="aspect-[3/4] w-full" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-1/3" />
+              </div>
+            ))}
+          </div>
+        ) : pieces.length > 0 ? (
+          <div className="grid grid-cols-2 gap-x-5 gap-y-12 md:grid-cols-3 lg:grid-cols-4 md:gap-x-8 md:gap-y-14">
+            {pieces.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                href={getProductHref(product)}
+              />
             ))}
           </div>
         ) : (
-          <p className="font-body text-saan-ink/60">
-            Pieces from this line are arriving soon. Explore the full shop for more.
-          </p>
+          <div className="max-w-md">
+            <p className="text-body text-neutral-700">
+              Pieces from this line are arriving soon. Explore the full shop for more.
+            </p>
+            <Link
+              href="/shop"
+              className="mt-4 inline-block text-caption uppercase tracking-[0.14em] text-ink underline-offset-4 hover:underline"
+            >
+              Visit the shop
+            </Link>
+          </div>
         )}
       </Container>
     </section>

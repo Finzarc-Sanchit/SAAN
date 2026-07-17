@@ -1,6 +1,10 @@
+import type { ProductOccasion } from '../../shared/constants';
+
 export type ProductStatus = 'draft' | 'active' | 'archived';
 
 export type ProductListSort = 'newest' | 'price_asc' | 'price_desc' | 'name_asc';
+
+export type { ProductOccasion };
 
 export interface ProductSize {
   sizeId: string;
@@ -19,13 +23,22 @@ export interface ProductImage {
 export interface Product {
   id: string;
   categoryId: string;
-  discountId: string | null;
+  collectionId: string;
   name: string;
   slug: string;
   description: string;
   shortDescription: string;
   fabric: string;
+  color: string;
+  occasion: ProductOccasion[];
+  fitNotes: string;
+  care: string[];
   basePrice: number;
+  salePrice: number | null;
+  discountPercent: number | null;
+  discountEnabled: boolean;
+  discountStartDate: Date | null;
+  discountEndDate: Date | null;
   ratingsAverage: number;
   ratingsCount: number;
   stock: number;
@@ -41,7 +54,9 @@ export interface Product {
 
 export interface ProductFilter {
   categoryId?: string;
+  collectionId?: string;
   size?: string;
+  occasion?: ProductOccasion;
   minPrice?: number;
   maxPrice?: number;
   search?: string;
@@ -67,12 +82,21 @@ export type CreateProductImageInput = {
 
 export type CreateProductInput = {
   categoryId: string;
-  discountId?: string | null;
+  collectionId: string;
   name: string;
   description: string;
   shortDescription: string;
   fabric: string;
+  color: string;
+  occasion: ProductOccasion[];
+  fitNotes: string;
+  care: string[];
   basePrice: number;
+  salePrice?: number | null;
+  discountPercent?: number | null;
+  discountEnabled?: boolean;
+  discountStartDate?: Date | null;
+  discountEndDate?: Date | null;
   status: ProductStatus;
   isFeatured: boolean;
   isNewArrival: boolean;

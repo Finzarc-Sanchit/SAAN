@@ -64,7 +64,7 @@ function StatCard({
       </div>
 
       <div>
-        <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-saan-ink/45 dark:text-saan-bone/45">
+        <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-saan-ink/45 dark:text-paper/45">
           {label}
         </p>
         {isLoading ? (
@@ -74,7 +74,7 @@ function StatCard({
             <AdminInlineError onRetry={onRetry} />
           </div>
         ) : (
-          <p className="mt-1 font-display text-3xl text-saan-charcoal dark:text-saan-bone">
+          <p className="mt-1 font-display text-3xl text-saan-charcoal dark:text-paper">
             {formatCompactNumber(count ?? 0)}
           </p>
         )}
@@ -94,7 +94,7 @@ export function SummaryStatCards() {
       <StatCard
         label="Customers"
         icon={Users}
-        iconClassName="bg-saan-maroon/10 text-saan-maroon dark:bg-saan-gold/15 dark:text-saan-gold"
+        iconClassName="bg-saan-maroon/10 text-ink dark:bg-ink/15 dark:text-ink"
         count={query.data?.customers.count}
         growthPercent={query.data?.customers.growthPercent}
         isLoading={query.isLoading}
@@ -104,7 +104,7 @@ export function SummaryStatCards() {
       <StatCard
         label="Orders"
         icon={ShoppingBag}
-        iconClassName="bg-saan-champagne/60 text-saan-charcoal dark:bg-white/10 dark:text-saan-bone"
+        iconClassName="bg-saan-champagne/60 text-saan-charcoal dark:bg-white/10 dark:text-paper"
         count={query.data?.orders.count}
         growthPercent={query.data?.orders.growthPercent}
         isLoading={query.isLoading}

@@ -2,9 +2,13 @@
 
 import { Plus, Trash2 } from 'lucide-react';
 import { AdminButton } from '@/components/admin/ui/AdminButton';
-import { adminInputClassName } from '@/components/admin/ui/AdminFormField';
+import {
+  AdminFieldError,
+  adminInputClassName,
+} from '@/components/admin/ui/AdminFormField';
 import type { GarmentSize } from '@/lib/types/size';
 import type { ProductSizeInput } from '@/lib/types/product';
+import { cn } from '@/lib/utils';
 
 type ProductSizesEditorProps = {
   catalogSizes: GarmentSize[];
@@ -45,13 +49,25 @@ export function ProductSizesEditor({
   }
 
   return (
-    <div className="space-y-3">
+    <div
+      className={cn(
+        'space-y-3',
+        error && 'rounded-xl border border-red-200 bg-red-50/40 p-3 dark:border-red-500/25 dark:bg-red-950/15',
+      )}
+    >
       <div className="flex items-end justify-between gap-3">
         <div>
-          <h3 className="font-display text-lg text-saan-charcoal dark:text-saan-bone">Sizes</h3>
-          <p className="mt-1 font-body text-xs text-saan-ink/50 dark:text-saan-bone/50">
+          <h3
+            className={cn(
+              'font-display text-lg text-saan-charcoal dark:text-paper',
+              error && 'text-red-700 dark:text-red-300',
+            )}
+          >
+            Sizes
+          </h3>
+          <p className="mt-1 font-body text-xs text-saan-ink/50 dark:text-paper/50">
             Pick from the size catalog. Total stock (display only):{' '}
-            <span className="tabular-nums font-medium text-saan-charcoal dark:text-saan-bone">
+            <span className="tabular-nums font-medium text-saan-charcoal dark:text-paper">
               {totalStock}
             </span>
           </p>
@@ -69,7 +85,7 @@ export function ProductSizesEditor({
             className="grid grid-cols-[1fr_7rem_auto] items-end gap-2 sm:grid-cols-[1fr_8rem_auto]"
           >
             <div>
-              <label className="mb-1 block text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-saan-bone/55">
+              <label className="mb-1 block text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-paper/55">
                 Size
               </label>
               <select
@@ -91,7 +107,7 @@ export function ProductSizesEditor({
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-saan-bone/55">
+              <label className="mb-1 block text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-paper/55">
                 Qty
               </label>
               <input
@@ -120,11 +136,7 @@ export function ProductSizesEditor({
         ))}
       </div>
 
-      {error ? (
-        <p className="font-body text-xs text-saan-maroon dark:text-red-300" role="alert">
-          {error}
-        </p>
-      ) : null}
+      <AdminFieldError error={error} />
     </div>
   );
 }

@@ -7,7 +7,6 @@ import { env } from '../config/env';
 import { authRoutes } from '../modules/auth/auth.routes';
 import { categoryRoutes } from '../modules/category/category.routes';
 import { sizeRoutes } from '../modules/size/size.routes';
-import { discountRoutes } from '../modules/discount/discount.routes';
 import { adminProductRoutes, productRoutes } from '../modules/product/product.module';
 import { productReviewRoutes, reviewRoutes } from '../modules/review/review.module';
 import { cartRoutes } from '../modules/cart/cart.module';
@@ -17,7 +16,17 @@ import { adminCustomerRoutes } from '../modules/user/user.module';
 import { wishlistRoutes } from '../modules/wishlist/wishlist.module';
 import { uploadRoutes } from '../modules/upload/upload.module';
 import { campaignRoutes } from '../modules/campaign/campaign.module';
+import {
+  adminCollectionRoutes,
+  collectionRoutes,
+} from '../modules/collection/collection.module';
 import { analyticsRoutes } from '../modules/analytics/analytics.module';
+import { createContactModule } from '../modules/contact/contact.module';
+import {
+  adminNewsletterRoutes,
+  newsletterRoutes,
+} from '../modules/newsletter/newsletter.module';
+import { emailJobRoutes, emailQueue } from '../infrastructure/email/email.module';
 import { errorHandler } from '../middlewares/error-handler';
 import { ensureConnectionsMiddleware } from '../middlewares/ensure-connections.middleware';
 import { globalRateLimiter } from '../middlewares/rate-limit.middleware';
@@ -28,6 +37,7 @@ import { successResponse } from '../shared/utils/response';
 
 export function createApp(): express.Application {
   const app = express();
+  const contactModule = createContactModule(emailQueue);
 
   app.set('trust proxy', 1);
   app.use(ensureConnectionsMiddleware);
@@ -55,6 +65,11 @@ export function createApp(): express.Application {
     '/api/v1/payments',
     express.raw({ type: 'application/json', limit: '256kb' }),
     paymentWebhookRoutes,
+  );
+  app.use(
+    '/api/v1/internal/email-jobs',
+    express.text({ type: 'application/json', limit: '256kb' }),
+    emailJobRoutes,
   );
   app.use(express.json({ limit: '1mb' }));
   app.use(cookieParser());
@@ -92,7 +107,6 @@ export function createApp(): express.Application {
   app.use('/api/v1/auth', authRoutes);
   app.use('/api/v1/categories', categoryRoutes);
   app.use('/api/v1/sizes', sizeRoutes);
-  app.use('/api/v1/discounts', discountRoutes);
   app.use('/api/v1/products', productReviewRoutes);
   app.use('/api/v1/products', productRoutes);
   app.use('/api/v1/admin/products', adminProductRoutes);
@@ -105,6 +119,12 @@ export function createApp(): express.Application {
   app.use('/api/v1/wishlist', wishlistRoutes);
   app.use('/api/v1/uploads', uploadRoutes);
   app.use('/api/v1/campaigns', campaignRoutes);
+  app.use('/api/v1/collections', collectionRoutes);
+  app.use('/api/v1/admin/collections', adminCollectionRoutes);
+  app.use('/api/v1/contact', contactModule.contactRoutes);
+  app.use('/api/v1/admin/contacts', contactModule.adminContactRoutes);
+  app.use('/api/v1/newsletter', newsletterRoutes);
+  app.use('/api/v1/admin/newsletter', adminNewsletterRoutes);
   app.use('/api/v1/admin/analytics', analyticsRoutes);
   app.use('/api/v1/orders', orderPaymentRoutes);
 

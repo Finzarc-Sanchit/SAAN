@@ -1,62 +1,117 @@
 'use client';
 
 import Image from 'next/image';
-import { useCallback } from 'react';
-import { CountdownTimer } from '@/components/campaign/CountdownTimer';
-import { CtaButton } from '@/components/ui/CtaButton';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import {
+  CAMPAIGN_BANNER_LAYOUT_CLASS,
+  CAMPAIGN_DESKTOP_IMAGE_SPEC,
+  CAMPAIGN_MOBILE_IMAGE_SPEC,
+} from '@/lib/campaign-image-spec';
+import {
+  isCloudinaryImageUrl,
+  optimizeCampaignImageUrl,
+} from '@/lib/campaign-image-url';
+import { getProductHref } from '@/lib/product-url';
 import type { Campaign } from '@/lib/types/campaign';
 import { cn } from '@/lib/utils';
 
 type CampaignSlideProps = {
   campaign: Campaign;
-  onExpire: (campaignId: string) => void;
   isFirst?: boolean;
+  /** When false, defer offscreen rotator slides until nearby. */
+  eager?: boolean;
+  className?: string;
 };
 
-export function CampaignSlide({ campaign, onExpire, isFirst = false }: CampaignSlideProps) {
-  const handleExpire = useCallback(() => {
-    onExpire(campaign.id);
-  }, [campaign.id, onExpire]);
+type Viewport = 'mobile' | 'desktop';
+
+function useCampaignViewport(): Viewport {
+  const [viewport, setViewport] = useState<Viewport>('desktop');
+
+  useEffect(() => {
+    const media = window.matchMedia('(min-width: 768px)');
+    const sync = () => setViewport(media.matches ? 'desktop' : 'mobile');
+    sync();
+    media.addEventListener('change', sync);
+    return () => media.removeEventListener('change', sync);
+  }, []);
+
+  return viewport;
+}
+
+function resolveCampaignImage(
+  url: string,
+  width: number,
+): { src: string; unoptimized: boolean } {
+  if (isCloudinaryImageUrl(url)) {
+    return {
+      src: optimizeCampaignImageUrl(url, width),
+      unoptimized: true,
+    };
+  }
+
+  return { src: url, unoptimized: false };
+}
+
+export function CampaignSlide({
+  campaign,
+  isFirst = false,
+  eager = false,
+  className,
+}: CampaignSlideProps) {
+  const href = getProductHref({ slug: campaign.productSlug });
+  const viewport = useCampaignViewport();
+  const shouldPrioritize = isFirst || eager;
+
+  const mobile = resolveCampaignImage(
+    campaign.mobileImage.url,
+    CAMPAIGN_MOBILE_IMAGE_SPEC.displayWidth * 2,
+  );
+  const desktop = resolveCampaignImage(
+    campaign.desktopImage.url,
+    CAMPAIGN_DESKTOP_IMAGE_SPEC.displayWidth * 2,
+  );
+
+  const activeImage =
+    viewport === 'desktop'
+      ? {
+          ...desktop,
+          alt: campaign.desktopImage.alt,
+          sizes: `(min-width: 1280px) ${CAMPAIGN_DESKTOP_IMAGE_SPEC.displayWidth}px, 100vw`,
+        }
+      : {
+          ...mobile,
+          alt: campaign.mobileImage.alt,
+          sizes: '100vw',
+        };
 
   return (
-    <article className="grid min-h-[550px] min-w-0 grid-cols-1 items-center gap-10 lg:min-h-[650px] lg:grid-cols-[minmax(0,9fr)_minmax(0,11fr)] lg:items-stretch lg:gap-16">
-      <div className="order-2 flex min-w-0 flex-col justify-center lg:order-1">
-        <p className="text-[12px] font-semibold tracking-[0.2em] text-saan-maroon uppercase">
-          {campaign.tag}
-        </p>
-        <h2
-          {...(isFirst ? { id: 'campaign-announcement-heading' } : {})}
-          className="mt-4 text-[clamp(2.25rem,5vw,4.5rem)] leading-[0.95] font-bold tracking-tight text-saan-ink"
-        >
-          {campaign.title}
-        </h2>
-        {campaign.discountPercent != null && campaign.discountPercent > 0 && (
-          <p className="mt-6 text-[clamp(3rem,8vw,6rem)] leading-none font-bold text-saan-maroon">
-            {campaign.discountPercent}%
-          </p>
-        )}
-        <div className={cn(campaign.discountPercent ? 'mt-6' : 'mt-8')}>
-          <CountdownTimer endDate={campaign.endDate} onExpire={handleExpire} />
-        </div>
-        <div className="mt-10">
-          <CtaButton href={campaign.cta.href} variant="link">
-            {campaign.cta.label} →
-          </CtaButton>
-        </div>
-      </div>
-
-      <div className="order-1 min-h-0 min-w-0 lg:order-2 lg:flex lg:h-full">
-        <div className="relative aspect-[4/5] w-full max-w-full overflow-hidden rounded-[32px] shadow-sm lg:aspect-auto lg:h-full lg:min-h-[520px]">
-          <Image
-            src={campaign.image.url}
-            alt={campaign.image.alt}
-            fill
-            sizes="(max-width: 1024px) 100vw, 55vw"
-            className="object-cover object-center"
-            priority={isFirst}
-          />
-        </div>
-      </div>
-    </article>
+    <Link
+      href={href}
+      className={cn(
+        'group block cursor-pointer outline-none transition-opacity hover:opacity-[0.98] focus-visible:ring-2 focus-visible:ring-ink/20 focus-visible:ring-offset-2',
+        className,
+      )}
+      aria-label={campaign.desktopImage.alt}
+      {...(isFirst ? { id: 'campaign-announcement-heading' } : {})}
+      tabIndex={eager || isFirst ? undefined : -1}
+    >
+      <article className={cn(CAMPAIGN_BANNER_LAYOUT_CLASS, 'relative')}>
+        <Image
+          key={`${campaign.id}-${viewport}`}
+          src={activeImage.src}
+          alt={activeImage.alt}
+          fill
+          priority={shouldPrioritize && isFirst}
+          loading={shouldPrioritize ? 'eager' : 'lazy'}
+          fetchPriority={shouldPrioritize && isFirst ? 'high' : 'auto'}
+          quality={72}
+          sizes={activeImage.sizes}
+          unoptimized={activeImage.unoptimized}
+          className="object-cover object-center"
+        />
+      </article>
+    </Link>
   );
 }

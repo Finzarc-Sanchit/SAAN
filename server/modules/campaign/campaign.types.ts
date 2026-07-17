@@ -1,13 +1,10 @@
 export interface Campaign {
   id: string;
-  tag: string;
-  title: string;
-  description: string;
   productId: string;
-  imageUrl: string;
-  imageAlt: string;
-  discountPercent: number | null;
-  ctaText: string;
+  desktopImageUrl: string;
+  desktopImageAlt: string;
+  mobileImageUrl: string;
+  mobileImageAlt: string;
   startDate: Date;
   endDate: Date;
   priority: number;
@@ -19,27 +16,21 @@ export interface Campaign {
 /** Storefront-facing shape (matches client Campaign type). */
 export type ActiveCampaign = {
   id: string;
-  tag: string;
-  title: string;
-  description: string;
   productId: string;
-  image: { url: string; alt: string };
-  discountPercent: number | null;
-  cta: { label: string; href: string };
+  productSlug: string;
+  desktopImage: { url: string; alt: string };
+  mobileImage: { url: string; alt: string };
   startDate: string;
   endDate: string;
   priority: number;
 };
 
 export type CreateCampaignInput = {
-  tag: string;
-  title: string;
-  description: string;
   productId: string;
-  imageUrl: string;
-  imageAlt: string;
-  discountPercent?: number | null;
-  ctaText: string;
+  desktopImageUrl: string;
+  desktopImageAlt: string;
+  mobileImageUrl: string;
+  mobileImageAlt: string;
   startDate: Date;
   endDate: Date;
   priority: number;

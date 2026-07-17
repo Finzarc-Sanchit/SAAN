@@ -135,10 +135,10 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <BackLink />
-          <h1 className="mt-2 font-display text-2xl text-saan-charcoal dark:text-saan-bone md:text-3xl">
+          <h1 className="mt-2 font-display text-2xl text-saan-charcoal dark:text-paper md:text-3xl">
             Order {formatShortOrderId(order.id)}
           </h1>
-          <p className="mt-1 font-body text-xs text-saan-ink/45 dark:text-saan-bone/45">
+          <p className="mt-1 font-body text-xs text-saan-ink/45 dark:text-paper/45">
             Placed {formatOrderDateTime(order.createdAt)}
           </p>
         </div>
@@ -151,19 +151,19 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
       <div className="grid gap-4 lg:grid-cols-3">
         <AdminCard title="Customer" className="lg:col-span-1">
           <div className="space-y-1 font-body text-sm">
-            <p className="font-medium text-saan-charcoal dark:text-saan-bone">
+            <p className="font-medium text-saan-charcoal dark:text-paper">
               {order.customer.firstName} {order.customer.lastName}
             </p>
-            <p className="text-saan-ink/70 dark:text-saan-bone/70">{order.customer.email}</p>
+            <p className="text-saan-ink/70 dark:text-paper/70">{order.customer.email}</p>
           </div>
         </AdminCard>
 
         <AdminCard title="Shipping address (at order time)" className="lg:col-span-2">
-          <p className="mb-3 font-body text-xs text-saan-ink/50 dark:text-saan-bone/50">
+          <p className="mb-3 font-body text-xs text-saan-ink/50 dark:text-paper/50">
             Historical snapshot from checkout. The customer&apos;s saved addresses may have changed
             since this order was placed.
           </p>
-          <address className="space-y-0.5 not-italic font-body text-sm text-saan-charcoal dark:text-saan-bone">
+          <address className="space-y-0.5 not-italic font-body text-sm text-saan-charcoal dark:text-paper">
             {formatAddressLines(order.addressSnapshot).map((line) => (
               <div key={line}>{line}</div>
             ))}
@@ -179,7 +179,7 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
                 {['Product', 'Size', 'Qty', 'Unit price', 'Line total'].map((heading) => (
                   <th
                     key={heading}
-                    className="px-3 py-2 font-body text-xs font-medium text-saan-ink/45 dark:text-saan-bone/45"
+                    className="px-3 py-2 font-body text-xs font-medium text-saan-ink/45 dark:text-paper/45"
                   >
                     {heading}
                   </th>
@@ -195,7 +195,7 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
                   <td className="px-3 py-3 font-body text-sm font-medium">
                     {item.productNameSnapshot}
                   </td>
-                  <td className="px-3 py-3 font-body text-sm text-saan-ink/70 dark:text-saan-bone/70">
+                  <td className="px-3 py-3 font-body text-sm text-saan-ink/70 dark:text-paper/70">
                     {sizeLabelById.get(item.sizeId) ?? item.sizeId}
                   </td>
                   <td className="px-3 py-3 tabular-nums">{item.quantity}</td>
@@ -211,15 +211,15 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
 
         <dl className="mt-6 ml-auto max-w-xs space-y-2 font-body text-sm">
           <div className="flex justify-between gap-4">
-            <dt className="text-saan-ink/60 dark:text-saan-bone/60">Subtotal</dt>
+            <dt className="text-saan-ink/60 dark:text-paper/60">Subtotal</dt>
             <dd className="tabular-nums">{formatInr(order.subtotal)}</dd>
           </div>
           <div className="flex justify-between gap-4">
-            <dt className="text-saan-ink/60 dark:text-saan-bone/60">Discount</dt>
+            <dt className="text-saan-ink/60 dark:text-paper/60">Discount</dt>
             <dd className="tabular-nums">−{formatInr(order.discount)}</dd>
           </div>
           <div className="flex justify-between gap-4">
-            <dt className="text-saan-ink/60 dark:text-saan-bone/60">Shipping</dt>
+            <dt className="text-saan-ink/60 dark:text-paper/60">Shipping</dt>
             <dd className="tabular-nums">{formatInr(order.shippingCharge)}</dd>
           </div>
           <div className="flex justify-between gap-4 border-t border-saan-champagne/40 pt-2 font-medium dark:border-white/10">
@@ -236,7 +236,7 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
           ) : paymentsQuery.isError ? (
             <AdminInlineError onRetry={() => void paymentsQuery.refetch()} />
           ) : (paymentsQuery.data?.length ?? 0) === 0 ? (
-            <p className="font-body text-sm text-saan-ink/50 dark:text-saan-bone/50">
+            <p className="font-body text-sm text-saan-ink/50 dark:text-paper/50">
               No payment records yet.
             </p>
           ) : (
@@ -250,7 +250,7 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
                     <p className="font-body text-sm font-medium capitalize">{payment.status}</p>
                     <p className="font-body text-sm tabular-nums">{formatInr(payment.amount)}</p>
                   </div>
-                  <dl className="mt-2 grid gap-1 font-body text-xs text-saan-ink/60 dark:text-saan-bone/60">
+                  <dl className="mt-2 grid gap-1 font-body text-xs text-saan-ink/60 dark:text-paper/60">
                     <div className="flex justify-between gap-3">
                       <dt>Method</dt>
                       <dd className="capitalize">{payment.paymentMethod}</dd>
@@ -273,11 +273,11 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
         </AdminCard>
 
         <AdminCard title="Update status">
-          <p className="mb-3 font-body text-sm text-saan-ink/60 dark:text-saan-bone/60">
+          <p className="mb-3 font-body text-sm text-saan-ink/60 dark:text-paper/60">
             Current: <span className="font-medium">{ORDER_STATUS_LABELS[order.status]}</span>
           </p>
           {nextStatuses.length === 0 ? (
-            <p className="font-body text-sm text-saan-ink/50 dark:text-saan-bone/50">
+            <p className="font-body text-sm text-saan-ink/50 dark:text-paper/50">
               No further status changes available from this state.
             </p>
           ) : (
@@ -305,7 +305,7 @@ function BackLink() {
   return (
     <Link
       href="/admin/orders"
-      className="inline-flex items-center gap-1.5 font-body text-sm text-saan-ink/55 transition-colors hover:text-saan-maroon dark:text-saan-bone/55 dark:hover:text-saan-gold"
+      className="inline-flex items-center gap-1.5 font-body text-sm text-saan-ink/55 transition-colors hover:text-ink dark:text-paper/55 dark:hover:text-ink"
     >
       <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
       Orders

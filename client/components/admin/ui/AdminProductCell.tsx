@@ -25,10 +25,10 @@ export function AdminProductCell({
         className="h-12 w-12 shrink-0 rounded-lg"
       />
       <div className="min-w-0 flex flex-col justify-center">
-        <p className="truncate font-body text-sm font-semibold text-saan-charcoal dark:text-saan-bone">
+        <p className="truncate font-body text-sm font-semibold text-saan-charcoal dark:text-paper">
           {name}
         </p>
-        <p className="mt-0.5 truncate font-body text-xs text-saan-ink/45 dark:text-saan-bone/45">
+        <p className="mt-0.5 truncate font-body text-xs text-saan-ink/45 dark:text-paper/45">
           {subtitle}
         </p>
       </div>

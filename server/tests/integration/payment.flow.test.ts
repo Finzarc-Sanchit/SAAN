@@ -136,11 +136,22 @@ describe('Payment flow integration', () => {
 
     const product = await ProductModel.create({
       categoryId: '507f1f77bcf86cd799439011',
+      collectionId: '507f1f77bcf86cd799439012',
       name: 'Linen Shirt',
       slug: slugifyName(`Linen Shirt ${Date.now()}`),
       description: 'A linen shirt',
       shortDescription: 'Linen shirt',
       fabric: 'Linen',
+      color: 'Ivory',
+      occasion: ['Daily'],
+      fitNotes: "Model is 5'6\" wearing S. Fit relaxed.",
+        care: [
+          'Dry Clean Only',
+          'Do not Wash',
+          'Do not Wring',
+          'Iron at low temperature',
+          'Tumble dry on Low Heat',
+        ],
       basePrice: 10000,
       ratingsAverage: 0,
       ratingsCount: 0,

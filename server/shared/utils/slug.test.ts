@@ -27,4 +27,15 @@ describe('resolveUniqueSlug', () => {
     const slug = await resolveUniqueSlug('Linen', async (candidate) => taken.has(candidate));
     expect(slug).toBe('linen-3');
   });
+
+  it('keeps generated suffixes within the requested maximum length', async () => {
+    const slug = await resolveUniqueSlug(
+      'A very long collection title',
+      async (candidate) => candidate === 'a-very-lon',
+      10,
+    );
+
+    expect(slug).toBe('a-very-l-2');
+    expect(slug).toHaveLength(10);
+  });
 });

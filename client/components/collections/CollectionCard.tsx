@@ -10,7 +10,7 @@ export function CollectionCard({ collection }: CollectionCardProps) {
   return (
     <Link
       href={collection.href}
-      className="group relative block aspect-[4/5] overflow-hidden border border-transparent transition-colors duration-500 hover:border-saan-gold"
+      className="group relative block aspect-[4/5] overflow-hidden border border-transparent transition-colors duration-500 hover:border-ink"
     >
       <Image
         src={collection.image}

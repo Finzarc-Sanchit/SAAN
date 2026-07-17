@@ -15,13 +15,28 @@ import type { Product } from '../product/product.types';
 const baseProduct: Product = {
   id: 'product-1',
   categoryId: 'cat-1',
-  discountId: null,
+  collectionId: 'collection-1',
   name: 'Linen Shirt',
   slug: 'linen-shirt',
   description: 'A linen shirt',
   shortDescription: 'Linen shirt',
   fabric: 'Linen',
+  color: 'Ivory',
+  occasion: ['Daily'],
+  fitNotes: "Model is 5'6\" wearing S. Fit relaxed.",
+  care: [
+    'Dry Clean Only',
+    'Do not Wash',
+    'Do not Wring',
+    'Iron at low temperature',
+    'Tumble dry on Low Heat',
+  ],
   basePrice: 5000,
+  salePrice: null,
+  discountPercent: null,
+  discountEnabled: false,
+  discountStartDate: null,
+  discountEndDate: null,
   ratingsAverage: 0,
   ratingsCount: 0,
   stock: 15,
@@ -55,7 +70,11 @@ const discountedProduct: Product = {
   id: 'product-2',
   name: 'Silk Dress',
   basePrice: 10000,
-  discountId: 'discount-1',
+  salePrice: 9000,
+  discountPercent: 10,
+  discountEnabled: true,
+  discountStartDate: new Date('2026-01-01'),
+  discountEndDate: new Date('2027-01-01'),
 };
 
 const cartWithItems: Cart = {
@@ -352,7 +371,7 @@ describe('OrderService.placeOrder', () => {
       }),
     );
     expect(order.total).toBe(19000);
-    expect(cartService.clearCart).toHaveBeenCalledWith('user-1');
+    expect(cartService.clearCart).not.toHaveBeenCalled();
   });
 
   it('rolls back stock decremented for earlier items when a later item fails', async () => {
@@ -421,6 +440,61 @@ describe('OrderService.placeOrder', () => {
     await expect(
       orderService.placeOrder('user-1', { addressId: savedAddress.addressId }, 'idem-busy'),
     ).rejects.toBeInstanceOf(ConflictError);
+  });
+
+  it('cancelPendingOrder restores stock and marks the order cancelled', async () => {
+    const pendingOrder = {
+      id: 'order-pending',
+      userId: 'user-1',
+      addressSnapshot: {
+        firstName: 'Asha',
+        lastName: 'Rao',
+        phone: '+91 98765 43210',
+        address: '12 MG Road',
+        apartment: null,
+        city: 'Mumbai',
+        state: 'Maharashtra',
+        postalCode: '400001',
+      },
+      items: [
+        {
+          orderItemId: 'line-1',
+          productId: 'product-1',
+          sizeId: 'size-m',
+          productNameSnapshot: 'Linen Shirt',
+          quantity: 1,
+          unitPrice: 4500,
+          totalPrice: 4500,
+        },
+      ],
+      subtotal: 4500,
+      discount: 0,
+      shippingCharge: 0,
+      total: 4500,
+      currency: 'INR',
+      status: 'pending' as const,
+      paymentStatus: 'pending' as const,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    orderRepository.findById.mockResolvedValue(pendingOrder);
+    orderRepository.updatePaymentStatus.mockResolvedValue({
+      ...pendingOrder,
+      paymentStatus: 'failed',
+    });
+    orderRepository.updateStatus.mockResolvedValue({
+      ...pendingOrder,
+      status: 'cancelled',
+      paymentStatus: 'failed',
+    });
+
+    const result = await orderService.cancelPendingOrder('order-pending', 'user-1');
+
+    expect(productService.adjustStock).toHaveBeenCalledWith('product-1', 'size-m', 1);
+    expect(orderRepository.updatePaymentStatus).toHaveBeenCalledWith('order-pending', 'failed');
+    expect(orderRepository.updateStatus).toHaveBeenCalledWith('order-pending', 'cancelled');
+    expect(result.status).toBe('cancelled');
   });
 });
 

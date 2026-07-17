@@ -22,7 +22,7 @@ export function EditorialSectionHeading({
   return (
     <div className={cn('max-w-3xl', className)}>
       {eyebrow && (
-        <p className="text-label-caps mb-4 text-saan-gold">{eyebrow}</p>
+        <p className="text-label-caps mb-4 text-ink">{eyebrow}</p>
       )}
       <h2
         id={id}
@@ -30,20 +30,20 @@ export function EditorialSectionHeading({
       >
         {titleAccent && titleParts.length > 1 ? (
           <>
-            <span className="text-saan-maroon">{titleParts[0]}</span>
-            <span className="text-saan-gold">{titleAccent}</span>
+            <span className="text-ink">{titleParts[0]}</span>
+            <span className="text-ink">{titleAccent}</span>
             {titleParts[1] && (
-              <span className="text-saan-maroon">{titleParts[1]}</span>
+              <span className="text-ink">{titleParts[1]}</span>
             )}
           </>
         ) : (
-          <span className="text-saan-maroon">{title}</span>
+          <span className="text-ink">{title}</span>
         )}
       </h2>
       <div className="mt-5 flex items-center gap-3">
-        <span className="h-px w-12 bg-saan-maroon" aria-hidden />
-        <span className="h-1 w-1 rounded-full bg-saan-gold" aria-hidden />
-        <span className="h-px w-6 bg-saan-gold" aria-hidden />
+        <span className="h-px w-12 bg-ink" aria-hidden />
+        <span className="h-1 w-1 rounded-full bg-ink" aria-hidden />
+        <span className="h-px w-6 bg-ink" aria-hidden />
       </div>
       {subtitle && (
         <p className="mt-5 font-body text-lg font-normal tracking-wide text-saan-charcoal/80">

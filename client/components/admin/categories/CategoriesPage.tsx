@@ -76,7 +76,7 @@ export function CategoriesPage() {
         id: 'products',
         header: 'Products',
         cell: (row) => (
-          <span className="tabular-nums text-saan-ink/70 dark:text-saan-bone/70">
+          <span className="tabular-nums text-saan-ink/70 dark:text-paper/70">
             {row.productCount}
           </span>
         ),
@@ -108,10 +108,10 @@ export function CategoriesPage() {
     <div className="space-y-4 lg:space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-saan-ink/45 dark:text-saan-bone/45">
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-saan-ink/45 dark:text-paper/45">
             Catalog
           </p>
-          <h1 className="mt-1 font-display text-2xl text-saan-charcoal dark:text-saan-bone md:text-3xl">
+          <h1 className="mt-1 font-display text-2xl text-saan-charcoal dark:text-paper md:text-3xl">
             Categories
           </h1>
         </div>

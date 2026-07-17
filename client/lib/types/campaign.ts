@@ -1,15 +1,17 @@
 import { z } from 'zod';
 
+export type CampaignImage = {
+  url: string;
+  alt: string;
+};
+
 /** Storefront-facing shape from `GET /api/v1/campaigns/active`. */
 export type Campaign = {
   id: string;
-  tag: string;
-  title: string;
-  description: string;
-  productId?: string;
-  image: { url: string; alt: string };
-  discountPercent?: number | null;
-  cta: { label: string; href: string };
+  productId: string;
+  productSlug: string;
+  desktopImage: CampaignImage;
+  mobileImage: CampaignImage;
   startDate: string;
   endDate: string;
   priority: number;
@@ -18,14 +20,11 @@ export type Campaign = {
 /** Admin CRUD shape from `/api/v1/campaigns`. Mirrors `server/modules/campaign/campaign.types.ts`. */
 export type AdminCampaign = {
   id: string;
-  tag: string;
-  title: string;
-  description: string;
   productId: string;
-  imageUrl: string;
-  imageAlt: string;
-  discountPercent: number | null;
-  ctaText: string;
+  desktopImageUrl: string;
+  desktopImageAlt: string;
+  mobileImageUrl: string;
+  mobileImageAlt: string;
   startDate: string;
   endDate: string;
   priority: number;
@@ -35,14 +34,11 @@ export type AdminCampaign = {
 };
 
 export type CreateCampaignInput = {
-  tag: string;
-  title: string;
-  description: string;
   productId: string;
-  imageUrl: string;
-  imageAlt: string;
-  discountPercent?: number | null;
-  ctaText: string;
+  desktopImageUrl: string;
+  desktopImageAlt: string;
+  mobileImageUrl: string;
+  mobileImageAlt: string;
   startDate: string;
   endDate: string;
   priority: number;
@@ -53,19 +49,11 @@ export type UpdateCampaignInput = Partial<CreateCampaignInput>;
 
 export const campaignFormSchema = z
   .object({
-    tag: z.string().trim().min(1, 'Tag is required').max(100),
-    title: z.string().trim().min(1, 'Title is required').max(200),
-    description: z.string().trim().min(1, 'Description is required').max(2000),
     productId: z.string().min(1, 'Product is required'),
-    imageUrl: z.string().url('Image URL must be valid'),
-    imageAlt: z.string().trim().min(1, 'Image alt text is required').max(300),
-    discountPercent: z
-      .number({ invalid_type_error: 'Discount must be a number' })
-      .min(0, 'Discount cannot be negative')
-      .max(100, 'Discount cannot exceed 100%')
-      .nullable()
-      .optional(),
-    ctaText: z.string().trim().min(1, 'CTA text is required').max(100),
+    desktopImageUrl: z.string().url('Desktop image URL must be valid'),
+    desktopImageAlt: z.string().trim().min(1, 'Desktop image alt text is required').max(300),
+    mobileImageUrl: z.string().url('Mobile image URL must be valid'),
+    mobileImageAlt: z.string().trim().min(1, 'Mobile image alt text is required').max(300),
     startDate: z.string().min(1, 'Start date is required'),
     endDate: z.string().min(1, 'End date is required'),
     priority: z

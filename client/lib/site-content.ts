@@ -1,3 +1,11 @@
+import {
+  SAANLABEL_COLLECTIONS,
+  SAANLABEL_INSTAGRAM,
+  SAANLABEL_PRODUCTS,
+  SAANLABEL_SECTIONS,
+} from '@/lib/saanlabel-images';
+import { PRODUCT_OCCASIONS, type ProductOccasion } from '@/lib/product-occasion';
+
 export const ANNOUNCEMENTS = [
   'COMPLIMENTARY SHIPPING ACROSS INDIA',
   'EK SUNHERI DOPAHAR · NOW LIVE',
@@ -7,7 +15,6 @@ export const ANNOUNCEMENTS = [
 ] as const;
 
 export const NAV_LINKS = [
-  { label: 'Home', href: '/' },
   { label: 'Shop', href: '/shop' },
   { label: 'Collections', href: '/collections' },
   { label: 'Journal', href: '/journal' },
@@ -38,7 +45,7 @@ export const COLLECTIONS = [
     description: 'A study in depth.',
     tagline: 'The red that commands a room.',
     href: '/collections/bloody-maroon',
-    image: '/images/collections/bloody-maroon.jpg',
+    image: SAANLABEL_COLLECTIONS.coordSets,
   },
   {
     id: 'ek-sunheri-dopahar',
@@ -46,7 +53,7 @@ export const COLLECTIONS = [
     description: 'A golden afternoon.',
     tagline: 'Captured in threads of light.',
     href: '/collections/ek-sunheri-dopahar',
-    image: '/images/collections/ek-sunheri-dopahar.jpg',
+    image: SAANLABEL_COLLECTIONS.ethnicWear,
   },
   {
     id: 'jhalak',
@@ -54,7 +61,7 @@ export const COLLECTIONS = [
     description: 'A glimpse, dressed in shadow.',
     tagline: 'Where light meets the unseen.',
     href: '/collections/jhalak',
-    image: '/images/collections/jhalak.jpg',
+    image: SAANLABEL_COLLECTIONS.westernWear,
   },
   {
     id: 'shells',
@@ -62,7 +69,7 @@ export const COLLECTIONS = [
     description: 'Found ornament.',
     tagline: "The ocean's quiet geometry.",
     href: '/collections/shells',
-    image: '/images/collections/shells.jpg',
+    image: SAANLABEL_PRODUCTS.pastelMaxiDress,
   },
   {
     id: 'effortless',
@@ -70,7 +77,7 @@ export const COLLECTIONS = [
     description: 'Everyday, intentional.',
     tagline: 'Design for a simpler pace.',
     href: '/collections/effortless',
-    image: '/images/collections/effortless.jpg',
+    image: SAANLABEL_COLLECTIONS.luxeEditBanner,
   },
 ] as const;
 
@@ -95,7 +102,7 @@ export const PRODUCTS = [
     mrp: 165000,
     currency: 'INR',
     category: 'luxury-formals' as const,
-    image: '/images/products/zari-lehenga.jpg',
+    image: SAANLABEL_PRODUCTS.kaliWhiteBoneGown,
     isNew: false,
   },
   {
@@ -105,7 +112,7 @@ export const PRODUCTS = [
     mrp: 54900,
     currency: 'INR',
     category: 'new-arrivals' as const,
-    image: '/images/products/chanderi-kurta.jpg',
+    image: SAANLABEL_PRODUCTS.whiteCottonCoord,
     isNew: true,
   },
   {
@@ -115,7 +122,7 @@ export const PRODUCTS = [
     mrp: 89900,
     currency: 'INR',
     category: 'luxury-pret' as const,
-    image: '/images/products/velvet-anarkali.jpg',
+    image: SAANLABEL_PRODUCTS.whitePersianAnarkali,
     isNew: true,
   },
   {
@@ -125,7 +132,7 @@ export const PRODUCTS = [
     mrp: 72500,
     currency: 'INR',
     category: 'new-arrivals' as const,
-    image: '/images/products/organza-saree.jpg',
+    image: SAANLABEL_PRODUCTS.inkBlueSaree,
     isNew: false,
   },
   {
@@ -135,7 +142,7 @@ export const PRODUCTS = [
     mrp: 42900,
     currency: 'INR',
     category: 'new-arrivals' as const,
-    image: '/images/products/paper-silk-suit.jpg',
+    image: SAANLABEL_PRODUCTS.noirGraceSuit,
     isNew: true,
   },
   {
@@ -145,7 +152,7 @@ export const PRODUCTS = [
     mrp: 24900,
     currency: 'INR',
     category: 'luxury-lawn' as const,
-    image: '/images/products/cotton-lawn.jpg',
+    image: SAANLABEL_PRODUCTS.greenBoneDress,
     isNew: false,
   },
   {
@@ -155,7 +162,7 @@ export const PRODUCTS = [
     mrp: 31900,
     currency: 'INR',
     category: 'luxury-basics' as const,
-    image: '/images/products/linen-coord.jpg',
+    image: SAANLABEL_PRODUCTS.electricBlueCoord,
     isNew: false,
   },
   {
@@ -165,7 +172,7 @@ export const PRODUCTS = [
     mrp: 12900,
     currency: 'INR',
     category: 'accessories' as const,
-    image: '/images/products/zari-clutch.jpg',
+    image: SAANLABEL_PRODUCTS.saanPrintMiniDress,
     isNew: true,
   },
 ] as const;
@@ -175,31 +182,57 @@ export const JOURNAL_POSTS = [
     id: 'ethnic-vs-traditional',
     category: 'Style Guide',
     title: 'Ethnic vs Traditional Wear: Decoding the Differences',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuA7KD6FLVgyseKj6RedXoGS_YJdS-gKgYTSuEl7W32TEOK9g_bwx_4BSZFkpXkSOyWsC5JRfKyp1fbgMTrbSE55nysXkUOmdvMtSNhBQVxSBVfYRlT-4PKvtz57Fayhq3OhpOsDDCvH0jTx8UV9FaeK0IWyo1J7lnkiSOv5sSK97s5BxyhjTY237hZYr-hgtLQ45ARwUX2ySJwJbI3Q51_ANXiSRLNg8uYY-__r0lPNrW8AVztbI_c-Uxx2lsC3vxy2f9m96S9Gf5ye',
+    excerpt:
+      'How heritage silhouettes and contemporary ethnic dressing meet — and where they quietly diverge.',
+    date: '12 March 2026',
+    readingTime: '6 min read',
+    image: SAANLABEL_COLLECTIONS.ethnicWear,
   },
   {
     id: 'summer-dressing-guide',
     category: "Editor's Picks",
     title: 'Summer Dressing Guide: Staying Cool & Chic',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuDwQ-Ui5CrqgZW3E7W_ARk0GMvcLIWaGI9nAzoNG-j51kM4OrjdYsE6IjPaS-Ev0V5p6HUqG0opakNnacq6TJhUbZDHMS3KvqUGVWLHFMAB0ekYT7MPkY0JgECoyLmsCRG9vAGNmj9p9pdxZzN8yKJgzgHvPRHYV_rDw7bEuYUhHNKD_wZrYTRwi_paRyfZAE3Lv7Ad6xcXv9YYN-UoG3K5-5R4TqdCipitTzn7ZFO1iNJ84KELoKVXFZ-0Ho3j0-XRrGWzd3sqW7bK',
+    excerpt:
+      'Light fabrics, considered layers, and pieces made for heat without losing presence.',
+    date: '28 February 2026',
+    readingTime: '5 min read',
+    image: SAANLABEL_PRODUCTS.pastelMaxiDress,
   },
   {
     id: 'art-of-zardozi',
     category: 'Behind the Seams',
     title: 'The Art of Zardozi: Preserving Ancient Crafts',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCzX_milgk66WVOusJUj1QcPzBymDqV1J8WtYj2xZSEO39UYUlEmVT0Q9l_FBbCUOTD1bHJKjEHYFAFEoOrmdcwA8Xb_4y_CbVIAp_Y-nk97X2WeXGBrhigVF-x9ISOsP3bqw39L84fDJ3Rm__DJdymjiHvMq3Cb79k4H1zRE1TpUcM8kPqrUyCWYPaFvdK1c6TzdjPegZSZ2L1njNhmsoq8Em75DPOp5UIERJCVxplUPo_-M9vQJ2hhtiArxNPB6IZ8QhxyfXdrv5c',
+    excerpt:
+      'Inside the embroidery clusters and atelier hands that finish every SAAN piece, stitch by stitch.',
+    date: '14 February 2026',
+    readingTime: '7 min read',
+    image: SAANLABEL_PRODUCTS.inkBlueSareeAlt,
   },
   {
     id: 'resort-2026',
     category: 'Lookbook',
     title: 'Resort 2026: An Exclusive First Look',
-    image:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuDdM-ReYMWCNMpadhsOwukkdkAmkr2blNLMn9-TWLdFE8xqaF1OPRJJhtkcZ_Q5PpPpb5s9Tuwlf3rzENBAl3p7GjGDMWPh412qIrZ80I9nF3DmZynHwcX2ktQG0LT44H3uW9IGTReqyYnzNAh85CUM9iUC-3lnYS9X7igg8sEVzHIXrdNU8Ivb1y5DSqmJHffLc_mANsx7on0p23O2dfcKC2Tum6zIfI_5_m05172D5Huu9RA69cVXQ2ea2oBAIXtilz6Lt3_Dyoee',
+    excerpt:
+      'An early glimpse of the season ahead — soft geometry, sunlit cloth, and unhurried ease.',
+    date: '2 February 2026',
+    readingTime: '4 min read',
+    image: SAANLABEL_COLLECTIONS.luxeEditBanner,
   },
 ] as const;
+
+export type JournalPost = (typeof JOURNAL_POSTS)[number];
+
+export const JOURNAL_CATEGORIES = [
+  { id: 'all', label: 'All Stories' },
+  { id: 'Style Guide', label: 'Style Guide' },
+  { id: "Editor's Picks", label: "Editor's Picks" },
+  { id: 'Behind the Seams', label: 'Behind the Seams' },
+  { id: 'Lookbook', label: 'Lookbook' },
+] as const;
+
+export function getJournalPostById(id: string): JournalPost | undefined {
+  return JOURNAL_POSTS.find((post) => post.id === id);
+}
 
 export const ATELIER_LANDING_COPY = {
   eyebrow: 'The Atelier',
@@ -215,7 +248,7 @@ export const ATELIER_LANDING_COPY = {
     { value: 0, suffix: '', label: 'Fast fashion' },
   ],
   heroImage: {
-    src: '/images/atelier/bg-img.webp',
+    src: SAANLABEL_PRODUCTS.regalMaroonKurta,
     alt: 'SAAN artisan portrait from the Bandra atelier',
   },
   cta: {
@@ -244,81 +277,126 @@ export const FEATURED_COLLECTION = {
   title: 'Best Sellers',
   subtitle: "Own What's Always Admired",
   tagline: 'Curated pieces, always in demand',
-  image:
-    'https://lh3.googleusercontent.com/aida-public/AB6AXuBdPy7cYr0PWZvju_YY7-sEr1LXrZE5ZEeXMHbN5PWFqaBQ-Ykl0tkIQpUPHi5ZxUgIFwPHCf5sQbGoxhZNW8zTMXnZhGWJyd3ixOhpiobAHozL3n3LGOJW4LdrL-G7GLBoQJMBg3_jT2LbyeQ10heJQ6hAdFcXKFQcSQ4ALk-2L0SMXLutedN34niL65A2b49abt3wBwDUCbQMnX_SNxBX8FeagweCRNhBj4ECc0WHlv-IW95Q9vao2MDZ7q8bBC-hYI4LEm4QZ8hj',
+  image: SAANLABEL_SECTIONS.bestSellersCampaign,
   href: '/shop/best-sellers',
 } as const;
 
 export const ATELIER_COPY = {
-  eyebrow: 'Brand Story',
-  headline: 'One philosophy, many expressions.',
+  hero: {
+    title: 'SAAN.',
+    statement: 'Redefining the Indian wardrobe, one stitch at a time.',
+    signature: 'By Jueata · Mumbai · Est. 2024',
+  },
+  headline: 'Brand Story',
   intro: [
     'SAAN is born from the belief that true elegance lies in restraint.',
     "Rooted in Indian tradition yet shaped by modern sensibilities, SAAN celebrates the woman who doesn't need excess to be seen. Every detail is deliberate, every form thoughtful — much like the women who wear it.",
     "At the heart of the identity is a single adornment dot. Subtle yet powerful, it draws from India's timeless decorative language — embellishments, and marks of grace — reimagined for today. It represents that one defining element that completes a look, the quiet accent that elevates simplicity into sophistication.",
   ],
-  cta: { label: 'Explore Collections', href: '/collections' },
-  inViewLabel: 'In view: 01/04',
-  pillars: [
-    {
-      id: 'craft',
-      title: 'The Craft',
-      description:
-        'Every garment is finished by hand in our Bandra atelier — pattern, drape, and proportion considered with unhurried precision.',
-      image: '/images/collections/bloody-maroon.jpg',
-      href: '/collections/bloody-maroon',
-      meta: [
-        { label: 'Focus', value: 'Hand finishing' },
-        { label: 'Location', value: 'Bandra, Mumbai' },
-      ],
-      featured: true,
+  founder: {
+    title: 'Jueata Kaur.',
+    role: 'Founder & creative director.',
+    image: {
+      src: SAANLABEL_COLLECTIONS.ethnicWear,
+      alt: 'SAAN editorial study in contemporary Indian tailoring',
     },
-    {
-      id: 'heritage',
-      title: 'Heritage Reimagined',
-      description:
-        'Traditional embellishment and decorative language, distilled into a single defining accent.',
-      image: '/images/collections/jhalak.jpg',
-      href: '/collections/jhalak',
-      meta: [
-        { label: 'Focus', value: 'Embellishment' },
-        { label: 'Approach', value: 'Restraint' },
-      ],
-      featured: false,
+    body: [
+      "Jueata started SAAN in 2024 with a small team of pattern-makers in Bandra and a single brief: make Indian wear that doesn't feel like a costume — that you can wear to your own wedding and again, three months later, to dinner.",
+      'Trained as a textile designer and with a background in atelier work in Mumbai, she leads the design, the colour stories and the fittings.',
+    ],
+    quote:
+      "Restraint isn't about taking things away. It's about knowing which one thing to keep.",
+  },
+  visit: {
+    title: 'The Bandra atelier.',
+    introduction: 'By appointment, Tuesday to Saturday, 11AM to 7PM.',
+    image: {
+      src: SAANLABEL_COLLECTIONS.coordSets,
+      alt: 'SAAN atelier editorial featuring a hand-finished ivory ensemble',
     },
-    {
-      id: 'silhouette',
-      title: 'Modern Silhouette',
-      description:
-        'Clean lines and thoughtful forms designed for the woman who values presence over performance.',
-      image: '/images/collections/effortless.jpg',
-      href: '/collections/effortless',
-      meta: [
-        { label: 'Focus', value: 'Silhouette' },
-        { label: 'Approach', value: 'Contemporary' },
-      ],
-      featured: false,
+    details: [
+      {
+        id: 'address',
+        title: 'Address',
+        lines: ['Pearl Heights, 1st Floor', 'Linking Road, Bandra West', 'Mumbai 400050'],
+      },
+      {
+        id: 'hours',
+        title: 'Hours',
+        lines: ['Tuesday to Saturday', '11AM — 7PM', 'By appointment'],
+      },
+      {
+        id: 'book',
+        title: 'Book',
+        lines: ['+91 99206 13132', 'jueatakaur@gmail.com'],
+      },
+    ],
+    cta: {
+      label: 'Book a visit on WhatsApp',
+      href: 'https://wa.me/919920613132',
     },
-    {
-      id: 'collections',
-      title: 'Five Lines',
-      description:
-        'Distinct expressions of one philosophy — from ceremonial depth to everyday ease.',
-      image: '/images/collections/ek-sunheri-dopahar.jpg',
-      href: '/collections',
-      meta: [
-        { label: 'Focus', value: 'Collections' },
-        { label: 'Count', value: 'Five lines' },
-      ],
-      featured: false,
-    },
-  ],
-  classic: {
+  },
+  madeToMeasure: {
+    title: 'Stitched for you.',
+    description:
+      'Almost every piece on SAAN can be made to your exact measurements. We do this carefully, in our atelier, in 18–25 days.',
+    cta: { label: 'Browse pieces', href: '/shop' },
+    steps: [
+      {
+        number: '01',
+        title: 'Pick a piece',
+        description: 'On any product page, choose made-to-measure.',
+      },
+      {
+        number: '02',
+        title: 'Send measurements',
+        description:
+          'We reach out on WhatsApp within 24 hours with a measurement guide.',
+      },
+      {
+        number: '03',
+        title: 'We stitch',
+        description:
+          '18–25 working days, depending on the piece. We send updates as the work progresses.',
+      },
+      {
+        number: '04',
+        title: 'One free alteration',
+        description:
+          "After delivery, one alteration is on us. Most don't need it.",
+      },
+    ],
+  },
+  careers: {
+    title: 'Join the atelier.',
+    introduction: 'Love to work with a fashion brand.',
+    email: 'jueatakaur@gmail.com',
+    roles: [
+      {
+        title: 'Web & Performance Specialist',
+        status: 'Open',
+        description:
+          "We're looking for a developer with a marketing brain and 1–2 years of experience to own our infrastructure, ad strategy, and daily campaigns.",
+        responsibilities: [
+          'Infrastructure — build, maintain, and optimise site speed',
+          'Ads — own Google and Meta ad strategy and ROI',
+          'Strategy — launch daily trend-based campaigns',
+        ],
+      },
+      {
+        title: 'Atelier Tailor',
+        status: 'Coming soon',
+        description: '',
+        responsibilities: [],
+      },
+    ],
+  },
+  classicStatement: {
     word: 'CLASSIC',
     tagline: 'We Are Always',
     ariaLabel: 'We are always classic',
     portrait: {
-      src: '/images/atelier/classic-portrait.png',
+      src: SAANLABEL_SECTIONS.brandPhilosophy,
       alt: 'Editorial portrait of a woman in maroon SAAN couture with gold adornment',
     },
   },
@@ -332,7 +410,115 @@ export const ATELIER_COPY = {
   },
 } as const;
 
-export type AtelierPillar = (typeof ATELIER_COPY.pillars)[number];
+export const JOURNAL_COPY = {
+  hero: {
+    title: 'The SAAN Journal',
+    description: 'Stories of style, heritage, and modern living.',
+    image: {
+      src: SAANLABEL_COLLECTIONS.westernWear,
+      alt: 'Editorial campaign photography for the SAAN Journal',
+    },
+  },
+  featured: {
+    ctaLabel: 'Read the Story',
+  },
+  quote: {
+    text: ATELIER_COPY.closing.paragraphs[2],
+    image: {
+      src: SAANLABEL_PRODUCTS.regalMaroonKurta,
+      alt: 'Immersive editorial portrait from the SAAN atelier',
+    },
+  },
+  latest: {
+    title: 'More from the Journal',
+  },
+} as const;
+
+export const CONTACT_COPY = {
+  hero: {
+    title: 'Got Any Questions?',
+    description:
+      'Use the form below to get in touch with our team.',
+    image: {
+      src: SAANLABEL_COLLECTIONS.coordSets,
+      alt: 'Lifestyle editorial imagery for contacting SAAN',
+    },
+  },
+  info: {
+    email: {
+      label: 'Email',
+      value: 'jueatakaur@gmail.com',
+      href: 'mailto:jueatakaur@gmail.com',
+    },
+    phone: {
+      label: 'Phone',
+      value: '+91 99206 13132',
+      href: 'tel:+919920613132',
+    },
+    hours: {
+      label: 'Hours',
+      value: 'Monday – Saturday',
+      detail: '11AM – 7PM IST',
+    },
+    address: {
+      label: 'Atelier',
+      lines: [
+        'Pearl Heights, 1st Floor',
+        'Linking Road, Bandra West',
+        'Mumbai 400050',
+      ],
+      detail: 'Visits by appointment',
+    },
+    social: {
+      label: 'Instagram',
+      value: '@saan.label',
+      href: 'https://www.instagram.com/saan.label',
+    },
+  },
+  form: {
+    title: 'Send a Message',
+    description: 'Use the form below to get in touch with the sales team.',
+    submitLabel: 'Send Question',
+    successMessage: 'Thank you. We will respond within one to two business days.',
+  },
+  studio: {
+    title: 'The Bandra Atelier',
+    body: ATELIER_LANDING_COPY.body[0],
+    image: {
+      src: SAANLABEL_PRODUCTS.regalMaroonKurta,
+      alt: 'Inside the SAAN Bandra atelier',
+    },
+  },
+  support: {
+    title: 'How We Can Help',
+    image: {
+      src: SAANLABEL_PRODUCTS.whitePersianAnarkali,
+      alt: 'Editorial product photography from SAAN',
+    },
+    items: [
+      {
+        title: 'General Enquiries',
+        description:
+          'Redefining heritage for the modern muse. Ethical craftsmanship meets timeless design.',
+      },
+      {
+        title: 'Order Support',
+        description: 'For order status, exchanges, and delivery updates.',
+      },
+      {
+        title: 'Shipping Queries',
+        description: ANNOUNCEMENTS[0],
+      },
+    ],
+  },
+  closing: {
+    statement: ATELIER_COPY.closing.paragraphs[1],
+    image: {
+      src: SAANLABEL_COLLECTIONS.ethnicWear,
+      alt: 'Editorial closing image from the SAAN collections',
+    },
+  },
+} as const;
 
 export const TESTIMONIALS_COPY = {
   eyebrow: 'Testimonials',
@@ -437,6 +623,9 @@ export function getDiscountPercent(price: number, mrp: number): number {
   return Math.round((1 - price / mrp) * 100);
 }
 
+export const SHOP_OCCASIONS = PRODUCT_OCCASIONS;
+export type ShopOccasion = ProductOccasion;
+
 export type ShopProduct = {
   id: string;
   sku: string;
@@ -447,9 +636,12 @@ export type ShopProduct = {
   currency: string;
   collection: string;
   category: string;
-  occasion: string;
+  occasion: ShopOccasion[];
   image: string;
+  images?: readonly string[];
   isNew: boolean;
+  /** Present for API-backed products; static catalog items fall back to `id`. */
+  slug?: string;
 };
 
 export const SHOP_PRODUCTS: readonly ShopProduct[] = [
@@ -463,8 +655,8 @@ export const SHOP_PRODUCTS: readonly ShopProduct[] = [
     currency: 'INR',
     collection: 'bloody-maroon',
     category: 'Anarkalis',
-    occasion: 'Festive',
-    image: '/images/products/velvet-anarkali.jpg',
+    occasion: ['Festive'],
+    image: SAANLABEL_PRODUCTS.regalMaroonKurta,
     isNew: true,
   },
   {
@@ -477,8 +669,8 @@ export const SHOP_PRODUCTS: readonly ShopProduct[] = [
     currency: 'INR',
     collection: 'bloody-maroon',
     category: 'Sarees',
-    occasion: 'Wedding',
-    image: '/images/products/organza-saree.jpg',
+    occasion: ['Wedding'],
+    image: SAANLABEL_PRODUCTS.inkBlueSaree,
     isNew: false,
   },
   {
@@ -491,8 +683,8 @@ export const SHOP_PRODUCTS: readonly ShopProduct[] = [
     currency: 'INR',
     collection: 'bloody-maroon',
     category: 'Dhoti Sets',
-    occasion: 'Daily',
-    image: '/images/products/chanderi-kurta.jpg',
+    occasion: ['Daily'],
+    image: SAANLABEL_PRODUCTS.coralPinkDhoti,
     isNew: false,
   },
   {
@@ -505,8 +697,8 @@ export const SHOP_PRODUCTS: readonly ShopProduct[] = [
     currency: 'INR',
     collection: 'ek-sunheri-dopahar',
     category: 'Anarkalis',
-    occasion: 'Festive',
-    image: '/images/collections/ek-sunheri-dopahar.jpg',
+    occasion: ['Festive'],
+    image: SAANLABEL_PRODUCTS.purpleGlassKurta,
     isNew: true,
   },
   {
@@ -519,8 +711,8 @@ export const SHOP_PRODUCTS: readonly ShopProduct[] = [
     currency: 'INR',
     collection: 'jhalak',
     category: 'Dresses',
-    occasion: 'Cocktail',
-    image: '/images/collections/jhalak.jpg',
+    occasion: ['Cocktail'],
+    image: SAANLABEL_PRODUCTS.saanPrintKurta,
     isNew: false,
   },
   {
@@ -533,8 +725,8 @@ export const SHOP_PRODUCTS: readonly ShopProduct[] = [
     currency: 'INR',
     collection: 'shaila',
     category: 'Anarkalis',
-    occasion: 'Wedding',
-    image: '/images/collections/shells.jpg',
+    occasion: ['Wedding'],
+    image: SAANLABEL_PRODUCTS.whitePersianAnarkali,
     isNew: true,
   },
   {
@@ -547,8 +739,8 @@ export const SHOP_PRODUCTS: readonly ShopProduct[] = [
     currency: 'INR',
     collection: 'effortless',
     category: 'Anarkalis',
-    occasion: 'Daily',
-    image: '/images/collections/effortless.jpg',
+    occasion: ['Daily'],
+    image: SAANLABEL_PRODUCTS.pastelMaxiDress,
     isNew: false,
   },
   {
@@ -561,8 +753,8 @@ export const SHOP_PRODUCTS: readonly ShopProduct[] = [
     currency: 'INR',
     collection: 'effortless',
     category: 'Kurta Sets',
-    occasion: 'Daily',
-    image: '/images/products/velvet-anarkali.jpg',
+    occasion: ['Daily'],
+    image: SAANLABEL_PRODUCTS.whiteCottonCoord,
     isNew: false,
   },
   {
@@ -575,8 +767,8 @@ export const SHOP_PRODUCTS: readonly ShopProduct[] = [
     currency: 'INR',
     collection: 'ek-sunheri-dopahar',
     category: 'Sharara Sets',
-    occasion: 'Festive',
-    image: '/images/products/paper-silk-suit.jpg',
+    occasion: ['Festive'],
+    image: SAANLABEL_PRODUCTS.saanPrintKurta,
     isNew: false,
   },
   {
@@ -589,8 +781,8 @@ export const SHOP_PRODUCTS: readonly ShopProduct[] = [
     currency: 'INR',
     collection: 'ek-sunheri-dopahar',
     category: 'Kurta Sets',
-    occasion: 'Festive',
-    image: '/images/products/chanderi-kurta.jpg',
+    occasion: ['Festive'],
+    image: SAANLABEL_PRODUCTS.noirGraceSuit,
     isNew: false,
   },
   {
@@ -603,8 +795,8 @@ export const SHOP_PRODUCTS: readonly ShopProduct[] = [
     currency: 'INR',
     collection: 'jhalak',
     category: 'Co-ords',
-    occasion: 'Cocktail',
-    image: '/images/products/linen-coord.jpg',
+    occasion: ['Cocktail'],
+    image: SAANLABEL_PRODUCTS.electricBlueCoord,
     isNew: false,
   },
   {
@@ -617,8 +809,8 @@ export const SHOP_PRODUCTS: readonly ShopProduct[] = [
     currency: 'INR',
     collection: 'shaila',
     category: 'Lehengas',
-    occasion: 'Wedding',
-    image: '/images/products/zari-lehenga.jpg',
+    occasion: ['Wedding'],
+    image: SAANLABEL_PRODUCTS.kaliWhiteBoneGown,
     isNew: true,
   },
   {
@@ -631,8 +823,8 @@ export const SHOP_PRODUCTS: readonly ShopProduct[] = [
     currency: 'INR',
     collection: 'effortless',
     category: 'Co-ords',
-    occasion: 'Daily',
-    image: '/images/products/cotton-lawn.jpg',
+    occasion: ['Daily'],
+    image: SAANLABEL_PRODUCTS.greenBoneDress,
     isNew: false,
   },
 ];
@@ -658,6 +850,10 @@ export function getShopProductById(id: string): ShopProduct | undefined {
   return SHOP_PRODUCTS.find((p) => p.id === id);
 }
 
+export function getShopProductBySlug(slug: string): ShopProduct | undefined {
+  return SHOP_PRODUCTS.find((p) => p.id === slug);
+}
+
 export const SHOP_COLLECTION_FILTERS = [
   { id: 'all', label: 'All' },
   { id: 'bloody-maroon', label: 'Bloody Maroon' },
@@ -681,11 +877,7 @@ export const SHOP_CATEGORY_FILTERS = [
 
 export const SHOP_OCCASION_FILTERS = [
   { id: 'all', label: 'All' },
-  { id: 'Festive', label: 'Festive' },
-  { id: 'Wedding', label: 'Wedding' },
-  { id: 'Daily', label: 'Daily' },
-  { id: 'Cocktail', label: 'Cocktail' },
-  { id: 'Resort', label: 'Resort' },
+  ...SHOP_OCCASIONS.map((occasion) => ({ id: occasion, label: occasion })),
 ] as const;
 
 export const SHOP_SORT_OPTIONS = [
@@ -702,4 +894,144 @@ export const SHOP_COPY = {
   clearFilters: 'Clear All Filters',
   priceUpTo: 'Up to',
 } as const;
+
+export const HOME_COPY = {
+  newArrivals: {
+    title: 'New Arrivals',
+    description:
+      'The latest pieces from our atelier — cut, sewn and finished by hand in Bandra.',
+    campaignImage: {
+      src: SAANLABEL_SECTIONS.newArrivalsCampaign,
+      alt: 'Kali White Bone Gown from the SAAN new arrivals edit',
+    },
+    cta: { label: 'View All', href: '/shop?sort=newest' },
+  },
+  brandPhilosophy: {
+    headline: ATELIER_COPY.headline,
+    body: ATELIER_COPY.intro[0],
+    pullQuote: ATELIER_COPY.closing.paragraphs[2],
+    image: {
+      mobile: {
+        src: '/images/brand-statement.webp',
+        alt: 'Woman in a shimmering lilac metallic kurta and olive satin trousers, standing between tall windows in a dark charcoal interior',
+      },
+      desktop: {
+        src: '/images/brand-statement-desktop.webp',
+        alt: 'Full-length editorial of a woman in a lilac metallic kurta and olive trousers, centered in a wide dark atelier between two sunlit windows',
+      },
+    },
+  },
+  signatureCollections: {
+    title: `${SECTION_COPY.collections.title}${SECTION_COPY.collections.titleAccent}`,
+    subtitle: SECTION_COPY.collections.subtitle,
+  },
+  editorialCampaign: {
+    title: 'The Luxe Edit',
+    image: SAANLABEL_SECTIONS.editorialCampaign,
+    href: '/shop',
+    cta: { label: 'Shop the Edit', href: '/shop' },
+  },
+  shopByOccasion: {
+    title: 'Shop by Occasion',
+    subtitle: 'Curated for the way you live — not how categories are filed.',
+  },
+  bestSellers: {
+    title: FEATURED_COLLECTION.title,
+    description: FEATURED_COLLECTION.tagline,
+    campaignImage: {
+      src: SAANLABEL_SECTIONS.bestSellersCampaign,
+      alt: 'Purple Glass Organza Luxe Kurta Set editorial',
+    },
+    cta: { label: 'Shop Best Sellers', href: '/shop/best-sellers' },
+  },
+  craftsmanship: {
+    title: 'Fourteen hands. One piece.',
+    body: ATELIER_LANDING_COPY.body[0],
+    detailImage: {
+      src: SAANLABEL_SECTIONS.craftsmanship,
+      alt: 'Ink Blue Glossy Tissue Draped Saree fabric detail',
+    },
+    cta: ATELIER_LANDING_COPY.cta,
+  },
+  community: {
+    title: 'Follow the Journey',
+    description:
+      'Behind the seams, on the streets, in the atelier — a quiet record of SAAN in the world.',
+    cta: {
+      label: 'Follow the Journey',
+      href: BRAND.social.instagram,
+    },
+  },
+} as const;
+
+export const SIGNATURE_COLLECTIONS = COLLECTIONS.slice(0, 4);
+
+export const OCCASION_TILES = [
+  {
+    id: 'wedding-guest',
+    label: 'Wedding Guest',
+    description: 'Presence without performance.',
+    href: '/shop?occasion=Wedding',
+    image: SAANLABEL_PRODUCTS.whitePersianAnarkali,
+  },
+  {
+    id: 'festive',
+    label: 'Festive',
+    description: 'Ceremonial depth, reimagined.',
+    href: '/shop?occasion=Festive',
+    image: SAANLABEL_PRODUCTS.purpleGlassKurta,
+  },
+  {
+    id: 'everyday-luxury',
+    label: 'Everyday Luxury',
+    description: 'Intentional design for a simpler pace.',
+    href: '/shop?occasion=Daily',
+    image: SAANLABEL_PRODUCTS.whiteCottonCoord,
+  },
+  {
+    id: 'vacation',
+    label: 'Vacation',
+    description: 'Resort ease, editorial ease.',
+    href: '/shop?occasion=Resort',
+    image: SAANLABEL_PRODUCTS.pastelMaxiDress,
+  },
+  {
+    id: 'evening',
+    label: 'Evening',
+    description: 'Where light meets the unseen.',
+    href: '/shop?occasion=Cocktail',
+    image: SAANLABEL_PRODUCTS.noirGraceSuit,
+  },
+  {
+    id: 'workwear',
+    label: 'Workwear',
+    description: 'Quiet confidence, every day.',
+    href: '/shop?category=Kurta%20Sets',
+    image: SAANLABEL_PRODUCTS.regalMaroonKurta,
+  },
+] as const;
+
+export const COMMUNITY_IMAGES = SAANLABEL_INSTAGRAM;
+
+const BEST_SELLER_IDS = [
+  'bloody-maroon-saree-set',
+  'the-jhalak-dress',
+  'shaila-lehenga',
+  'sunheri-sharara-set',
+  'effortless-pink-anarkali',
+  'the-maroon-dhoti-set',
+] as const;
+
+export function getNewArrivalProducts(limit = 8): ShopProduct[] {
+  const arrivals = SHOP_PRODUCTS.filter((product) => product.isNew);
+  return arrivals.length >= limit
+    ? arrivals.slice(0, limit)
+    : [...arrivals, ...SHOP_PRODUCTS.filter((p) => !p.isNew)].slice(0, limit);
+}
+
+export function getBestSellerProducts(): ShopProduct[] {
+  return BEST_SELLER_IDS.map((id) => SHOP_PRODUCTS.find((p) => p.id === id)).filter(
+    (product): product is ShopProduct => product !== undefined
+  );
+}
 

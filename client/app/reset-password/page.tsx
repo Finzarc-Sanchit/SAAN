@@ -92,7 +92,7 @@ function ResetPasswordPageContent() {
           <p className="mt-4 font-body text-sm text-saan-ink/60">
             This password reset link is invalid or incomplete.
           </p>
-          <Link href={buildAuthPageUrl('login')} className="text-label-caps mt-8 inline-block text-saan-maroon">
+          <Link href={buildAuthPageUrl('login')} className="text-label-caps mt-8 inline-block text-ink">
             Return to sign in
           </Link>
         </Container>
@@ -135,7 +135,7 @@ function ResetPasswordPageContent() {
             />
 
             {formError && (
-              <p className="font-body text-sm text-saan-maroon" role="alert">
+              <p className="font-body text-sm text-ink" role="alert">
                 {formError}
               </p>
             )}

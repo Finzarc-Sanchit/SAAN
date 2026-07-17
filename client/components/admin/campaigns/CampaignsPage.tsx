@@ -104,18 +104,18 @@ export function CampaignsPage() {
   const columns = useMemo<AdminTableColumn<AdminCampaign>[]>(
     () => [
       {
-        id: 'tag',
-        header: 'Tag',
-        cell: (row) => (
-          <span className="inline-flex rounded-full bg-saan-champagne/30 px-2 py-0.5 text-[11px] font-bold uppercase tracking-[0.08em] text-saan-ink/80 dark:bg-white/10 dark:text-saan-bone/80">
-            {row.tag}
-          </span>
-        ),
-      },
-      {
-        id: 'title',
-        header: 'Title',
-        cell: (row) => <span className="font-medium">{row.title}</span>,
+        id: 'desktop',
+        header: 'Desktop',
+        cell: (row) =>
+          row.desktopImageUrl ? (
+            <img
+              src={row.desktopImageUrl}
+              alt=""
+              className="h-12 w-20 rounded-md object-cover"
+            />
+          ) : (
+            <span className="text-saan-ink/40 dark:text-paper/40">—</span>
+          ),
       },
       {
         id: 'product',
@@ -124,7 +124,7 @@ export function CampaignsPage() {
           const productQuery = productQueryById.get(row.productId);
           if (productQuery?.isLoading) {
             return (
-              <span className="font-body text-sm text-saan-ink/45 dark:text-saan-bone/45">
+              <span className="font-body text-sm text-saan-ink/45 dark:text-paper/45">
                 Loading…
               </span>
             );
@@ -154,7 +154,7 @@ export function CampaignsPage() {
         id: 'schedule',
         header: 'Schedule',
         cell: (row) => (
-          <span className="text-sm text-saan-ink/70 dark:text-saan-bone/70">
+          <span className="text-sm text-saan-ink/70 dark:text-paper/70">
             {formatAdminDate(row.startDate)} – {formatAdminDate(row.endDate)}
           </span>
         ),
@@ -174,12 +174,15 @@ export function CampaignsPage() {
         header: 'Actions',
         headerClassName: 'text-right',
         className: 'text-right',
-        cell: (row) => (
+        cell: (row) => {
+          const productName = productById.get(row.productId)?.name ?? 'product';
+
+          return (
           <div className="inline-flex items-center justify-end gap-1">
             <Link
               href={`/admin/campaigns/${row.id}/edit`}
-              className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 font-body text-sm text-saan-maroon transition-colors hover:bg-saan-maroon/5 dark:text-saan-gold dark:hover:bg-saan-gold/10"
-              aria-label={`Edit ${row.title}`}
+              className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 font-body text-sm text-ink transition-colors hover:bg-saan-maroon/5 dark:text-ink dark:hover:bg-ink/10"
+              aria-label={`Edit campaign for ${productName}`}
             >
               <Pencil className="h-4 w-4" strokeWidth={1.5} />
               Edit
@@ -188,13 +191,14 @@ export function CampaignsPage() {
               variant="danger"
               className="px-2 py-1.5"
               onClick={() => setPendingDelete(row)}
-              aria-label={`Delete ${row.title}`}
+              aria-label={`Delete campaign for ${productName}`}
             >
               <Trash2 className="h-4 w-4" strokeWidth={1.5} />
               Delete
             </AdminButton>
           </div>
-        ),
+          );
+        },
       },
     ],
     [categoryNameById, productById, productQueryById],
@@ -204,16 +208,16 @@ export function CampaignsPage() {
     <div className="space-y-4 lg:space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-saan-ink/45 dark:text-saan-bone/45">
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-saan-ink/45 dark:text-paper/45">
             Promotions
           </p>
-          <h1 className="mt-1 font-display text-2xl text-saan-charcoal dark:text-saan-bone md:text-3xl">
+          <h1 className="mt-1 font-display text-2xl text-saan-charcoal dark:text-paper md:text-3xl">
             Campaigns
           </h1>
         </div>
         <Link
           href="/admin/campaigns/new"
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-saan-maroon px-4 py-2.5 font-body text-sm font-medium text-saan-bone transition-colors hover:bg-saan-maroon/90 dark:bg-saan-gold dark:text-saan-charcoal dark:hover:bg-saan-gold/90"
+          className="inline-flex items-center justify-center gap-2 rounded-lg bg-saan-maroon px-4 py-2.5 font-body text-sm font-medium text-paper transition-colors hover:bg-saan-maroon/90 dark:bg-ink dark:text-saan-charcoal dark:hover:bg-ink/90"
         >
           <Plus className="h-4 w-4" strokeWidth={1.5} />
           Add Campaign
@@ -247,10 +251,10 @@ export function CampaignsPage() {
         panelClassName="dark:bg-[#161916]"
       >
         <div className="space-y-5 text-left">
-          <p className="font-body text-sm text-saan-ink/70 dark:text-saan-bone/70">
-            Delete campaign{' '}
-            <span className="font-medium text-saan-charcoal dark:text-saan-bone">
-              {pendingDelete?.title}
+          <p className="font-body text-sm text-saan-ink/70 dark:text-paper/70">
+            Delete this campaign for{' '}
+            <span className="font-medium text-saan-charcoal dark:text-paper">
+              {productById.get(pendingDelete?.productId ?? '')?.name ?? 'this product'}
             </span>
             ? This cannot be undone.
           </p>

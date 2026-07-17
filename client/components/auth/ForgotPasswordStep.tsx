@@ -71,7 +71,7 @@ export function ForgotPasswordStep({ onBack, onSent }: ForgotPasswordStepProps) 
       />
 
       {formError && (
-        <p className="font-body text-sm text-saan-maroon" role="alert">
+        <p className="font-body text-sm text-ink" role="alert">
           {formError}
         </p>
       )}
@@ -90,7 +90,7 @@ export function ForgotPasswordStep({ onBack, onSent }: ForgotPasswordStepProps) 
       <button
         type="button"
         onClick={onBack}
-        className="text-label-caps mx-auto block text-saan-ink/50 hover:text-saan-maroon"
+        className="text-label-caps mx-auto block text-saan-ink/50 hover:text-ink"
       >
         Back to sign in
       </button>

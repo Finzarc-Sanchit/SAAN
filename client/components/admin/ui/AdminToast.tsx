@@ -91,8 +91,8 @@ function ToastCard({
       className={cn(
         'pointer-events-auto flex items-start gap-3 rounded-xl border px-4 py-3 shadow-lg',
         item.tone === 'success'
-          ? 'border-saan-champagne/50 bg-white text-saan-charcoal dark:border-white/10 dark:bg-[#161916] dark:text-saan-bone'
-          : 'border-saan-maroon/30 bg-white text-saan-maroon dark:border-red-400/30 dark:bg-[#1a1212] dark:text-red-200',
+          ? 'border-saan-champagne/50 bg-white text-saan-charcoal dark:border-white/10 dark:bg-[#161916] dark:text-paper'
+          : 'border-saan-maroon/30 bg-white text-ink dark:border-red-400/30 dark:bg-[#1a1212] dark:text-red-200',
       )}
     >
       <p id={titleId} className="flex-1 font-body text-sm leading-snug">

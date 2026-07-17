@@ -8,14 +8,16 @@ import { useAuth } from '@/components/providers/AuthProvider';
 import { ADMIN_DASHBOARD_PATH } from '@/lib/auth/post-auth-redirect';
 import { cn } from '@/lib/utils';
 
-const iconClass = 'h-[18px] w-[18px] text-saan-charcoal';
 const actionClass = 'transition-opacity duration-300 hover:opacity-60';
 
 type AccountMenuProps = {
   className?: string;
+  tone?: 'light' | 'dark';
 };
 
-export function AccountMenu({ className }: AccountMenuProps) {
+export function AccountMenu({ className, tone = 'dark' }: AccountMenuProps) {
+  const isLight = tone === 'light';
+  const iconClass = cn('h-[18px] w-[18px]', isLight ? 'text-paper' : 'text-ink');
   const router = useRouter();
   const { isAuthenticated, isLoading, user, openLoginDialog, logout } = useAuth();
   const [open, setOpen] = useState(false);
@@ -100,10 +102,10 @@ export function AccountMenu({ className }: AccountMenuProps) {
           id={menuId}
           role="menu"
           aria-label="Account"
-          className="absolute right-0 top-[calc(100%+0.75rem)] z-50 min-w-[11rem] border border-saan-champagne/60 bg-saan-bone py-2 shadow-sm"
+          className="fixed right-2 top-16 z-[80] min-w-[11rem] border border-neutral-300 bg-paper py-2 sm:right-3 md:absolute md:right-0 md:top-[calc(100%+0.75rem)] md:z-50"
         >
           {user && (
-            <p className="text-label-caps border-b border-saan-champagne/40 px-4 pb-3 pt-1 text-saan-ink/50">
+            <p className="text-ui border-b border-neutral-300 px-4 pb-3 pt-1 text-neutral-500">
               {user.firstName}
             </p>
           )}
@@ -112,7 +114,7 @@ export function AccountMenu({ className }: AccountMenuProps) {
               href={ADMIN_DASHBOARD_PATH}
               role="menuitem"
               onClick={() => setOpen(false)}
-              className="text-label-caps flex items-center gap-2 px-4 py-2.5 text-saan-charcoal transition-colors hover:bg-saan-champagne/20"
+              className="text-ui flex items-center gap-2 px-4 py-2.5 text-ink transition-colors hover:bg-neutral-100"
             >
               <LayoutDashboard className="h-3.5 w-3.5" strokeWidth={1.25} aria-hidden />
               Dashboard
@@ -122,7 +124,7 @@ export function AccountMenu({ className }: AccountMenuProps) {
               href="/account"
               role="menuitem"
               onClick={() => setOpen(false)}
-              className="text-label-caps block px-4 py-2.5 text-saan-charcoal transition-colors hover:bg-saan-champagne/20"
+              className="text-ui block px-4 py-2.5 text-ink transition-colors hover:bg-neutral-100"
             >
               Profile
             </Link>
@@ -132,7 +134,7 @@ export function AccountMenu({ className }: AccountMenuProps) {
             role="menuitem"
             disabled={isLoggingOut}
             onClick={() => void handleLogout()}
-            className="text-label-caps flex w-full items-center gap-2 px-4 py-2.5 text-left text-saan-charcoal transition-colors hover:bg-saan-champagne/20 disabled:opacity-50"
+            className="text-ui flex w-full items-center gap-2 px-4 py-2.5 text-left text-ink transition-colors hover:bg-neutral-100 disabled:opacity-50"
           >
             <LogOut className="h-3.5 w-3.5" strokeWidth={1.25} aria-hidden />
             {isLoggingOut ? 'Signing out…' : 'Sign out'}

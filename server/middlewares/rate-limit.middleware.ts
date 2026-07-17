@@ -56,6 +56,22 @@ export const authRateLimiter = rateLimit({
   },
 });
 
+export const publicFormRateLimiter = rateLimit({
+  windowMs: WINDOW_MS,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: createRateLimitStore('rl:public-form:'),
+  message: {
+    success: false,
+    error: {
+      code: 'RATE_LIMIT_EXCEEDED',
+      message: 'Too many submissions, please try again later',
+      details: [],
+    },
+  },
+});
+
 const SENSITIVE_WINDOW_MS = 15 * 60 * 1000;
 const SENSITIVE_MAX = 3;
 

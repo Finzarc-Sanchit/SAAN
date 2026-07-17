@@ -11,9 +11,9 @@ export type Testimonial = {
 };
 
 const accentGradients = {
-  maroon: 'from-saan-maroon/90 via-saan-maroon/40 to-transparent',
-  champagne: 'from-saan-charcoal/85 via-saan-champagne/30 to-transparent',
-  gold: 'from-saan-charcoal/90 via-saan-gold/35 to-transparent',
+  maroon: 'from-midnight/90 via-signature/40 to-transparent',
+  champagne: 'from-midnight/85 via-neutral-700/40 to-transparent',
+  gold: 'from-midnight/90 via-ink/30 to-transparent',
 } as const;
 
 type TestimonialCardProps = {
@@ -25,7 +25,7 @@ export function TestimonialCard({ testimonial, className }: TestimonialCardProps
   return (
     <article
       className={cn(
-        'relative h-[420px] w-[320px] shrink-0 snap-center overflow-hidden rounded-2xl',
+        'relative h-[420px] w-[min(80vw,340px)] shrink-0 snap-center overflow-hidden bg-neutral-100 md:w-[360px]',
         className
       )}
     >
@@ -33,7 +33,7 @@ export function TestimonialCard({ testimonial, className }: TestimonialCardProps
         src={testimonial.image}
         alt={testimonial.name}
         fill
-        sizes="320px"
+        sizes="360px"
         className="object-cover object-center"
       />
       <div
@@ -43,12 +43,12 @@ export function TestimonialCard({ testimonial, className }: TestimonialCardProps
         )}
       />
       <div className="absolute inset-0 flex flex-col justify-end p-6">
-        <blockquote className="font-body text-sm leading-relaxed text-saan-bone/95">
+        <blockquote className="text-body text-paper/95">
           &ldquo;{testimonial.quote}&rdquo;
         </blockquote>
-        <footer className="mt-4 border-t border-saan-bone/20 pt-4">
-          <p className="font-display text-base text-saan-bone">{testimonial.name}</p>
-          <p className="text-label-caps mt-1 text-saan-bone/70">{testimonial.role}</p>
+        <footer className="mt-4 border-t border-paper/20 pt-4">
+          <p className="text-h3 text-paper">{testimonial.name}</p>
+          <p className="text-ui mt-1 text-paper/70">{testimonial.role}</p>
         </footer>
       </div>
     </article>

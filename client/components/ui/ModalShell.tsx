@@ -88,7 +88,7 @@ export function ModalShell({
             exit={(isMobile ? mobilePanel : desktopPanel).exit}
             transition={transition}
             className={cn(
-              'absolute bg-saan-bone shadow-xl outline-none',
+              'absolute bg-paper shadow-xl outline-none',
               isMobile
                 ? 'inset-x-0 bottom-0 max-h-[92dvh] overflow-y-auto rounded-t-2xl px-6 pb-8 pt-6'
                 : 'left-1/2 top-1/2 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 px-8 py-10',

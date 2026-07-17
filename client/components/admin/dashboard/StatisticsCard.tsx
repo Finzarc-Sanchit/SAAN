@@ -68,15 +68,15 @@ export function StatisticsCard() {
                 className={cn(
                   'rounded-md px-2.5 py-1 text-xs font-medium transition-colors',
                   period === entry.id
-                    ? 'bg-saan-maroon text-saan-bone dark:bg-saan-gold dark:text-saan-charcoal'
-                    : 'text-saan-ink/60 hover:text-saan-charcoal dark:text-saan-bone/60 dark:hover:text-saan-bone',
+                    ? 'bg-saan-maroon text-paper dark:bg-ink dark:text-saan-charcoal'
+                    : 'text-saan-ink/60 hover:text-saan-charcoal dark:text-paper/60 dark:hover:text-paper',
                 )}
               >
                 {entry.label}
               </button>
             ))}
           </div>
-          <p className="font-body text-xs text-saan-ink/50 dark:text-saan-bone/50">
+          <p className="font-body text-xs text-saan-ink/50 dark:text-paper/50">
             {formatDisplayRange(range.from, range.to)}
           </p>
         </div>
@@ -87,7 +87,7 @@ export function StatisticsCard() {
       ) : query.isError ? (
         <AdminInlineError onRetry={() => void query.refetch()} />
       ) : (query.data?.length ?? 0) === 0 ? (
-        <p className="py-16 text-center font-body text-sm text-saan-ink/50 dark:text-saan-bone/50">
+        <p className="py-16 text-center font-body text-sm text-saan-ink/50 dark:text-paper/50">
           No statistics for this period yet.
         </p>
       ) : (
@@ -100,8 +100,8 @@ export function StatisticsCard() {
                   <stop offset="95%" stopColor="var(--color-saan-maroon)" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="revenueFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--color-saan-gold)" stopOpacity={0.35} />
-                  <stop offset="95%" stopColor="var(--color-saan-gold)" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--color-ink)" stopOpacity={0.35} />
+                  <stop offset="95%" stopColor="var(--color-ink)" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(26,28,26,0.08)" />
@@ -160,7 +160,7 @@ export function StatisticsCard() {
                 type="monotone"
                 dataKey="revenue"
                 name="Revenue"
-                stroke="var(--color-saan-gold)"
+                stroke="var(--color-ink)"
                 fill="url(#revenueFill)"
                 strokeWidth={2}
                 isAnimationActive={!prefersReducedMotion}

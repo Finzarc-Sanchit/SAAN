@@ -20,8 +20,8 @@ export function RegisterProgress({ currentStep }: RegisterProgressProps) {
               <span
                 className={cn(
                   'flex h-8 w-8 items-center justify-center rounded-full border text-xs font-bold',
-                  isComplete && 'border-saan-maroon bg-saan-maroon text-saan-bone',
-                  isActive && !isComplete && 'border-saan-maroon text-saan-maroon',
+                  isComplete && 'border-saan-maroon bg-saan-maroon text-paper',
+                  isActive && !isComplete && 'border-saan-maroon text-ink',
                   !isActive && !isComplete && 'border-saan-champagne text-saan-ink/40',
                 )}
               >
@@ -30,7 +30,7 @@ export function RegisterProgress({ currentStep }: RegisterProgressProps) {
               <span
                 className={cn(
                   'text-label-caps text-[10px]',
-                  isActive || isComplete ? 'text-saan-maroon' : 'text-saan-ink/40',
+                  isActive || isComplete ? 'text-ink' : 'text-saan-ink/40',
                 )}
               >
                 {label}

@@ -10,10 +10,10 @@ export const metadata = {
 
 export default function CollectionsIndexPage() {
   return (
-    <main className="min-h-screen bg-saan-bone section-py">
+    <main className="min-h-screen bg-paper section-py">
       <Container className="max-w-[1600px]">
         <div className="mb-12 md:mb-16">
-          <h1 className="font-display text-4xl text-saan-maroon md:text-5xl">
+          <h1 className="font-display text-4xl text-ink md:text-5xl">
             Our Collections
           </h1>
           <p className="mt-4 font-body text-lg text-saan-ink/70">
@@ -28,7 +28,7 @@ export default function CollectionsIndexPage() {
         <div className="mt-12 text-center">
           <Link
             href="/shop"
-            className="text-label-caps text-saan-maroon underline-offset-4 hover:underline"
+            className="text-label-caps text-ink underline-offset-4 hover:underline"
           >
             View All in Shop
           </Link>

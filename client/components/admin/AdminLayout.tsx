@@ -51,7 +51,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <AdminThemeProvider>
       <AdminToastProvider>
-        <div className="min-h-screen bg-saan-bone text-saan-ink dark:bg-[#0f1110] dark:text-saan-bone">
+        <div className="min-h-screen bg-paper text-saan-ink dark:bg-[#0f1110] dark:text-paper">
           <AdminSidebar
             collapsed={collapsed}
             mobileOpen={mobileOpen}

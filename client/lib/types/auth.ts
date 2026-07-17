@@ -5,6 +5,8 @@ export type User = {
   email: string;
   firstName: string;
   lastName: string;
+  mobileNumber: string | null;
+  dateOfBirth: string | null;
   role: UserRole;
   isVerified: boolean;
   createdAt: string;

@@ -27,7 +27,7 @@ export function AdminProductThumb({
   return (
     <div
       className={cn(
-        'relative shrink-0 overflow-hidden bg-saan-bone dark:bg-white/10',
+        'relative shrink-0 overflow-hidden bg-paper dark:bg-white/10',
         className,
       )}
     >
@@ -42,7 +42,7 @@ export function AdminProductThumb({
       ) : (
         <span
           className={cn(
-            'flex h-full w-full items-center justify-center text-saan-maroon/60 dark:text-saan-gold',
+            'flex h-full w-full items-center justify-center text-ink/60 dark:text-ink',
             iconClassName,
           )}
         >

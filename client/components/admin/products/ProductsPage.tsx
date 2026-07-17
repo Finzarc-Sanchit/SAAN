@@ -18,6 +18,7 @@ import { useAdminToast } from '@/components/admin/ui/AdminToast';
 import { adminInputClassName } from '@/components/admin/ui/AdminFormField';
 import { ModalShell } from '@/components/ui/ModalShell';
 import { categoriesQueryKeys, listCategories } from '@/lib/api/categories';
+import { collectionsQueryKeys, listCollections } from '@/lib/api/collections';
 import { ApiError, getApiErrorMessage } from '@/lib/api/errors';
 import {
   adjustProductStock,
@@ -27,7 +28,8 @@ import {
 } from '@/lib/api/products';
 import { formatInr } from '@/lib/admin/format';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
-import type { Product, ProductStatus } from '@/lib/types/product';
+import { PRODUCT_OCCASIONS } from '@/lib/product-occasion';
+import type { Product, ProductOccasion, ProductStatus } from '@/lib/types/product';
 
 const PAGE_LIMIT = 20;
 
@@ -37,6 +39,8 @@ export function ProductsPage() {
 
   const [page, setPage] = useState(1);
   const [categoryId, setCategoryId] = useState('');
+  const [collectionId, setCollectionId] = useState('');
+  const [occasion, setOccasion] = useState<ProductOccasion | ''>('');
   const [status, setStatus] = useState<ProductStatus | ''>('');
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search, 400);
@@ -49,16 +53,22 @@ export function ProductsPage() {
       page,
       limit: PAGE_LIMIT,
       categoryId: categoryId || undefined,
+      collectionId: collectionId || undefined,
+      occasion: occasion || undefined,
       status: status || undefined,
       search: debouncedSearch.trim() || undefined,
       sort: 'newest' as const,
     }),
-    [page, categoryId, status, debouncedSearch],
+    [page, categoryId, collectionId, occasion, status, debouncedSearch],
   );
 
   const categoriesQuery = useQuery({
     queryKey: categoriesQueryKeys.list(),
     queryFn: listCategories,
+  });
+  const collectionsQuery = useQuery({
+    queryKey: collectionsQueryKeys.list(),
+    queryFn: listCollections,
   });
 
   const listQuery = useQuery({
@@ -73,6 +83,14 @@ export function ProductsPage() {
     }
     return map;
   }, [categoriesQuery.data]);
+
+  const collectionNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const collection of collectionsQuery.data ?? []) {
+      map.set(collection.id, collection.title);
+    }
+    return map;
+  }, [collectionsQuery.data]);
 
   const archiveMutation = useMutation({
     mutationFn: (id: string) => archiveProduct(id),
@@ -143,6 +161,19 @@ export function ProductsPage() {
         cell: (row) => categoryNameById.get(row.categoryId) ?? '—',
       },
       {
+        id: 'collections',
+        header: 'Collection',
+        cell: (row) => collectionNameById.get(row.collectionId) ?? '—',
+      },
+      {
+        id: 'occasion',
+        header: 'Occasion',
+        cell: (row) =>
+          Array.isArray(row.occasion) && row.occasion.length > 0
+            ? row.occasion.join(', ')
+            : '—',
+      },
+      {
         id: 'basePrice',
         header: 'Price',
         cell: (row) => (
@@ -168,7 +199,7 @@ export function ProductsPage() {
           <div className="inline-flex flex-wrap items-center justify-end gap-1">
             <Link
               href={`/admin/products/${row.id}/edit`}
-              className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 font-body text-sm text-saan-maroon transition-colors hover:bg-saan-maroon/5 dark:text-saan-gold dark:hover:bg-saan-gold/10"
+              className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 font-body text-sm text-ink transition-colors hover:bg-saan-maroon/5 dark:text-ink dark:hover:bg-ink/10"
             >
               <Pencil className="h-4 w-4" strokeWidth={1.5} />
               Edit
@@ -197,7 +228,7 @@ export function ProductsPage() {
         ),
       },
     ],
-    [categoryNameById],
+    [categoryNameById, collectionNameById],
   );
 
   const meta = listQuery.data?.meta;
@@ -207,16 +238,16 @@ export function ProductsPage() {
     <div className="space-y-4 lg:space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-saan-ink/45 dark:text-saan-bone/45">
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-saan-ink/45 dark:text-paper/45">
             Catalog
           </p>
-          <h1 className="mt-1 font-display text-2xl text-saan-charcoal dark:text-saan-bone md:text-3xl">
+          <h1 className="mt-1 font-display text-2xl text-saan-charcoal dark:text-paper md:text-3xl">
             Products
           </h1>
         </div>
         <Link
           href="/admin/products/new"
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-saan-maroon px-4 py-2.5 font-body text-sm font-medium text-saan-bone transition-colors hover:bg-saan-maroon/90 dark:bg-saan-gold dark:text-saan-charcoal dark:hover:bg-saan-gold/90"
+          className="inline-flex items-center justify-center gap-2 rounded-lg bg-saan-maroon px-4 py-2.5 font-body text-sm font-medium text-paper transition-colors hover:bg-saan-maroon/90 dark:bg-ink dark:text-saan-charcoal dark:hover:bg-ink/90"
         >
           <Plus className="h-4 w-4" strokeWidth={1.5} />
           Add Product
@@ -224,9 +255,9 @@ export function ProductsPage() {
       </div>
 
       <AdminCard>
-        <div className="mb-4 grid gap-3 md:grid-cols-3">
+        <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <label className="block space-y-1.5">
-            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-saan-bone/55">
+            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-paper/55">
               Search
             </span>
             <input
@@ -240,7 +271,27 @@ export function ProductsPage() {
             />
           </label>
           <label className="block space-y-1.5">
-            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-saan-bone/55">
+            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-paper/55">
+              Collection
+            </span>
+            <select
+              value={collectionId}
+              onChange={(e) => {
+                setCollectionId(e.target.value);
+                setPage(1);
+              }}
+              className={adminInputClassName}
+            >
+              <option value="">All collections</option>
+              {(collectionsQuery.data ?? []).map((collection) => (
+                <option key={collection.id} value={collection.id}>
+                  {collection.title}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block space-y-1.5">
+            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-paper/55">
               Category
             </span>
             <select
@@ -260,7 +311,27 @@ export function ProductsPage() {
             </select>
           </label>
           <label className="block space-y-1.5">
-            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-saan-bone/55">
+            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-paper/55">
+              Occasion
+            </span>
+            <select
+              value={occasion}
+              onChange={(e) => {
+                setOccasion(e.target.value as ProductOccasion | '');
+                setPage(1);
+              }}
+              className={adminInputClassName}
+            >
+              <option value="">All occasions</option>
+              {PRODUCT_OCCASIONS.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block space-y-1.5">
+            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-paper/55">
               Status
             </span>
             <select
@@ -314,9 +385,9 @@ export function ProductsPage() {
         panelClassName="dark:bg-[#161916]"
       >
         <div className="space-y-5 text-left">
-          <p className="font-body text-sm text-saan-ink/70 dark:text-saan-bone/70">
+          <p className="font-body text-sm text-saan-ink/70 dark:text-paper/70">
             Archive{' '}
-            <span className="font-medium text-saan-charcoal dark:text-saan-bone">
+            <span className="font-medium text-saan-charcoal dark:text-paper">
               {archiveTarget?.name}
             </span>
             ? It will no longer appear on the storefront.

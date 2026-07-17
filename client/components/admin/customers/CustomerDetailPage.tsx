@@ -26,7 +26,7 @@ function BackLink() {
   return (
     <Link
       href="/admin/customers"
-      className="inline-flex items-center gap-2 font-body text-sm text-saan-maroon transition-colors hover:text-saan-maroon/80 dark:text-saan-gold dark:hover:text-saan-gold/80"
+      className="inline-flex items-center gap-2 font-body text-sm text-ink transition-colors hover:text-ink/80 dark:text-ink dark:hover:text-ink/80"
     >
       <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
       Back to customers
@@ -41,7 +41,7 @@ function VerifiedBadge({ isVerified }: { isVerified: boolean }) {
         'inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-[0.08em]',
         isVerified
           ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300'
-          : 'bg-saan-champagne/40 text-saan-ink/70 dark:bg-white/10 dark:text-saan-bone/70',
+          : 'bg-saan-champagne/40 text-saan-ink/70 dark:bg-white/10 dark:text-paper/70',
       )}
     >
       {isVerified ? 'Verified' : 'Unverified'}
@@ -104,23 +104,23 @@ export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
       <BackLink />
 
       <div>
-        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-saan-ink/45 dark:text-saan-bone/45">
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-saan-ink/45 dark:text-paper/45">
           Customer profile
         </p>
-        <h1 className="mt-1 font-display text-2xl text-saan-charcoal dark:text-saan-bone md:text-3xl">
+        <h1 className="mt-1 font-display text-2xl text-saan-charcoal dark:text-paper md:text-3xl">
           {customer.firstName} {customer.lastName}
         </h1>
-        <p className="mt-1 text-sm text-saan-ink/60 dark:text-saan-bone/60">{customer.email}</p>
+        <p className="mt-1 text-sm text-saan-ink/60 dark:text-paper/60">{customer.email}</p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <AdminCard className="lg:col-span-2">
-          <h2 className="font-display text-lg text-saan-charcoal dark:text-saan-bone">
+          <h2 className="font-display text-lg text-saan-charcoal dark:text-paper">
             Overview
           </h2>
           <dl className="mt-4 grid gap-4 sm:grid-cols-2">
             <div>
-              <dt className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50 dark:text-saan-bone/50">
+              <dt className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50 dark:text-paper/50">
                 Email status
               </dt>
               <dd className="mt-1">
@@ -128,19 +128,19 @@ export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
               </dd>
             </div>
             <div>
-              <dt className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50 dark:text-saan-bone/50">
+              <dt className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50 dark:text-paper/50">
                 Joined
               </dt>
               <dd className="mt-1 text-sm">{formatOrderDateTime(customer.createdAt)}</dd>
             </div>
             <div>
-              <dt className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50 dark:text-saan-bone/50">
+              <dt className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50 dark:text-paper/50">
                 Orders
               </dt>
               <dd className="mt-1 text-sm tabular-nums">{customer.orderCount}</dd>
             </div>
             <div>
-              <dt className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50 dark:text-saan-bone/50">
+              <dt className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50 dark:text-paper/50">
                 Total spent
               </dt>
               <dd className="mt-1 text-sm font-medium tabular-nums">
@@ -148,7 +148,7 @@ export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
               </dd>
             </div>
             <div>
-              <dt className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50 dark:text-saan-bone/50">
+              <dt className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50 dark:text-paper/50">
                 Last order
               </dt>
               <dd className="mt-1 text-sm">
@@ -161,11 +161,11 @@ export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
         </AdminCard>
 
         <AdminCard>
-          <h2 className="font-display text-lg text-saan-charcoal dark:text-saan-bone">
+          <h2 className="font-display text-lg text-saan-charcoal dark:text-paper">
             Saved addresses
           </h2>
           {customer.addresses.length === 0 ? (
-            <p className="mt-4 text-sm text-saan-ink/60 dark:text-saan-bone/60">
+            <p className="mt-4 text-sm text-saan-ink/60 dark:text-paper/60">
               No saved addresses.
             </p>
           ) : (
@@ -176,11 +176,11 @@ export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
                   className="rounded-xl border border-saan-champagne/50 p-3 dark:border-white/10"
                 >
                   {address.isDefault ? (
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-saan-maroon dark:text-saan-gold">
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-ink dark:text-ink">
                       Default
                     </p>
                   ) : null}
-                  <address className="space-y-0.5 not-italic text-sm leading-relaxed text-saan-ink/80 dark:text-saan-bone/80">
+                  <address className="space-y-0.5 not-italic text-sm leading-relaxed text-saan-ink/80 dark:text-paper/80">
                     {formatAddressLines(address).map((line) => (
                       <span key={line} className="block">
                         {line}
@@ -195,18 +195,18 @@ export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
       </div>
 
       <AdminCard>
-        <h2 className="font-display text-lg text-saan-charcoal dark:text-saan-bone">
+        <h2 className="font-display text-lg text-saan-charcoal dark:text-paper">
           Recent orders
         </h2>
         {customer.recentOrders.length === 0 ? (
-          <p className="mt-4 text-sm text-saan-ink/60 dark:text-saan-bone/60">
+          <p className="mt-4 text-sm text-saan-ink/60 dark:text-paper/60">
             No orders placed yet.
           </p>
         ) : (
           <div className="mt-4 overflow-x-auto">
             <table className="min-w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-saan-champagne/50 text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50 dark:border-white/10 dark:text-saan-bone/50">
+                <tr className="border-b border-saan-champagne/50 text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50 dark:border-white/10 dark:text-paper/50">
                   <th className="px-2 py-2 font-bold">Order</th>
                   <th className="px-2 py-2 font-bold">Total</th>
                   <th className="px-2 py-2 font-bold">Status</th>
@@ -223,7 +223,7 @@ export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
                     <td className="px-2 py-3">
                       <Link
                         href={`/admin/orders/${order.id}`}
-                        className="font-mono text-sm font-medium text-saan-maroon hover:underline dark:text-saan-gold"
+                        className="font-mono text-sm font-medium text-ink hover:underline dark:text-ink"
                       >
                         {formatShortOrderId(order.id)}
                       </Link>
@@ -235,7 +235,7 @@ export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
                     <td className="px-2 py-3">
                       <OrderPaymentStatusBadge status={order.paymentStatus} />
                     </td>
-                    <td className="px-2 py-3 text-saan-ink/70 dark:text-saan-bone/70">
+                    <td className="px-2 py-3 text-saan-ink/70 dark:text-paper/70">
                       {formatOrderDateTime(order.createdAt)}
                     </td>
                   </tr>

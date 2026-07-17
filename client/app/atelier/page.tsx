@@ -1,6 +1,8 @@
 import { AtelierBrandStorySection } from '@/components/atelier/AtelierBrandStorySection';
-import { AtelierClassicHeroSection } from '@/components/atelier/AtelierClassicHeroSection';
+import { AtelierClassicStatementSection } from '@/components/atelier/AtelierClassicStatementSection';
 import { AtelierClosingCopySection } from '@/components/atelier/AtelierClosingCopySection';
+import { AtelierMadeToMeasureSection } from '@/components/atelier/AtelierMadeToMeasureSection';
+import { AtelierVisitSection } from '@/components/atelier/AtelierVisitSection';
 import { ATELIER_COPY } from '@/lib/site-content';
 
 export const metadata = {
@@ -10,9 +12,11 @@ export const metadata = {
 
 export default function AtelierPage() {
   return (
-    <main className="bg-saan-bone">
+    <main className="bg-paper">
       <AtelierBrandStorySection />
-      <AtelierClassicHeroSection />
+      <AtelierClassicStatementSection />
+      <AtelierVisitSection />
+      <AtelierMadeToMeasureSection />
       <AtelierClosingCopySection />
     </main>
   );

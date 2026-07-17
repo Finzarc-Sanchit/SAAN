@@ -17,13 +17,18 @@ export function slugifyName(name: string): string {
 export async function resolveUniqueSlug(
   name: string,
   slugExists: (slug: string) => Promise<boolean>,
+  maxLength = 200,
 ): Promise<string> {
-  const baseSlug = slugifyName(name);
+  const baseSlug = slugifyName(name).slice(0, maxLength).replace(/-+$/g, '') || 'item';
   let candidate = baseSlug;
   let suffix = 2;
 
   while (await slugExists(candidate)) {
-    candidate = `${baseSlug}-${suffix}`;
+    const suffixText = `-${suffix}`;
+    const truncatedBase = baseSlug
+      .slice(0, Math.max(1, maxLength - suffixText.length))
+      .replace(/-+$/g, '');
+    candidate = `${truncatedBase}${suffixText}`;
     suffix += 1;
   }
 

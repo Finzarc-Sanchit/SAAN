@@ -15,7 +15,7 @@ export function JournalSection() {
         <ScrollReveal>
           <div className="flex flex-col items-start justify-between gap-4 border-b border-saan-champagne/60 pb-4 md:flex-row md:items-end">
             <div>
-              <h2 id="journal-heading" className="font-display text-4xl text-saan-maroon">
+              <h2 id="journal-heading" className="font-display text-4xl text-ink">
                 The SAAN Journal
               </h2>
               <p className="mt-2 font-light tracking-wide text-saan-ink/60">
@@ -24,7 +24,7 @@ export function JournalSection() {
             </div>
             <Link
               href="/journal"
-              className="text-label-caps hidden text-saan-maroon transition-colors hover:text-saan-gold md:inline-block"
+              className="text-label-caps hidden text-ink transition-colors hover:text-ink md:inline-block"
             >
               Read All Stories
             </Link>
@@ -49,8 +49,8 @@ export function JournalSection() {
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               </div>
-              <p className="text-label-caps mb-2 text-saan-maroon">{post.category}</p>
-              <h3 className="font-display text-xl text-saan-ink transition-colors group-hover:text-saan-maroon">
+              <p className="text-label-caps mb-2 text-ink">{post.category}</p>
+              <h3 className="font-display text-xl text-saan-ink transition-colors group-hover:text-ink">
                 {post.title}
               </h3>
             </Link>

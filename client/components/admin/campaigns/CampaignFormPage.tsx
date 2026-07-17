@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft } from 'lucide-react';
 import { ProductImageUploader } from '@/components/admin/products/ProductImageUploader';
+import { CampaignStorefrontPreview } from '@/components/admin/campaigns/CampaignStorefrontPreview';
 import { AdminButton } from '@/components/admin/ui/AdminButton';
 import { AdminCard, AdminInlineError, AdminSkeleton } from '@/components/admin/ui/AdminCard';
 import {
@@ -14,6 +15,11 @@ import {
 } from '@/components/admin/ui/AdminFormField';
 import { useAdminToast } from '@/components/admin/ui/AdminToast';
 import { dateInputToIso, toDateInputValue } from '@/lib/admin/date-range-status';
+import {
+  CAMPAIGN_DESKTOP_IMAGE_SPEC,
+  CAMPAIGN_MOBILE_IMAGE_SPEC,
+  formatCampaignImageDimensionHint,
+} from '@/lib/campaign-image-spec';
 import {
   campaignsQueryKeys,
   createCampaign,
@@ -28,7 +34,6 @@ import {
   type CreateCampaignInput,
 } from '@/lib/types/campaign';
 import type { Product } from '@/lib/types/product';
-import { cn } from '@/lib/utils';
 
 type CampaignFormPageProps = {
   mode: 'create' | 'edit';
@@ -36,14 +41,11 @@ type CampaignFormPageProps = {
 };
 
 type FormState = {
-  tag: string;
-  title: string;
-  description: string;
   productId: string;
-  imageUrl: string;
-  imageAlt: string;
-  discountPercent: string;
-  ctaText: string;
+  desktopImageUrl: string;
+  desktopImageAlt: string;
+  mobileImageUrl: string;
+  mobileImageAlt: string;
   startDate: string;
   endDate: string;
   priority: string;
@@ -51,14 +53,11 @@ type FormState = {
 };
 
 const EMPTY_FORM: FormState = {
-  tag: '',
-  title: '',
-  description: '',
   productId: '',
-  imageUrl: '',
-  imageAlt: '',
-  discountPercent: '',
-  ctaText: '',
+  desktopImageUrl: '',
+  desktopImageAlt: '',
+  mobileImageUrl: '',
+  mobileImageAlt: '',
   startDate: '',
   endDate: '',
   priority: '0',
@@ -67,17 +66,11 @@ const EMPTY_FORM: FormState = {
 
 function campaignToForm(campaign: AdminCampaign): FormState {
   return {
-    tag: campaign.tag,
-    title: campaign.title,
-    description: campaign.description,
     productId: campaign.productId,
-    imageUrl: campaign.imageUrl,
-    imageAlt: campaign.imageAlt,
-    discountPercent:
-      campaign.discountPercent !== null && campaign.discountPercent !== undefined
-        ? String(campaign.discountPercent)
-        : '',
-    ctaText: campaign.ctaText,
+    desktopImageUrl: campaign.desktopImageUrl,
+    desktopImageAlt: campaign.desktopImageAlt,
+    mobileImageUrl: campaign.mobileImageUrl,
+    mobileImageAlt: campaign.mobileImageAlt,
     startDate: toDateInputValue(campaign.startDate),
     endDate: toDateInputValue(campaign.endDate),
     priority: String(campaign.priority),
@@ -87,14 +80,11 @@ function campaignToForm(campaign: AdminCampaign): FormState {
 
 function buildPayload(form: FormState): CreateCampaignInput {
   return {
-    tag: form.tag.trim(),
-    title: form.title.trim(),
-    description: form.description.trim(),
     productId: form.productId,
-    imageUrl: form.imageUrl,
-    imageAlt: form.imageAlt.trim(),
-    discountPercent: form.discountPercent.trim() === '' ? null : Number(form.discountPercent),
-    ctaText: form.ctaText.trim(),
+    desktopImageUrl: form.desktopImageUrl,
+    desktopImageAlt: form.desktopImageAlt.trim(),
+    mobileImageUrl: form.mobileImageUrl,
+    mobileImageAlt: form.mobileImageAlt.trim(),
     startDate: dateInputToIso(form.startDate),
     endDate: dateInputToIso(form.endDate),
     priority: Number(form.priority),
@@ -204,9 +194,16 @@ export function CampaignFormPage({ mode, campaignId }: CampaignFormPageProps) {
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
 
-    if (!form.imageUrl) {
-      setFieldErrors((prev) => ({ ...prev, imageUrl: 'Campaign image is required' }));
-      toast('Please upload a campaign image', 'error');
+    const nextErrors: Record<string, string> = {};
+    if (!form.desktopImageUrl) {
+      nextErrors.desktopImageUrl = 'Desktop image is required';
+    }
+    if (!form.mobileImageUrl) {
+      nextErrors.mobileImageUrl = 'Mobile image is required';
+    }
+    if (Object.keys(nextErrors).length > 0) {
+      setFieldErrors((prev) => ({ ...prev, ...nextErrors }));
+      toast('Please upload both desktop and mobile images', 'error');
       return;
     }
 
@@ -266,88 +263,34 @@ export function CampaignFormPage({ mode, campaignId }: CampaignFormPageProps) {
     );
   }
 
-  const campaignImages = form.imageUrl ? [{ imageUrl: form.imageUrl, sortOrder: 0 }] : [];
+  const desktopImages = form.desktopImageUrl
+    ? [{ imageUrl: form.desktopImageUrl, sortOrder: 0 }]
+    : [];
+  const mobileImages = form.mobileImageUrl
+    ? [{ imageUrl: form.mobileImageUrl, sortOrder: 0 }]
+    : [];
 
   return (
     <div className="space-y-4 lg:space-y-6">
       <div>
         <BackLink />
-        <h1 className="mt-2 font-display text-2xl text-saan-charcoal dark:text-saan-bone md:text-3xl">
+        <h1 className="mt-2 font-display text-2xl text-saan-charcoal dark:text-paper md:text-3xl">
           {mode === 'create' ? 'Add Campaign' : 'Edit Campaign'}
         </h1>
-        <p className="mt-1 font-body text-xs text-saan-ink/45 dark:text-saan-bone/45">
-          Featured storefront announcement linked to an active product.
+        <p className="mt-1 font-body text-xs text-saan-ink/45 dark:text-paper/45">
+          Image-only storefront banner linked to a product. Upload separate desktop and mobile
+          assets — each displays only on its breakpoint.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-6" noValidate>
         <AdminCard title="Campaign details">
           <div className="grid gap-4 md:grid-cols-2">
-            <AdminFormField label="Tag" htmlFor="campaign-tag" error={fieldErrors.tag}>
-              <input
-                id="campaign-tag"
-                value={form.tag}
-                onChange={(e) => patchForm('tag', e.target.value)}
-                className={adminInputClassName}
-                maxLength={100}
-                disabled={isSubmitting}
-                required
-              />
-            </AdminFormField>
-
-            <AdminFormField label="Priority" htmlFor="campaign-priority" error={fieldErrors.priority}>
-              <input
-                id="campaign-priority"
-                type="number"
-                inputMode="numeric"
-                min={0}
-                step={1}
-                value={form.priority}
-                onChange={(e) => patchForm('priority', e.target.value)}
-                className={adminInputClassName}
-                disabled={isSubmitting}
-                required
-              />
-            </AdminFormField>
-
-            <AdminFormField
-              label="Title"
-              htmlFor="campaign-title"
-              error={fieldErrors.title}
-              className="md:col-span-2"
-            >
-              <input
-                id="campaign-title"
-                value={form.title}
-                onChange={(e) => patchForm('title', e.target.value)}
-                className={adminInputClassName}
-                maxLength={200}
-                disabled={isSubmitting}
-                required
-              />
-            </AdminFormField>
-
-            <AdminFormField
-              label="Description"
-              htmlFor="campaign-description"
-              error={fieldErrors.description}
-              className="md:col-span-2"
-            >
-              <textarea
-                id="campaign-description"
-                value={form.description}
-                onChange={(e) => patchForm('description', e.target.value)}
-                className={cn(adminInputClassName, 'min-h-[8rem] resize-y')}
-                maxLength={2000}
-                disabled={isSubmitting}
-                required
-              />
-            </AdminFormField>
-
             <AdminFormField
               label="Product"
               htmlFor="campaign-product"
               error={fieldErrors.productId}
+              hint="Clicking the banner opens this product page."
               className="md:col-span-2"
             >
               <select
@@ -368,33 +311,16 @@ export function CampaignFormPage({ mode, campaignId }: CampaignFormPageProps) {
               </select>
             </AdminFormField>
 
-            <AdminFormField
-              label="Discount percent"
-              htmlFor="campaign-discount"
-              error={fieldErrors.discountPercent}
-              hint="Optional"
-            >
+            <AdminFormField label="Priority" htmlFor="campaign-priority" error={fieldErrors.priority}>
               <input
-                id="campaign-discount"
+                id="campaign-priority"
                 type="number"
                 inputMode="numeric"
                 min={0}
-                max={100}
                 step={1}
-                value={form.discountPercent}
-                onChange={(e) => patchForm('discountPercent', e.target.value)}
+                value={form.priority}
+                onChange={(e) => patchForm('priority', e.target.value)}
                 className={adminInputClassName}
-                disabled={isSubmitting}
-              />
-            </AdminFormField>
-
-            <AdminFormField label="CTA text" htmlFor="campaign-cta" error={fieldErrors.ctaText}>
-              <input
-                id="campaign-cta"
-                value={form.ctaText}
-                onChange={(e) => patchForm('ctaText', e.target.value)}
-                className={adminInputClassName}
-                maxLength={100}
                 disabled={isSubmitting}
                 required
               />
@@ -425,13 +351,13 @@ export function CampaignFormPage({ mode, campaignId }: CampaignFormPageProps) {
               />
             </AdminFormField>
 
-            <label className="flex cursor-pointer items-center gap-2 font-body text-sm text-saan-charcoal dark:text-saan-bone md:col-span-2">
+            <label className="flex cursor-pointer items-center gap-2 font-body text-sm text-saan-charcoal dark:text-paper md:col-span-2">
               <input
                 type="checkbox"
                 checked={form.active}
                 onChange={(e) => patchForm('active', e.target.checked)}
                 disabled={isSubmitting}
-                className="h-4 w-4 rounded border-saan-champagne/70 accent-saan-maroon dark:border-white/15 dark:accent-saan-gold"
+                className="h-4 w-4 rounded border-saan-champagne/70 accent-saan-maroon dark:border-white/15 dark:accent-ink"
               />
               Active (visible when within schedule and product is active)
             </label>
@@ -440,25 +366,69 @@ export function CampaignFormPage({ mode, campaignId }: CampaignFormPageProps) {
 
         <AdminCard>
           <ProductImageUploader
-            title="Campaign image"
-            description="JPEG, PNG, or WebP up to 5MB. One hero image for the announcement."
-            value={campaignImages}
-            onChange={(images) => patchForm('imageUrl', images[0]?.imageUrl ?? '')}
-            error={fieldErrors.imageUrl}
+            title="Desktop image"
+            description={formatCampaignImageDimensionHint(CAMPAIGN_DESKTOP_IMAGE_SPEC)}
+            value={desktopImages}
+            onChange={(images) => patchForm('desktopImageUrl', images[0]?.imageUrl ?? '')}
+            error={fieldErrors.desktopImageUrl}
             disabled={isSubmitting}
             maxImages={1}
           />
+          {form.desktopImageUrl ? (
+            <CampaignStorefrontPreview
+              imageUrl={form.desktopImageUrl}
+              alt={form.desktopImageAlt}
+              variant="desktop"
+            />
+          ) : null}
           <div className="mt-4">
             <AdminFormField
-              label="Image alt text"
-              htmlFor="campaign-image-alt"
-              error={fieldErrors.imageAlt}
-              hint="Describe the image for accessibility."
+              label="Desktop image alt text"
+              htmlFor="campaign-desktop-image-alt"
+              error={fieldErrors.desktopImageAlt}
+              hint="Shown on screens 768px and wider."
             >
               <input
-                id="campaign-image-alt"
-                value={form.imageAlt}
-                onChange={(e) => patchForm('imageAlt', e.target.value)}
+                id="campaign-desktop-image-alt"
+                value={form.desktopImageAlt}
+                onChange={(e) => patchForm('desktopImageAlt', e.target.value)}
+                className={adminInputClassName}
+                maxLength={300}
+                disabled={isSubmitting}
+                required
+              />
+            </AdminFormField>
+          </div>
+        </AdminCard>
+
+        <AdminCard>
+          <ProductImageUploader
+            title="Mobile image"
+            description={formatCampaignImageDimensionHint(CAMPAIGN_MOBILE_IMAGE_SPEC)}
+            value={mobileImages}
+            onChange={(images) => patchForm('mobileImageUrl', images[0]?.imageUrl ?? '')}
+            error={fieldErrors.mobileImageUrl}
+            disabled={isSubmitting}
+            maxImages={1}
+          />
+          {form.mobileImageUrl ? (
+            <CampaignStorefrontPreview
+              imageUrl={form.mobileImageUrl}
+              alt={form.mobileImageAlt}
+              variant="mobile"
+            />
+          ) : null}
+          <div className="mt-4">
+            <AdminFormField
+              label="Mobile image alt text"
+              htmlFor="campaign-mobile-image-alt"
+              error={fieldErrors.mobileImageAlt}
+              hint="Shown below 768px. Same banner layout as desktop — only the image asset changes."
+            >
+              <input
+                id="campaign-mobile-image-alt"
+                value={form.mobileImageAlt}
+                onChange={(e) => patchForm('mobileImageAlt', e.target.value)}
                 className={adminInputClassName}
                 maxLength={300}
                 disabled={isSubmitting}
@@ -490,7 +460,7 @@ function BackLink() {
   return (
     <Link
       href="/admin/campaigns"
-      className="inline-flex items-center gap-1.5 font-body text-sm text-saan-ink/55 transition-colors hover:text-saan-maroon dark:text-saan-bone/55 dark:hover:text-saan-gold"
+      className="inline-flex items-center gap-1.5 font-body text-sm text-saan-ink/55 transition-colors hover:text-ink dark:text-paper/55 dark:hover:text-ink"
     >
       <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
       Campaigns

@@ -67,6 +67,12 @@ const envSchema = z
     SMTP_PASSWORD: z.string().min(1),
     EMAIL_FROM_NAME: z.string().min(1).default('SAAN'),
     EMAIL_FROM_ADDRESS: z.string().email().default('no-reply@saan.com'),
+    ADMIN_EMAIL: z.preprocess(trimOptionalString, z.string().email().optional()),
+    EMAIL_QUEUE_DRIVER: z.enum(['in-process', 'qstash']).default('in-process'),
+    SERVER_PUBLIC_URL: z.preprocess(trimOptionalString, z.string().url().optional()),
+    QSTASH_TOKEN: z.preprocess(trimOptionalString, z.string().min(1).optional()),
+    QSTASH_CURRENT_SIGNING_KEY: z.preprocess(trimOptionalString, z.string().min(1).optional()),
+    QSTASH_NEXT_SIGNING_KEY: z.preprocess(trimOptionalString, z.string().min(1).optional()),
     APP_URL: z.string().url().default('http://localhost:3000'),
     RAZORPAY_TEST_MODE: z
       .enum(['true', 'false'])
@@ -90,8 +96,41 @@ const envSchema = z
     CLOUDINARY_FOLDER: z.string().min(1).default('saan/products'),
   })
   .superRefine((data, ctx) => {
+    if (data.EMAIL_QUEUE_DRIVER === 'qstash') {
+      for (const key of [
+        'SERVER_PUBLIC_URL',
+        'QSTASH_TOKEN',
+        'QSTASH_CURRENT_SIGNING_KEY',
+        'QSTASH_NEXT_SIGNING_KEY',
+      ] as const) {
+        if (!data[key]) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Required when EMAIL_QUEUE_DRIVER=qstash',
+            path: [key],
+          });
+        }
+      }
+    }
+
     if (data.NODE_ENV !== 'production') {
       return;
+    }
+
+    if (!data.ADMIN_EMAIL) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Required in production',
+        path: ['ADMIN_EMAIL'],
+      });
+    }
+
+    if (data.EMAIL_QUEUE_DRIVER !== 'qstash') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Production email delivery must use qstash',
+        path: ['EMAIL_QUEUE_DRIVER'],
+      });
     }
 
     const razorpayKeys = isRazorpayTestMode(data)
@@ -126,6 +165,7 @@ const envSchema = z
   })
   .transform((data) => ({
     ...data,
+    ADMIN_EMAIL: data.ADMIN_EMAIL ?? data.EMAIL_FROM_ADDRESS,
     RAZORPAY_TEST_MODE: isRazorpayTestMode(data),
     RAZORPAY_KEY_ID: data.RAZORPAY_KEY_ID ?? 'rzp_test_dev_placeholder',
     RAZORPAY_KEY_SECRET: data.RAZORPAY_KEY_SECRET ?? 'dev_razorpay_secret_placeholder',

@@ -20,6 +20,8 @@ function toDomainUser(doc: UserDocument): User {
     email: doc.email,
     firstName: doc.firstName,
     lastName: doc.lastName,
+    mobileNumber: doc.mobileNumber ?? null,
+    dateOfBirth: doc.dateOfBirth ?? null,
     role: doc.role as UserRole,
     isVerified: doc.isVerified,
     createdAt: doc.createdAt,
@@ -185,6 +187,8 @@ export class MongoAuthRepository implements IAuthRepository {
       {
         firstName: data.firstName.trim(),
         lastName: data.lastName.trim(),
+        mobileNumber: data.mobileNumber,
+        dateOfBirth: data.dateOfBirth,
       },
       { new: true },
     )

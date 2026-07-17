@@ -9,21 +9,20 @@ import type {
   UpdateCampaignInput,
 } from './campaign.types';
 
-function toActiveCampaign(campaign: Campaign, productId: string): ActiveCampaign {
+import type { Product } from '../product/product.types';
+
+function toActiveCampaign(campaign: Campaign, product: Pick<Product, 'slug'>): ActiveCampaign {
   return {
     id: campaign.id,
-    tag: campaign.tag,
-    title: campaign.title,
-    description: campaign.description,
-    productId,
-    image: {
-      url: campaign.imageUrl,
-      alt: campaign.imageAlt,
+    productId: campaign.productId,
+    productSlug: product.slug,
+    desktopImage: {
+      url: campaign.desktopImageUrl,
+      alt: campaign.desktopImageAlt,
     },
-    discountPercent: campaign.discountPercent,
-    cta: {
-      label: campaign.ctaText,
-      href: `/shop/${productId}`,
+    mobileImage: {
+      url: campaign.mobileImageUrl,
+      alt: campaign.mobileImageAlt,
     },
     startDate: campaign.startDate.toISOString(),
     endDate: campaign.endDate.toISOString(),
@@ -53,9 +52,18 @@ export class CampaignService {
       products.filter((product) => product.status === 'active').map((product) => product.id),
     );
 
+    const productById = new Map(products.map((product) => [product.id, product]));
+
     return campaigns
       .filter((campaign) => activeProductIds.has(campaign.productId))
-      .map((campaign) => toActiveCampaign(campaign, campaign.productId));
+      .map((campaign) => {
+        const product = productById.get(campaign.productId);
+        if (!product) {
+          return null;
+        }
+        return toActiveCampaign(campaign, product);
+      })
+      .filter((campaign): campaign is ActiveCampaign => campaign !== null);
   }
 
   async getCampaignById(id: string): Promise<Campaign> {
@@ -72,7 +80,6 @@ export class CampaignService {
 
     return this.campaignRepository.create({
       ...input,
-      discountPercent: input.discountPercent ?? null,
       active: input.active ?? true,
     });
   }
@@ -101,19 +108,14 @@ export class CampaignService {
     if (!product) {
       throw new NotFoundError('Product not found');
     }
-
     if (product.status !== 'active') {
-      throw new ValidationError('Campaign product must be an active product', [
-        { field: 'productId', message: 'Product must have status "active"' },
-      ]);
+      throw new ValidationError('Campaign must link to an active product');
     }
   }
 
   private assertDateRange(startDate: Date, endDate: Date): void {
     if (endDate <= startDate) {
-      throw new ValidationError('endDate must be after startDate', [
-        { field: 'endDate', message: 'endDate must be after startDate' },
-      ]);
+      throw new ValidationError('endDate must be after startDate');
     }
   }
 }

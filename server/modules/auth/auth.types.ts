@@ -5,6 +5,8 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
+  mobileNumber: string | null;
+  dateOfBirth: Date | null;
   role: UserRole;
   isVerified: boolean;
   createdAt: Date;
@@ -49,6 +51,8 @@ export interface UpdateUnverifiedUserInput {
 export interface UpdateProfileInput {
   firstName: string;
   lastName: string;
+  mobileNumber: string | null;
+  dateOfBirth: Date | null;
 }
 
 export interface OtpUpdateInput {

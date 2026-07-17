@@ -2,14 +2,11 @@ import { Schema, model, type Types } from 'mongoose';
 
 const campaignSchema = new Schema(
   {
-    tag: { type: String, required: true, trim: true },
-    title: { type: String, required: true, trim: true },
-    description: { type: String, required: true, trim: true },
     productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true, index: true },
-    imageUrl: { type: String, required: true, trim: true },
-    imageAlt: { type: String, required: true, trim: true },
-    discountPercent: { type: Number, default: null, min: 0, max: 100 },
-    ctaText: { type: String, required: true, trim: true },
+    desktopImageUrl: { type: String, required: true, trim: true },
+    desktopImageAlt: { type: String, required: true, trim: true },
+    mobileImageUrl: { type: String, required: true, trim: true },
+    mobileImageAlt: { type: String, required: true, trim: true },
     startDate: { type: Date, required: true, index: true },
     endDate: { type: Date, required: true, index: true },
     priority: { type: Number, required: true, min: 0, index: true },
@@ -37,14 +34,11 @@ export const CampaignModel = model('Campaign', campaignSchema);
 
 export type CampaignDocument = {
   _id: Types.ObjectId;
-  tag: string;
-  title: string;
-  description: string;
   productId: Types.ObjectId;
-  imageUrl: string;
-  imageAlt: string;
-  discountPercent: number | null;
-  ctaText: string;
+  desktopImageUrl: string;
+  desktopImageAlt: string;
+  mobileImageUrl: string;
+  mobileImageAlt: string;
   startDate: Date;
   endDate: Date;
   priority: number;

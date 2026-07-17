@@ -19,9 +19,13 @@ import {
   readStoredProductFormDraft,
   useProductFormDraft,
 } from '@/hooks/useProductFormDraft';
+import {
+  dateTimeLocalInputToIso,
+  toDateTimeLocalInputValue,
+} from '@/lib/admin/date-range-status';
 import { formatDraftSavedAt } from '@/lib/admin/product-form-draft';
-import { formatDiscountLabel, discountsQueryKeys, listDiscounts } from '@/lib/api/discounts';
 import { categoriesQueryKeys, listCategories } from '@/lib/api/categories';
+import { collectionsQueryKeys, listCollections } from '@/lib/api/collections';
 import { ApiError, getApiErrorMessage, getFieldErrors } from '@/lib/api/errors';
 import {
   createProduct,
@@ -31,14 +35,23 @@ import {
 } from '@/lib/api/products';
 import { listSizes, sizesQueryKeys } from '@/lib/api/sizes';
 import {
+  DEFAULT_PRODUCT_CARE,
+  formatCareTextarea,
+  parseCareTextarea,
   productFormSchema,
   type CreateProductInput,
   type Product,
   type ProductFormValues,
   type ProductImageInput,
+  type ProductOccasion,
   type ProductSizeInput,
   type ProductStatus,
 } from '@/lib/types/product';
+import { PRODUCT_OCCASIONS } from '@/lib/product-occasion';
+import {
+  computeDiscountPercentFromSalePrice,
+  computeSalePriceFromDiscountPercent,
+} from '@/lib/product-pricing';
 import { cn } from '@/lib/utils';
 
 type ProductFormPageProps = {
@@ -48,12 +61,21 @@ type ProductFormPageProps = {
 
 type FormState = {
   categoryId: string;
-  discountId: string;
+  collectionId: string;
   name: string;
   description: string;
   shortDescription: string;
   fabric: string;
+  color: string;
+  occasion: ProductOccasion[];
+  fitNotes: string;
+  careText: string;
   basePrice: string;
+  discountEnabled: boolean;
+  discountPercent: string;
+  salePrice: string;
+  discountStartDate: string;
+  discountEndDate: string;
   status: ProductStatus;
   isFeatured: boolean;
   isNewArrival: boolean;
@@ -64,12 +86,21 @@ type FormState = {
 
 const EMPTY_FORM: FormState = {
   categoryId: '',
-  discountId: '',
+  collectionId: '',
   name: '',
   description: '',
   shortDescription: '',
   fabric: '',
+  color: '',
+  occasion: [],
+  fitNotes: '',
+  careText: formatCareTextarea([...DEFAULT_PRODUCT_CARE]),
   basePrice: '',
+  discountEnabled: false,
+  discountPercent: '',
+  salePrice: '',
+  discountStartDate: '',
+  discountEndDate: '',
   status: 'draft',
   isFeatured: false,
   isNewArrival: false,
@@ -78,15 +109,41 @@ const EMPTY_FORM: FormState = {
   images: [],
 };
 
+function normalizeOccasion(value: Product['occasion'] | undefined): ProductOccasion[] {
+  if (Array.isArray(value) && value.length > 0) return value;
+  if (typeof value === 'string' && value) return [value as ProductOccasion];
+  return [];
+}
+
 function productToForm(product: Product): FormState {
+  const salePrice =
+    product.salePrice != null ? String(product.salePrice) : '';
+  const discountPercent =
+    product.discountPercent != null
+      ? String(product.discountPercent)
+      : product.salePrice != null
+      ? String(computeDiscountPercentFromSalePrice(product.basePrice, product.salePrice))
+      : '';
+
   return {
     categoryId: product.categoryId,
-    discountId: product.discountId ?? '',
+    collectionId: product.collectionId ?? '',
     name: product.name,
     description: product.description,
     shortDescription: product.shortDescription,
     fabric: product.fabric,
+    color: product.color ?? '',
+    occasion: normalizeOccasion(product.occasion),
+    fitNotes: product.fitNotes ?? '',
+    careText: formatCareTextarea(
+      product.care?.length ? product.care : [...DEFAULT_PRODUCT_CARE],
+    ),
     basePrice: String(product.basePrice),
+    discountEnabled: product.discountEnabled,
+    discountPercent,
+    salePrice,
+    discountStartDate: toDateTimeLocalInputValue(product.discountStartDate),
+    discountEndDate: toDateTimeLocalInputValue(product.discountEndDate),
     status: product.status,
     isFeatured: product.isFeatured,
     isNewArrival: product.isNewArrival,
@@ -104,15 +161,43 @@ function productToForm(product: Product): FormState {
   };
 }
 
+function parsePositiveInt(value: string): number | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const parsed = Number(trimmed);
+  if (!Number.isFinite(parsed) || parsed <= 0) return null;
+  return Math.round(parsed);
+}
+
 function buildPayload(form: FormState): CreateProductInput {
+  const salePrice = form.discountEnabled ? parsePositiveInt(form.salePrice) : null;
+  const discountPercent = form.discountEnabled
+    ? parsePositiveInt(form.discountPercent)
+    : null;
+
   return {
     categoryId: form.categoryId,
-    discountId: form.discountId ? form.discountId : null,
+    collectionId: form.collectionId,
     name: form.name.trim(),
     description: form.description.trim(),
     shortDescription: form.shortDescription.trim(),
     fabric: form.fabric.trim(),
+    color: form.color.trim(),
+    occasion: form.occasion,
+    fitNotes: form.fitNotes.trim(),
+    care: parseCareTextarea(form.careText),
     basePrice: Number(form.basePrice),
+    salePrice,
+    discountPercent,
+    discountEnabled: form.discountEnabled,
+    discountStartDate:
+      form.discountEnabled && form.discountStartDate
+        ? dateTimeLocalInputToIso(form.discountStartDate)
+        : null,
+    discountEndDate:
+      form.discountEnabled && form.discountEndDate
+        ? dateTimeLocalInputToIso(form.discountEndDate)
+        : null,
     status: form.status,
     isFeatured: form.isFeatured,
     isNewArrival: form.isNewArrival,
@@ -156,9 +241,9 @@ export function ProductFormPage({ mode, productId }: ProductFormPageProps) {
     queryKey: categoriesQueryKeys.list(),
     queryFn: listCategories,
   });
-  const discountsQuery = useQuery({
-    queryKey: discountsQueryKeys.list(),
-    queryFn: listDiscounts,
+  const collectionsQuery = useQuery({
+    queryKey: collectionsQueryKeys.list(),
+    queryFn: listCollections,
   });
   const sizesQuery = useQuery({
     queryKey: sizesQueryKeys.list(),
@@ -195,7 +280,10 @@ export function ProductFormPage({ mode, productId }: ProductFormPageProps) {
     mutationFn: createProduct,
     onSuccess: async () => {
       clearDraft();
-      await queryClient.invalidateQueries({ queryKey: productsQueryKeys.all });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: productsQueryKeys.all }),
+        queryClient.invalidateQueries({ queryKey: collectionsQueryKeys.all }),
+      ]);
       toast('Product created');
       router.push('/admin/products');
     },
@@ -213,7 +301,10 @@ export function ProductFormPage({ mode, productId }: ProductFormPageProps) {
     mutationFn: (input: CreateProductInput) => updateProduct(productId!, input),
     onSuccess: async () => {
       clearDraft();
-      await queryClient.invalidateQueries({ queryKey: productsQueryKeys.all });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: productsQueryKeys.all }),
+        queryClient.invalidateQueries({ queryKey: collectionsQueryKeys.all }),
+      ]);
       toast('Product updated');
       router.push('/admin/products');
     },
@@ -233,13 +324,13 @@ export function ProductFormPage({ mode, productId }: ProductFormPageProps) {
     () =>
       draftChecked &&
       !categoriesQuery.isLoading &&
-      !discountsQuery.isLoading &&
+      !collectionsQuery.isLoading &&
       !sizesQuery.isLoading &&
       (mode === 'create' || !detailQuery.isLoading),
     [
       draftChecked,
       categoriesQuery.isLoading,
-      discountsQuery.isLoading,
+      collectionsQuery.isLoading,
       sizesQuery.isLoading,
       mode,
       detailQuery.isLoading,
@@ -251,6 +342,89 @@ export function ProductFormPage({ mode, productId }: ProductFormPageProps) {
     setFieldErrors((prev) => {
       const next = { ...prev };
       delete next[key];
+      if (key === 'careText') delete next.care;
+      return next;
+    });
+  }
+
+  function toggleOccasion(value: ProductOccasion) {
+    setForm((prev) => {
+      const selected = prev.occasion.includes(value)
+        ? prev.occasion.filter((item) => item !== value)
+        : [...prev.occasion, value];
+      return { ...prev, occasion: selected };
+    });
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next.occasion;
+      return next;
+    });
+  }
+
+  function handleBasePriceChange(value: string) {
+    setForm((prev) => {
+      const next = { ...prev, basePrice: value };
+      const base = parsePositiveInt(value);
+      const discount = parsePositiveInt(prev.discountPercent);
+      const sale = parsePositiveInt(prev.salePrice);
+
+      if (base && discount) {
+        next.salePrice = String(computeSalePriceFromDiscountPercent(base, discount));
+      } else if (base && sale) {
+        next.discountPercent = String(computeDiscountPercentFromSalePrice(base, sale));
+      }
+
+      return next;
+    });
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next.basePrice;
+      delete next.salePrice;
+      delete next.discountPercent;
+      return next;
+    });
+  }
+
+  function handleDiscountPercentChange(value: string) {
+    setForm((prev) => {
+      const next = { ...prev, discountPercent: value };
+      const base = parsePositiveInt(prev.basePrice);
+      const discount = parsePositiveInt(value);
+
+      if (base && discount) {
+        next.salePrice = String(computeSalePriceFromDiscountPercent(base, discount));
+      } else if (!value.trim()) {
+        next.salePrice = '';
+      }
+
+      return next;
+    });
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next.discountPercent;
+      delete next.salePrice;
+      return next;
+    });
+  }
+
+  function handleSalePriceChange(value: string) {
+    setForm((prev) => {
+      const next = { ...prev, salePrice: value };
+      const base = parsePositiveInt(prev.basePrice);
+      const sale = parsePositiveInt(value);
+
+      if (base && sale) {
+        next.discountPercent = String(computeDiscountPercentFromSalePrice(base, sale));
+      } else if (!value.trim()) {
+        next.discountPercent = '';
+      }
+
+      return next;
+    });
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next.salePrice;
+      delete next.discountPercent;
       return next;
     });
   }
@@ -275,7 +449,8 @@ export function ProductFormPage({ mode, productId }: ProductFormPageProps) {
     const values = parsed.data as ProductFormValues;
     const body: CreateProductInput = {
       ...values,
-      discountId: values.discountId ? values.discountId : null,
+      salePrice: values.salePrice ?? null,
+      discountPercent: values.discountPercent ?? null,
     };
 
     if (mode === 'create') {
@@ -324,15 +499,15 @@ export function ProductFormPage({ mode, productId }: ProductFormPageProps) {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <BackLink />
-          <h1 className="mt-2 font-display text-2xl text-saan-charcoal dark:text-saan-bone md:text-3xl">
+          <h1 className="mt-2 font-display text-2xl text-saan-charcoal dark:text-paper md:text-3xl">
             {mode === 'create' ? 'Add Product' : 'Edit Product'}
           </h1>
           {mode === 'edit' && detailQuery.data ? (
-            <p className="mt-1 font-body text-xs text-saan-ink/45 dark:text-saan-bone/45">
+            <p className="mt-1 font-body text-xs text-saan-ink/45 dark:text-paper/45">
               Slug assigned by server: {detailQuery.data.slug}
             </p>
           ) : (
-            <p className="mt-1 font-body text-xs text-saan-ink/45 dark:text-saan-bone/45">
+            <p className="mt-1 font-body text-xs text-saan-ink/45 dark:text-paper/45">
               Slug is generated from the name on save.
             </p>
           )}
@@ -341,10 +516,10 @@ export function ProductFormPage({ mode, productId }: ProductFormPageProps) {
 
       {showDraftBanner ? (
         <div
-          className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-saan-champagne/60 bg-saan-bone/80 px-4 py-3 dark:border-white/10 dark:bg-white/5"
+          className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-saan-champagne/60 bg-paper/80 px-4 py-3 dark:border-white/10 dark:bg-white/5"
           role="status"
         >
-          <p className="font-body text-sm text-saan-ink/70 dark:text-saan-bone/70">
+          <p className="font-body text-sm text-saan-ink/70 dark:text-paper/70">
             {draftSavedAt
               ? `Unsaved work restored from this session (saved ${formatDraftSavedAt(draftSavedAt)}).`
               : 'Unsaved work restored from this session.'}
@@ -370,7 +545,7 @@ export function ProductFormPage({ mode, productId }: ProductFormPageProps) {
             <button
               type="button"
               onClick={() => setShowDraftBanner(false)}
-              className="rounded-md p-1 text-saan-ink/50 hover:text-saan-charcoal dark:text-saan-bone/50 dark:hover:text-saan-bone"
+              className="rounded-md p-1 text-saan-ink/50 hover:text-saan-charcoal dark:text-paper/50 dark:hover:text-paper"
               aria-label="Dismiss draft notice"
             >
               <X className="h-4 w-4" strokeWidth={1.5} />
@@ -418,22 +593,23 @@ export function ProductFormPage({ mode, productId }: ProductFormPageProps) {
             </AdminFormField>
 
             <AdminFormField
-              label="Discount"
-              htmlFor="product-discount"
-              error={fieldErrors.discountId}
-              hint="Optional"
+              label="Collection"
+              htmlFor="product-collection"
+              error={fieldErrors.collectionId}
             >
               <select
-                id="product-discount"
-                value={form.discountId}
-                onChange={(e) => patchForm('discountId', e.target.value)}
+                id="product-collection"
+                value={form.collectionId}
+                onChange={(e) => patchForm('collectionId', e.target.value)}
                 className={adminInputClassName}
                 disabled={isSubmitting}
+                required
               >
-                <option value="">No discount</option>
-                {(discountsQuery.data ?? []).map((discount) => (
-                  <option key={discount.id} value={discount.id}>
-                    {formatDiscountLabel(discount)}
+                <option value="">Select collection</option>
+                {(collectionsQuery.data ?? []).map((collection) => (
+                  <option key={collection.id} value={collection.id}>
+                    {collection.title}
+                    {collection.status === 'draft' ? ' (draft)' : ''}
                   </option>
                 ))}
               </select>
@@ -451,6 +627,57 @@ export function ProductFormPage({ mode, productId }: ProductFormPageProps) {
               />
             </AdminFormField>
 
+            <AdminFormField label="Colour" htmlFor="product-color" error={fieldErrors.color}>
+              <input
+                id="product-color"
+                value={form.color}
+                onChange={(e) => patchForm('color', e.target.value)}
+                className={adminInputClassName}
+                maxLength={100}
+                placeholder="e.g. Midnight Blue"
+                disabled={isSubmitting}
+                required
+              />
+            </AdminFormField>
+
+            <AdminFormField
+              label="Occasion"
+              htmlFor="product-occasion"
+              error={fieldErrors.occasion}
+              className="md:col-span-2"
+            >
+              <div
+                id="product-occasion"
+                role="group"
+                aria-label="Product occasions"
+                className="flex flex-wrap gap-3"
+              >
+                {PRODUCT_OCCASIONS.map((occasion) => {
+                  const checked = form.occasion.includes(occasion);
+                  return (
+                    <label
+                      key={occasion}
+                      className={cn(
+                        'inline-flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 font-body text-sm transition-colors',
+                        checked
+                          ? 'border-saan-maroon/40 bg-saan-maroon/5 text-saan-charcoal dark:border-ink/40 dark:bg-ink/10 dark:text-paper'
+                          : 'border-saan-champagne/60 text-saan-ink/70 dark:border-white/10 dark:text-paper/70',
+                      )}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleOccasion(occasion)}
+                        disabled={isSubmitting}
+                        className="size-4 accent-saan-maroon dark:accent-ink"
+                      />
+                      {occasion}
+                    </label>
+                  );
+                })}
+              </div>
+            </AdminFormField>
+
             <AdminFormField
               label="Base price (INR)"
               htmlFor="product-price"
@@ -459,15 +686,125 @@ export function ProductFormPage({ mode, productId }: ProductFormPageProps) {
               <input
                 id="product-price"
                 type="number"
-                min={0.01}
-                step="0.01"
+                min={1}
+                step={1}
                 value={form.basePrice}
-                onChange={(e) => patchForm('basePrice', e.target.value)}
+                onChange={(e) => handleBasePriceChange(e.target.value)}
                 className={adminInputClassName}
                 disabled={isSubmitting}
                 required
               />
             </AdminFormField>
+
+            <div className="flex items-center justify-between gap-4 rounded-xl border border-saan-champagne/60 bg-paper/45 px-4 py-3 dark:border-white/10 dark:bg-white/[0.03]">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-paper/55">
+                  Product discount
+                </p>
+                <p className="mt-1 font-body text-xs text-saan-ink/50 dark:text-paper/50">
+                  Schedule a temporary reduced price.
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={form.discountEnabled}
+                aria-label="Enable product discount"
+                onClick={() => patchForm('discountEnabled', !form.discountEnabled)}
+                disabled={isSubmitting}
+                className={cn(
+                  'relative h-6 w-11 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saan-maroon/35 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+                  form.discountEnabled
+                    ? 'bg-saan-maroon'
+                    : 'bg-saan-ink/20 dark:bg-paper/20',
+                )}
+              >
+                <span
+                  className={cn(
+                    'absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform',
+                    form.discountEnabled && 'translate-x-5',
+                  )}
+                />
+              </button>
+            </div>
+
+            {form.discountEnabled ? (
+              <div className="grid gap-4 border-l border-saan-maroon/20 pl-4 md:col-span-2 md:grid-cols-2">
+                <AdminFormField
+                  label="Discount (%)"
+                  htmlFor="product-discount-percent"
+                  error={fieldErrors.discountPercent}
+                  hint="Updates sale price automatically"
+                >
+                  <input
+                    id="product-discount-percent"
+                    type="number"
+                    min={1}
+                    max={99}
+                    step={1}
+                    value={form.discountPercent}
+                    onChange={(e) => handleDiscountPercentChange(e.target.value)}
+                    className={adminInputClassName}
+                    disabled={isSubmitting}
+                    placeholder="e.g. 20"
+                    required
+                  />
+                </AdminFormField>
+
+                <AdminFormField
+                  label="Sale price (INR)"
+                  htmlFor="product-sale-price"
+                  error={fieldErrors.salePrice}
+                  hint="Updates discount % automatically"
+                >
+                  <input
+                    id="product-sale-price"
+                    type="number"
+                    min={1}
+                    step={1}
+                    value={form.salePrice}
+                    onChange={(e) => handleSalePriceChange(e.target.value)}
+                    className={adminInputClassName}
+                    disabled={isSubmitting}
+                    placeholder="Discounted price"
+                    required
+                  />
+                </AdminFormField>
+
+                <AdminFormField
+                  label="Starts at"
+                  htmlFor="product-discount-start"
+                  error={fieldErrors.discountStartDate}
+                >
+                  <input
+                    id="product-discount-start"
+                    type="datetime-local"
+                    value={form.discountStartDate}
+                    onChange={(e) => patchForm('discountStartDate', e.target.value)}
+                    className={adminInputClassName}
+                    disabled={isSubmitting}
+                    required
+                  />
+                </AdminFormField>
+
+                <AdminFormField
+                  label="Ends at"
+                  htmlFor="product-discount-end"
+                  error={fieldErrors.discountEndDate}
+                >
+                  <input
+                    id="product-discount-end"
+                    type="datetime-local"
+                    min={form.discountStartDate || undefined}
+                    value={form.discountEndDate}
+                    onChange={(e) => patchForm('discountEndDate', e.target.value)}
+                    className={adminInputClassName}
+                    disabled={isSubmitting}
+                    required
+                  />
+                </AdminFormField>
+              </div>
+            ) : null}
 
             <AdminFormField
               label="Short description"
@@ -502,6 +839,43 @@ export function ProductFormPage({ mode, productId }: ProductFormPageProps) {
               />
             </AdminFormField>
 
+            <AdminFormField
+              label="Comfort & fit"
+              htmlFor="product-fit-notes"
+              error={fieldErrors.fitNotes}
+              hint="Shown in the Comfort & Fit accordion on the product page"
+              className="md:col-span-2"
+            >
+              <textarea
+                id="product-fit-notes"
+                value={form.fitNotes}
+                onChange={(e) => patchForm('fitNotes', e.target.value)}
+                className={cn(adminInputClassName, 'min-h-[5rem] resize-y')}
+                maxLength={2000}
+                placeholder="e.g. Model is 5 ft 6 in wearing S. Fit relaxed."
+                disabled={isSubmitting}
+                required
+              />
+            </AdminFormField>
+
+            <AdminFormField
+              label="Materials & care"
+              htmlFor="product-care"
+              error={fieldErrors.care}
+              hint="One care instruction per line. Fabric is shown above these lines on the product page."
+              className="md:col-span-2"
+            >
+              <textarea
+                id="product-care"
+                value={form.careText}
+                onChange={(e) => patchForm('careText', e.target.value)}
+                className={cn(adminInputClassName, 'min-h-[7rem] resize-y')}
+                placeholder={'Dry Clean Only\nDo not Wash\nIron at low temperature'}
+                disabled={isSubmitting}
+                required
+              />
+            </AdminFormField>
+
             <AdminFormField label="Status" htmlFor="product-status" error={fieldErrors.status}>
               <select
                 id="product-status"
@@ -517,7 +891,7 @@ export function ProductFormPage({ mode, productId }: ProductFormPageProps) {
             </AdminFormField>
 
             <fieldset className="space-y-2 md:col-span-2">
-              <legend className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-saan-bone/55">
+              <legend className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-paper/55">
                 Flags
               </legend>
               <div className="flex flex-wrap gap-4">
@@ -530,14 +904,14 @@ export function ProductFormPage({ mode, productId }: ProductFormPageProps) {
                 ).map(([key, label]) => (
                   <label
                     key={key}
-                    className="inline-flex items-center gap-2 font-body text-sm text-saan-charcoal dark:text-saan-bone"
+                    className="inline-flex items-center gap-2 font-body text-sm text-saan-charcoal dark:text-paper"
                   >
                     <input
                       type="checkbox"
                       checked={form[key]}
                       onChange={(e) => patchForm(key, e.target.checked)}
                       disabled={isSubmitting}
-                      className="h-4 w-4 rounded border-saan-champagne text-saan-maroon focus:ring-saan-maroon/30"
+                      className="h-4 w-4 rounded border-saan-champagne text-ink focus:ring-saan-maroon/30"
                     />
                     {label}
                   </label>
@@ -588,7 +962,7 @@ function BackLink() {
   return (
     <Link
       href="/admin/products"
-      className="inline-flex items-center gap-1.5 font-body text-sm text-saan-ink/55 transition-colors hover:text-saan-maroon dark:text-saan-bone/55 dark:hover:text-saan-gold"
+      className="inline-flex items-center gap-1.5 font-body text-sm text-saan-ink/55 transition-colors hover:text-ink dark:text-paper/55 dark:hover:text-ink"
     >
       <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
       Products

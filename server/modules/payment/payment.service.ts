@@ -6,12 +6,15 @@ import { USER_ROLES } from '../../shared/constants';
 import type { UserRole } from '../../shared/constants';
 import { logger } from '../../middlewares/request-logger';
 import type { IPaymentGateway } from '../../infrastructure/payment-gateway/payment-gateway.interface';
+import { toSmallestCurrencyUnit } from '../../shared/utils/money';
+import type { CartService } from '../cart/cart.service';
 import type { IOrderRepository } from '../order/order.repository.interface';
 import type { IPaymentRepository } from './payment.repository.interface';
 import type {
   InitiatePaymentResult,
   Payment,
   RazorpayWebhookPayload,
+  VerifyCheckoutPaymentInput,
 } from './payment.types';
 
 const TERMINAL_PAYMENT_STATUSES = new Set<Payment['status']>(['paid', 'refunded']);
@@ -21,6 +24,7 @@ export class PaymentService {
     private readonly paymentRepository: IPaymentRepository,
     private readonly orderRepository: IOrderRepository,
     private readonly paymentGateway: IPaymentGateway,
+    private readonly cartService: CartService,
   ) {}
 
   async initiatePayment(
@@ -41,8 +45,30 @@ export class PaymentService {
       throw new ConflictError('Order payment has already been processed');
     }
 
+    const amountSubunits = toSmallestCurrencyUnit(order.total, order.currency);
+
+    // Reuse an open gateway order so retries don't create duplicate Razorpay receipts.
+    const existingPayments = await this.paymentRepository.findByOrderId(orderId);
+    const reusable = existingPayments.find(
+      (entry) =>
+        (entry.status === 'created' || entry.status === 'pending') &&
+        Boolean(entry.gatewayOrderId),
+    );
+
+    if (reusable?.gatewayOrderId) {
+      return {
+        paymentId: reusable.id,
+        orderId: order.id,
+        gatewayOrderId: reusable.gatewayOrderId,
+        amount: amountSubunits,
+        currency: reusable.currency,
+        paymentGateway: reusable.paymentGateway,
+        keyId: this.paymentGateway.getPublicKeyId(),
+      };
+    }
+
     const { gatewayOrderId } = await this.paymentGateway.createGatewayOrder(
-      order.total,
+      amountSubunits,
       order.currency,
       order.id,
     );
@@ -61,11 +87,75 @@ export class PaymentService {
       paymentId: payment.id,
       orderId: order.id,
       gatewayOrderId,
-      amount: payment.amount,
+      /** Amount in smallest currency unit for Razorpay Checkout. */
+      amount: amountSubunits,
       currency: payment.currency,
       paymentGateway: payment.paymentGateway,
       keyId: this.paymentGateway.getPublicKeyId(),
     };
+  }
+
+  async verifyCheckoutPayment(
+    orderId: string,
+    userId: string,
+    role: UserRole,
+    input: VerifyCheckoutPaymentInput,
+  ): Promise<Payment> {
+    const order = await this.orderRepository.findById(orderId);
+
+    if (!order) {
+      throw new NotFoundError('Order not found');
+    }
+
+    this.assertOrderAccess(order.userId, userId, role);
+
+    if (order.paymentStatus === 'paid') {
+      const payments = await this.paymentRepository.findByOrderId(orderId);
+      const paid = payments.find((entry) => entry.status === 'paid');
+      if (paid) {
+        return paid;
+      }
+    }
+
+    if (order.paymentStatus !== 'pending') {
+      throw new ConflictError('Order payment has already been processed');
+    }
+
+    const payment = await this.paymentRepository.findByGatewayOrderId(input.razorpayOrderId);
+
+    if (!payment || payment.orderId !== orderId) {
+      throw new NotFoundError('Payment not found for this order');
+    }
+
+    if (payment.status === 'paid') {
+      return payment;
+    }
+
+    if (
+      !this.paymentGateway.verifyCheckoutSignature(
+        input.razorpayOrderId,
+        input.razorpayPaymentId,
+        input.razorpaySignature,
+      )
+    ) {
+      logger.warn(
+        { orderId, gatewayOrderId: input.razorpayOrderId },
+        'Rejected checkout payment with invalid signature',
+      );
+      throw new UnauthorizedError('Invalid payment signature');
+    }
+
+    const updatedPayment = await this.paymentRepository.updateStatus(payment.id, 'paid', {
+      paidAt: new Date(),
+      gatewayPaymentId: input.razorpayPaymentId,
+      transactionId: input.razorpayPaymentId,
+    });
+
+    await this.orderRepository.updatePaymentStatus(orderId, 'paid');
+    await this.orderRepository.updateStatus(orderId, 'confirmed');
+    await this.cartService.clearCart(order.userId);
+
+    return updatedPayment;
   }
 
   async listPaymentsForOrder(
@@ -145,6 +235,10 @@ export class PaymentService {
     if (nextStatus === 'paid') {
       await this.orderRepository.updatePaymentStatus(updatedPayment.orderId, 'paid');
       await this.orderRepository.updateStatus(updatedPayment.orderId, 'confirmed');
+      const order = await this.orderRepository.findById(updatedPayment.orderId);
+      if (order) {
+        await this.cartService.clearCart(order.userId);
+      }
     } else if (nextStatus === 'failed') {
       await this.orderRepository.updatePaymentStatus(updatedPayment.orderId, 'failed');
     }

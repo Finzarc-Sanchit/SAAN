@@ -128,7 +128,7 @@ export function SizeFormModal({
         </AdminFormField>
 
         {mode === 'edit' && initial ? (
-          <p className="font-body text-xs text-saan-ink/45 dark:text-saan-bone/45">
+          <p className="font-body text-xs text-saan-ink/45 dark:text-paper/45">
             Catalog ID: <code className="font-mono">{initial.sizeId}</code>
           </p>
         ) : null}

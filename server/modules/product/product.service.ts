@@ -1,5 +1,5 @@
 import type { ICategoryRepository } from '../category/category.repository.interface';
-import type { IDiscountRepository } from '../discount/discount.repository.interface';
+import type { ICollectionRepository } from '../collection/collection.repository.interface';
 import type { ISizeRepository } from '../size/size.repository.interface';
 import { InsufficientStockError } from '../../shared/errors/insufficient-stock-error';
 import { NotFoundError } from '../../shared/errors/not-found-error';
@@ -7,7 +7,10 @@ import { ValidationError } from '../../shared/errors/validation-error';
 import { resolveUniqueSlug } from '../../shared/utils/slug';
 import type { Paginated, Pagination } from '../../shared/types/pagination';
 import type { IProductRepository } from './product.repository.interface';
-import { computeEffectivePrice } from './product.pricing';
+import {
+  computeDiscountPercentFromSalePrice,
+  computeEffectivePrice,
+} from './product.pricing';
 import type {
   CreateProductInput,
   CreateProductSizeInput,
@@ -28,13 +31,27 @@ export class ProductService {
   constructor(
     private readonly productRepository: IProductRepository,
     private readonly categoryRepository: ICategoryRepository,
-    private readonly discountRepository: IDiscountRepository,
     private readonly sizeRepository: ISizeRepository,
+    private readonly collectionRepository: ICollectionRepository,
   ) {}
 
   async createProduct(input: CreateProductInput): Promise<Product> {
     await this.assertCategoryExists(input.categoryId);
-    await this.assertDiscountExistsIfProvided(input.discountId);
+    await this.assertCollectionExists(input.collectionId);
+    const discountEnabled = input.discountEnabled ?? false;
+    const salePrice = input.salePrice ?? null;
+    const discountPercent =
+      discountEnabled && salePrice != null
+        ? computeDiscountPercentFromSalePrice(input.basePrice, salePrice)
+        : null;
+    this.assertValidDiscountConfiguration({
+      basePrice: input.basePrice,
+      salePrice,
+      discountPercent,
+      discountEnabled,
+      discountStartDate: input.discountStartDate ?? null,
+      discountEndDate: input.discountEndDate ?? null,
+    });
 
     const slug = await resolveUniqueSlug(input.name, (candidate) =>
       this.productRepository.slugExists(candidate),
@@ -43,7 +60,11 @@ export class ProductService {
 
     return this.productRepository.create({
       ...input,
-      discountId: input.discountId ?? null,
+      salePrice,
+      discountPercent,
+      discountEnabled,
+      discountStartDate: input.discountStartDate ?? null,
+      discountEndDate: input.discountEndDate ?? null,
       slug,
       sizes,
     });
@@ -59,12 +80,32 @@ export class ProductService {
       await this.assertCategoryExists(input.categoryId);
     }
 
-    if (input.discountId !== undefined) {
-      await this.assertDiscountExistsIfProvided(input.discountId);
+    if (input.collectionId) {
+      await this.assertCollectionExists(input.collectionId);
     }
 
     const { sizes: sizeInputs, ...rest } = input;
     const updatePayload: ProductRepositoryUpdateInput = { ...rest };
+    const basePrice = input.basePrice ?? existing.basePrice;
+    const salePrice = input.salePrice !== undefined ? input.salePrice : existing.salePrice;
+    const discountEnabled = input.discountEnabled ?? existing.discountEnabled;
+    const discountPercent =
+      discountEnabled && salePrice != null
+        ? computeDiscountPercentFromSalePrice(basePrice, salePrice)
+        : null;
+    updatePayload.discountPercent = discountPercent;
+    this.assertValidDiscountConfiguration({
+      basePrice,
+      salePrice,
+      discountPercent,
+      discountEnabled,
+      discountStartDate:
+        input.discountStartDate !== undefined
+          ? input.discountStartDate
+          : existing.discountStartDate,
+      discountEndDate:
+        input.discountEndDate !== undefined ? input.discountEndDate : existing.discountEndDate,
+    });
 
     if (input.name) {
       updatePayload.slug = await resolveUniqueSlug(input.name, (candidate) =>
@@ -147,13 +188,8 @@ export class ProductService {
     return this.getProductById(productId);
   }
 
-  async computeEffectivePrice(product: Product, at: Date = new Date()): Promise<number> {
-    if (!product.discountId) {
-      return computeEffectivePrice(product.basePrice, null, at);
-    }
-
-    const discount = await this.discountRepository.findById(product.discountId);
-    return computeEffectivePrice(product.basePrice, discount, at);
+  async computeEffectivePrice(product: Product): Promise<number> {
+    return computeEffectivePrice(product);
   }
 
   private async resolveProductSizes(
@@ -192,14 +228,50 @@ export class ProductService {
     }
   }
 
-  private async assertDiscountExistsIfProvided(discountId?: string | null): Promise<void> {
-    if (!discountId) {
-      return;
+  private async assertCollectionExists(collectionId: string): Promise<void> {
+    const collection = await this.collectionRepository.findById(collectionId);
+    if (!collection) {
+      throw new NotFoundError('Collection not found');
+    }
+  }
+
+  private assertValidDiscountConfiguration(config: {
+    basePrice: number;
+    salePrice: number | null;
+    discountPercent: number | null;
+    discountEnabled: boolean;
+    discountStartDate: Date | null;
+    discountEndDate: Date | null;
+  }): void {
+    if (!config.discountEnabled) return;
+
+    const errors: Array<{ field: string; message: string }> = [];
+    if (config.salePrice == null || config.salePrice <= 0 || config.salePrice >= config.basePrice) {
+      errors.push({ field: 'salePrice', message: 'Sale price must be less than base price' });
+    }
+    if (
+      config.discountPercent == null ||
+      config.discountPercent < 1 ||
+      config.discountPercent > 99
+    ) {
+      errors.push({ field: 'discountPercent', message: 'Discount must be between 1% and 99%' });
+    }
+    if (!config.discountStartDate) {
+      errors.push({ field: 'discountStartDate', message: 'Discount start date is required' });
+    }
+    if (!config.discountEndDate) {
+      errors.push({ field: 'discountEndDate', message: 'Discount end date is required' });
+    }
+    if (
+      config.discountStartDate &&
+      config.discountEndDate &&
+      config.discountEndDate <= config.discountStartDate
+    ) {
+      errors.push({ field: 'discountEndDate', message: 'End date must be after start date' });
     }
 
-    const discount = await this.discountRepository.findById(discountId);
-    if (!discount) {
-      throw new NotFoundError('Discount not found');
+    if (errors.length > 0) {
+      throw new ValidationError('Invalid discount configuration', errors);
     }
   }
 }

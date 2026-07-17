@@ -8,17 +8,19 @@ import type {
 import { NotFoundError } from '../../../../shared/errors/not-found-error';
 import { CampaignModel, type CampaignDocument } from '../models/campaign.model';
 
-function toDomainCampaign(doc: CampaignDocument): Campaign {
+type LegacyCampaignDocument = CampaignDocument & {
+  imageUrl?: string;
+  imageAlt?: string;
+};
+
+function toDomainCampaign(doc: LegacyCampaignDocument): Campaign {
   return {
     id: doc._id.toString(),
-    tag: doc.tag,
-    title: doc.title,
-    description: doc.description,
     productId: doc.productId.toString(),
-    imageUrl: doc.imageUrl,
-    imageAlt: doc.imageAlt,
-    discountPercent: doc.discountPercent ?? null,
-    ctaText: doc.ctaText,
+    desktopImageUrl: doc.desktopImageUrl ?? doc.imageUrl ?? '',
+    desktopImageAlt: doc.desktopImageAlt ?? doc.imageAlt ?? '',
+    mobileImageUrl: doc.mobileImageUrl ?? doc.imageUrl ?? '',
+    mobileImageAlt: doc.mobileImageAlt ?? doc.imageAlt ?? '',
     startDate: doc.startDate,
     endDate: doc.endDate,
     priority: doc.priority,
@@ -34,14 +36,14 @@ export class MongoCampaignRepository implements ICampaignRepository {
       return null;
     }
 
-    const doc = await CampaignModel.findById(id).lean<CampaignDocument>().exec();
+    const doc = await CampaignModel.findById(id).lean<LegacyCampaignDocument>().exec();
     return doc ? toDomainCampaign(doc) : null;
   }
 
   async findMany(): Promise<Campaign[]> {
     const docs = await CampaignModel.find()
       .sort({ priority: 1, createdAt: -1 })
-      .lean<CampaignDocument[]>()
+      .lean<LegacyCampaignDocument[]>()
       .exec();
     return docs.map(toDomainCampaign);
   }
@@ -53,7 +55,7 @@ export class MongoCampaignRepository implements ICampaignRepository {
       endDate: { $gt: now },
     })
       .sort({ priority: 1 })
-      .lean<CampaignDocument[]>()
+      .lean<LegacyCampaignDocument[]>()
       .exec();
 
     return docs.map(toDomainCampaign);
@@ -65,21 +67,18 @@ export class MongoCampaignRepository implements ICampaignRepository {
     }
 
     const doc = await CampaignModel.create({
-      tag: data.tag,
-      title: data.title,
-      description: data.description,
       productId: new Types.ObjectId(data.productId),
-      imageUrl: data.imageUrl,
-      imageAlt: data.imageAlt,
-      discountPercent: data.discountPercent ?? null,
-      ctaText: data.ctaText,
+      desktopImageUrl: data.desktopImageUrl,
+      desktopImageAlt: data.desktopImageAlt,
+      mobileImageUrl: data.mobileImageUrl,
+      mobileImageAlt: data.mobileImageAlt,
       startDate: data.startDate,
       endDate: data.endDate,
       priority: data.priority,
       active: data.active ?? true,
     });
 
-    return toDomainCampaign(doc.toObject() as CampaignDocument);
+    return toDomainCampaign(doc.toObject() as LegacyCampaignDocument);
   }
 
   async update(id: string, data: UpdateCampaignInput): Promise<Campaign> {
@@ -99,7 +98,7 @@ export class MongoCampaignRepository implements ICampaignRepository {
       new: true,
       runValidators: true,
     })
-      .lean<CampaignDocument>()
+      .lean<LegacyCampaignDocument>()
       .exec();
 
     if (!doc) {

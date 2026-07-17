@@ -31,7 +31,7 @@ function CollectionCard({ collection, featured = false }: CollectionCardProps) {
     <Link
       href={collection.href}
       className={cn(
-        'group relative block w-full overflow-hidden border border-transparent transition-colors duration-500 hover:border-saan-gold',
+        'group relative block w-full overflow-hidden border border-transparent transition-colors duration-500 hover:border-ink',
         featured ? 'h-[55vh] lg:h-[80vh]' : 'h-[38vh] lg:h-[calc(40vh-0.75rem)]'
       )}
     >

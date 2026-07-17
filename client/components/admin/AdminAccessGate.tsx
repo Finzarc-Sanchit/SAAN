@@ -17,7 +17,7 @@ function RedirectHome() {
   }, [router]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-saan-bone">
+    <div className="flex min-h-screen items-center justify-center bg-paper">
       <p className="font-body text-sm text-saan-ink/60" role="status">
         Returning home…
       </p>
@@ -36,7 +36,7 @@ export function AdminAccessGate({ children }: AdminAccessGateProps) {
 
   if (isBootstrapping) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-saan-bone">
+      <div className="flex min-h-screen items-center justify-center bg-paper">
         <div className="flex flex-col items-center gap-3" role="status" aria-live="polite">
           <span className="h-8 w-8 animate-pulse rounded-full bg-saan-maroon/20" />
           <p className="font-body text-sm text-saan-ink/60">Preparing atelier admin…</p>

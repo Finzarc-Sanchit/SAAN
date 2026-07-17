@@ -18,11 +18,11 @@ export function ProductBreadcrumbs({
     <nav aria-label="Breadcrumb" className="mb-6 font-body text-[10px] uppercase tracking-widest text-saan-ink/45">
       <ol className="flex flex-wrap items-center gap-1.5">
         <li>
-          <Link href="/shop" className="transition-colors hover:text-saan-maroon">Shop</Link>
+          <Link href="/shop" className="transition-colors hover:text-ink">Shop</Link>
         </li>
         <li aria-hidden className="text-saan-ink/25">/</li>
         <li>
-          <Link href={collectionHref} className="transition-colors hover:text-saan-maroon">
+          <Link href={collectionHref} className="transition-colors hover:text-ink">
             {collectionLabel}
           </Link>
         </li>

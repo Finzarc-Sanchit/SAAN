@@ -97,11 +97,11 @@ export function ShopFilterDrawer({
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
             transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
-            className="fixed inset-y-0 left-0 z-50 flex w-full max-w-sm flex-col bg-saan-bone shadow-2xl border-r border-saan-champagne/30"
+            className="fixed inset-y-0 left-0 z-50 flex w-full max-w-sm flex-col bg-paper shadow-2xl border-r border-saan-champagne/30"
           >
             {/* Drawer Header */}
             <div className="flex items-center justify-between border-b border-saan-champagne/40 px-6 py-5">
-              <h2 className="font-body text-label-caps text-sm font-bold text-saan-maroon">
+              <h2 className="font-body text-label-caps text-sm font-bold text-ink">
                 Filters
               </h2>
               <button
@@ -150,8 +150,8 @@ export function ShopFilterDrawer({
                         className={cn(
                           'font-body text-sm transition-colors',
                           filters.collection === item.id
-                            ? 'text-saan-maroon font-medium'
-                            : 'text-saan-ink/70 group-hover:text-saan-maroon'
+                            ? 'text-ink font-medium'
+                            : 'text-saan-ink/70 group-hover:text-ink'
                         )}
                       >
                         {item.label}
@@ -195,8 +195,8 @@ export function ShopFilterDrawer({
                         className={cn(
                           'font-body text-sm transition-colors',
                           filters.category === item.id
-                            ? 'text-saan-maroon font-medium'
-                            : 'text-saan-ink/70 group-hover:text-saan-maroon'
+                            ? 'text-ink font-medium'
+                            : 'text-saan-ink/70 group-hover:text-ink'
                         )}
                       >
                         {item.label}
@@ -222,8 +222,8 @@ export function ShopFilterDrawer({
                         className={cn(
                           'text-label-caps rounded-none border px-3.5 py-2 text-[10px] tracking-widest transition-all duration-200',
                           isActive
-                            ? 'border-saan-maroon bg-saan-maroon text-saan-bone'
-                            : 'border-saan-champagne bg-white text-saan-ink hover:border-saan-maroon hover:bg-saan-maroon hover:text-saan-bone'
+                            ? 'border-saan-maroon bg-saan-maroon text-paper'
+                            : 'border-saan-champagne bg-white text-saan-ink hover:border-saan-maroon hover:bg-saan-maroon hover:text-paper'
                         )}
                       >
                         {item.label}
@@ -241,7 +241,7 @@ export function ShopFilterDrawer({
                 <div className="space-y-2">
                   <div className="flex justify-between font-body text-sm text-saan-ink/80">
                     <span>Up to</span>
-                    <span className="font-semibold text-saan-maroon">
+                    <span className="font-semibold text-ink">
                       {formatPrice(filters.maxPrice)}
                     </span>
                   </div>
@@ -267,14 +267,14 @@ export function ShopFilterDrawer({
               <button
                 type="button"
                 onClick={handleReset}
-                className="flex-1 text-label-caps border border-saan-champagne py-3 text-center text-xs text-saan-ink hover:border-saan-maroon hover:text-saan-maroon transition-colors"
+                className="flex-1 text-label-caps border border-saan-champagne py-3 text-center text-xs text-saan-ink hover:border-saan-maroon hover:text-ink transition-colors"
               >
                 Clear All
               </button>
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 text-label-caps bg-saan-maroon py-3 text-center text-xs text-white hover:bg-saan-gold transition-colors"
+                className="flex-1 text-label-caps bg-saan-maroon py-3 text-center text-xs text-white hover:bg-ink transition-colors"
               >
                 Apply
               </button>

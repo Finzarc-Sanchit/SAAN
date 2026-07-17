@@ -1,6 +1,11 @@
 import { apiRequest, apiRequestWithMeta } from '@/lib/api/client';
 import type { PaginationMeta } from '@/lib/types/api';
 import type {
+  InitiatePaymentResult,
+  PlaceOrderInput,
+  VerifyPaymentInput,
+} from '@/lib/types/checkout';
+import type {
   AdminOrderDetail,
   AdminOrderListItem,
   AdminOrderListParams,
@@ -17,6 +22,8 @@ export const ordersQueryKeys = {
   list: (params: AdminOrderListParams) => [...ordersQueryKeys.all, 'list', params] as const,
   detail: (id: string) => [...ordersQueryKeys.all, 'detail', id] as const,
   payments: (orderId: string) => [...ordersQueryKeys.all, 'payments', orderId] as const,
+  customerList: () => ['orders', 'list'] as const,
+  customerDetail: (id: string) => ['orders', 'detail', id] as const,
 };
 
 function buildListQuery(params: AdminOrderListParams): string {
@@ -30,6 +37,13 @@ function buildListQuery(params: AdminOrderListParams): string {
   if (params.limit) search.set('limit', String(params.limit));
   const qs = search.toString();
   return qs ? `?${qs}` : '';
+}
+
+function createIdempotencyKey(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `order-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
 export type AdminOrderListResult = {
@@ -56,6 +70,58 @@ export async function listAdminOrders(
 
 export async function fetchAdminOrder(id: string): Promise<AdminOrderDetail> {
   return apiRequest<AdminOrderDetail>(`${ADMIN_ORDERS_BASE}/${id}`);
+}
+
+export async function fetchOrder(id: string): Promise<Order> {
+  return apiRequest<Order>(`${ORDERS_BASE}/${id}`);
+}
+
+export async function listMyOrders(params: { page?: number; limit?: number } = {}): Promise<Order[]> {
+  const search = new URLSearchParams();
+  if (params.page) search.set('page', String(params.page));
+  if (params.limit) search.set('limit', String(params.limit));
+  const qs = search.toString();
+
+  return apiRequest<Order[]>(`${ORDERS_BASE}${qs ? `?${qs}` : ''}`);
+}
+
+export async function placeOrder(
+  input: PlaceOrderInput,
+  idempotencyKey = createIdempotencyKey(),
+): Promise<Order> {
+  return apiRequest<Order>(ORDERS_BASE, {
+    method: 'POST',
+    body: input,
+    headers: {
+      'Idempotency-Key': idempotencyKey,
+    },
+  });
+}
+
+export async function initiatePayment(
+  orderId: string,
+  paymentMethod = 'card',
+): Promise<InitiatePaymentResult> {
+  return apiRequest<InitiatePaymentResult>(`${ORDERS_BASE}/${orderId}/payments/initiate`, {
+    method: 'POST',
+    body: { paymentMethod },
+  });
+}
+
+export async function verifyPayment(
+  orderId: string,
+  input: VerifyPaymentInput,
+): Promise<Payment> {
+  return apiRequest<Payment>(`${ORDERS_BASE}/${orderId}/payments/verify`, {
+    method: 'POST',
+    body: input,
+  });
+}
+
+export async function cancelPendingOrder(orderId: string): Promise<Order> {
+  return apiRequest<Order>(`${ORDERS_BASE}/${orderId}/cancel`, {
+    method: 'POST',
+  });
 }
 
 export async function updateOrderStatus(id: string, status: OrderStatus): Promise<Order> {

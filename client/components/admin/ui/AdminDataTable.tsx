@@ -44,13 +44,13 @@ export function AdminDataTable<T>({
     <div className="overflow-x-auto rounded-xl border border-saan-champagne/40 dark:border-white/10">
       <table className="w-full min-w-[36rem] border-collapse text-left">
         <thead>
-          <tr className="border-b border-saan-champagne/40 bg-saan-bone/60 dark:border-white/10 dark:bg-white/5">
+          <tr className="border-b border-saan-champagne/40 bg-paper/60 dark:border-white/10 dark:bg-white/5">
             {columns.map((column) => (
               <th
                 key={column.id}
                 scope="col"
                 className={cn(
-                  'px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50 dark:text-saan-bone/50',
+                  'px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50 dark:text-paper/50',
                   column.headerClassName,
                 )}
               >
@@ -78,7 +78,7 @@ export function AdminDataTable<T>({
             <tr>
               <td
                 colSpan={columns.length}
-                className="px-4 py-10 text-center font-body text-sm text-saan-ink/50 dark:text-saan-bone/50"
+                className="px-4 py-10 text-center font-body text-sm text-saan-ink/50 dark:text-paper/50"
               >
                 {emptyMessage}
               </td>
@@ -95,7 +95,7 @@ export function AdminDataTable<T>({
                   <td
                     key={column.id}
                     className={cn(
-                      'px-4 py-3.5 font-body text-sm text-saan-charcoal dark:text-saan-bone',
+                      'px-4 py-3.5 font-body text-sm text-saan-charcoal dark:text-paper',
                       column.className,
                     )}
                   >

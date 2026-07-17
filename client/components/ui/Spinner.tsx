@@ -1,3 +1,4 @@
+import { Skeleton } from '@/components/ui/Skeleton';
 import { cn } from '@/lib/utils';
 
 type SpinnerProps = {
@@ -5,15 +6,12 @@ type SpinnerProps = {
   label?: string;
 };
 
+/** @deprecated Prefer Skeleton for loading states. */
 export function Spinner({ className, label = 'Loading' }: SpinnerProps) {
   return (
-    <span
-      role="status"
-      aria-label={label}
-      className={cn(
-        'inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent',
-        className,
-      )}
+    <Skeleton
+      className={cn('h-4 w-4', className)}
+      label={label}
     />
   );
 }

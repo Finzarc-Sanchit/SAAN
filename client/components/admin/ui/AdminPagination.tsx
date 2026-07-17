@@ -25,7 +25,7 @@ export function AdminPagination({
   return (
     <div
       className={cn(
-        'flex flex-wrap items-center justify-between gap-3 pt-4 font-body text-sm text-saan-ink/60 dark:text-saan-bone/60',
+        'flex flex-wrap items-center justify-between gap-3 pt-4 font-body text-sm text-saan-ink/60 dark:text-paper/60',
         className,
       )}
     >
