@@ -14,7 +14,7 @@ const ORDER_STATUS_STYLES: Record<OrderStatus, string> = {
   delivered:
     'bg-emerald-50 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300',
   cancelled:
-    'bg-saan-maroon/10 text-saan-maroon dark:bg-red-500/15 dark:text-red-300',
+    'bg-saan-maroon/10 text-ink dark:bg-red-500/15 dark:text-red-300',
 };
 
 export function OrderStatusBadge({ status }: { status: OrderStatus }) {
@@ -36,7 +36,7 @@ const PAYMENT_STATUS_STYLES: Record<OrderPaymentStatus, string> = {
   paid: 'bg-emerald-50 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300',
   failed: 'bg-red-50 text-red-800 dark:bg-red-500/15 dark:text-red-300',
   refunded:
-    'bg-saan-champagne/40 text-saan-ink/70 dark:bg-white/10 dark:text-saan-bone/70',
+    'bg-saan-champagne/40 text-saan-ink/70 dark:bg-white/10 dark:text-paper/70',
 };
 
 const PAYMENT_STATUS_LABELS: Record<OrderPaymentStatus, string> = {

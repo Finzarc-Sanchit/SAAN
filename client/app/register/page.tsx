@@ -201,7 +201,7 @@ function RegisterPageContent() {
 
       {flowStep === 3 && (
         <div
-          className="fixed bottom-8 left-1/2 z-50 -translate-x-1/2 rounded-sm bg-saan-charcoal px-5 py-3 text-sm text-saan-bone shadow-lg"
+          className="fixed bottom-8 left-1/2 z-50 -translate-x-1/2 rounded-sm bg-saan-charcoal px-5 py-3 text-sm text-paper shadow-lg"
           role="status"
         >
           Welcome to SAAN

@@ -27,7 +27,7 @@ export function ProductTrustBadges({ badges }: ProductTrustBadgesProps) {
           return (
             <div
               key={badge.label}
-              className="flex flex-col items-center gap-2 border border-saan-champagne/50 bg-saan-bone px-3 py-5 text-center"
+              className="flex flex-col items-center gap-2 border border-saan-champagne/50 bg-paper px-3 py-5 text-center"
             >
               <Icon className="h-6 w-6 text-saan-ink/40" strokeWidth={1.25} />
               <span className="font-body text-[10px] uppercase tracking-widest text-saan-ink/60">

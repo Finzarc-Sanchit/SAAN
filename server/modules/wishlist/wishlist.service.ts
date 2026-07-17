@@ -47,10 +47,16 @@ export class WishlistService {
           ...item,
           product: {
             name: product.name,
+            slug: product.slug,
             imageUrl: primaryImage?.imageUrl ?? null,
             basePrice: product.basePrice,
             effectivePrice,
             status: product.status,
+            sizes: product.sizes.map((size) => ({
+              sizeId: size.sizeId,
+              size: size.size,
+              quantity: size.quantity,
+            })),
           },
           isUnavailable,
         };

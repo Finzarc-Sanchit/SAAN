@@ -8,17 +8,21 @@ export function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="relative z-10 bg-saan-charcoal py-16 text-saan-bone/70">
+    <footer className="relative z-10 bg-midnight py-16 text-paper/70">
       <Container>
-        <div className="mb-16 border-b border-white/10 pb-16">
+        <div className="mb-16 border-b border-paper/10 pb-16">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-display text-2xl text-saan-bone md:text-3xl">
+            <h2 className="text-h2 text-paper">
               {NEWSLETTER_COPY.title}
             </h2>
-            <p className="mt-4 text-sm font-light leading-relaxed">
+            <p className="text-body mt-4 font-light leading-relaxed">
               {NEWSLETTER_COPY.description}
             </p>
-            <NewsletterForm variant="dark" className="mx-auto mt-8 max-w-lg" />
+            <NewsletterForm
+              variant="dark"
+              source="footer"
+              className="mx-auto mt-8 max-w-lg"
+            />
           </div>
         </div>
 
@@ -40,7 +44,7 @@ export function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
-                className="text-sm uppercase tracking-wider transition-colors hover:text-saan-bone"
+                className="text-sm uppercase tracking-wider transition-colors hover:text-paper"
               >
                 Instagram
               </a>
@@ -52,11 +56,11 @@ export function Footer() {
           <FooterColumn title="Legal" links={FOOTER_LINKS.legal} />
         </div>
 
-        <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 text-sm font-light md:flex-row">
+        <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-paper/10 pt-8 text-sm font-light md:flex-row">
           <p>
             © {year} {BRAND.name}. All rights reserved.
           </p>
-          <p className="text-saan-bone/50">{BRAND.tagline}</p>
+          <p className="text-paper/50">{BRAND.tagline}</p>
         </div>
       </Container>
     </footer>
@@ -72,11 +76,11 @@ function FooterColumn({
 }) {
   return (
     <div>
-      <h4 className="mb-6 text-sm font-medium uppercase tracking-wider text-saan-bone">{title}</h4>
+      <h4 className="text-ui mb-6 text-paper">{title}</h4>
       <ul className="space-y-3 text-sm font-light">
         {links.map((link) => (
           <li key={link.href}>
-            <Link href={link.href} className="transition-colors hover:text-saan-bone">
+            <Link href={link.href} className="transition-colors hover:text-paper">
               {link.label}
             </Link>
           </li>

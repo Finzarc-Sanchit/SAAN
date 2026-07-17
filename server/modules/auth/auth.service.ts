@@ -207,6 +207,10 @@ export class AuthService {
     return this.authRepository.updateProfile(userId, {
       firstName: input.firstName.trim(),
       lastName: input.lastName.trim(),
+      mobileNumber: input.mobileNumber?.trim() || null,
+      dateOfBirth: input.dateOfBirth
+        ? new Date(`${input.dateOfBirth}T00:00:00.000Z`)
+        : null,
     });
   }
 
@@ -338,6 +342,8 @@ export class AuthService {
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
+      mobileNumber: user.mobileNumber,
+      dateOfBirth: user.dateOfBirth,
       role: user.role,
       isVerified: user.isVerified,
       createdAt: user.createdAt,

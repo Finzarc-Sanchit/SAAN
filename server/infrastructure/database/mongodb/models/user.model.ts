@@ -81,6 +81,15 @@ const userSchema = new Schema(
       required: true,
       trim: true,
     },
+    mobileNumber: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+    dateOfBirth: {
+      type: Date,
+      default: null,
+    },
     role: {
       type: String,
       enum: Object.values(USER_ROLES),
@@ -177,6 +186,8 @@ export type UserDocument = {
   passwordHash: string;
   firstName: string;
   lastName: string;
+  mobileNumber: string | null;
+  dateOfBirth: Date | null;
   role: string;
   isVerified: boolean;
   otpHash: string | null;

@@ -21,6 +21,8 @@ const ERROR_MESSAGES: Record<string, string> = {
   NOT_FOUND: 'The requested resource was not found.',
   RATE_LIMIT_EXCEEDED: 'Too many attempts. Please wait a moment and try again.',
   INTERNAL_SERVER_ERROR: 'Something went wrong. Please try again shortly.',
+  SERVICE_UNAVAILABLE:
+    'Checkout is temporarily unavailable. Please try again in a moment.',
   STORAGE_ERROR: 'Could not upload this image. Try a JPEG, PNG, or WebP under 5MB.',
   STORAGE_CONFIG_ERROR:
     'Image uploads are temporarily unavailable. Please try again later or contact support.',
@@ -33,6 +35,7 @@ const MESSAGE_OVERRIDES: Record<string, string> = {
   'Invalid email or password': 'The email or password you entered is incorrect.',
   'Invalid or expired OTP': 'That code is invalid or has expired.',
   'Invalid or expired reset link': 'This reset link is invalid or has expired.',
+  'Invalid CSRF token': 'Your session needs a refresh. Please try again.',
 };
 
 /** Backend codes whose `details[]` are safe to show on form fields (user-fixable). */

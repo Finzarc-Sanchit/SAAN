@@ -25,14 +25,14 @@ export function FeaturedCollectionSection() {
             </div>
 
             <div className="relative z-10 flex w-full flex-col items-start justify-center px-6 py-16 text-center lg:w-1/2 lg:items-center lg:px-16 lg:py-24 xl:px-24">
-              <p className="text-label-caps mb-4 text-saan-gold">{FEATURED_COLLECTION.subtitle}</p>
+              <p className="text-label-caps mb-4 text-ink">{FEATURED_COLLECTION.subtitle}</p>
               <h2
                 id="featured-collection-heading"
-                className="font-display text-5xl uppercase tracking-widest text-saan-bone sm:text-6xl md:text-7xl"
+                className="font-display text-5xl uppercase tracking-widest text-paper sm:text-6xl md:text-7xl"
               >
                 {FEATURED_COLLECTION.title}
               </h2>
-              <p className="mt-6 max-w-md font-light leading-relaxed text-saan-bone/70">
+              <p className="mt-6 max-w-md font-light leading-relaxed text-paper/70">
                 {FEATURED_COLLECTION.tagline}
               </p>
               <div className="mt-10">

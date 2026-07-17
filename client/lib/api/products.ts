@@ -14,11 +14,14 @@ export const productsQueryKeys = {
   all: ['admin', 'products'] as const,
   list: (params: ProductListParams) => [...productsQueryKeys.all, 'list', params] as const,
   detail: (id: string) => [...productsQueryKeys.all, 'detail', id] as const,
+  storefrontDetail: (slug: string) => ['products', 'storefront', slug] as const,
 };
 
 function buildListQuery(params: ProductListParams): string {
   const search = new URLSearchParams();
   if (params.categoryId) search.set('categoryId', params.categoryId);
+  if (params.collectionId) search.set('collectionId', params.collectionId);
+  if (params.occasion) search.set('occasion', params.occasion);
   if (params.status) search.set('status', params.status);
   if (params.search) search.set('search', params.search);
   if (params.sort) search.set('sort', params.sort);
@@ -46,6 +49,10 @@ export async function listProducts(params: ProductListParams = {}): Promise<Prod
       total: data.length,
     },
   };
+}
+
+export async function fetchProductBySlug(slug: string): Promise<Product> {
+  return apiRequest<Product>(`${PRODUCTS_BASE}/${encodeURIComponent(slug)}`);
 }
 
 export async function fetchAdminProduct(id: string): Promise<Product> {

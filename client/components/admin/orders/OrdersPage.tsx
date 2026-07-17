@@ -69,7 +69,7 @@ export function OrdersPage() {
         cell: (row) => (
           <div className="min-w-0">
             <p className="truncate font-medium">{row.customerName}</p>
-            <p className="truncate text-xs text-saan-ink/50 dark:text-saan-bone/50">
+            <p className="truncate text-xs text-saan-ink/50 dark:text-paper/50">
               {row.customerEmail}
             </p>
           </div>
@@ -99,7 +99,7 @@ export function OrdersPage() {
         id: 'createdAt',
         header: 'Placed',
         cell: (row) => (
-          <span className="text-sm text-saan-ink/70 dark:text-saan-bone/70">
+          <span className="text-sm text-saan-ink/70 dark:text-paper/70">
             {formatOrderDateTime(row.createdAt)}
           </span>
         ),
@@ -112,7 +112,7 @@ export function OrdersPage() {
         cell: (row) => (
           <Link
             href={`/admin/orders/${row.id}`}
-            className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 font-body text-sm text-saan-maroon transition-colors hover:bg-saan-maroon/5 dark:text-saan-gold dark:hover:bg-saan-gold/10"
+            className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 font-body text-sm text-ink transition-colors hover:bg-saan-maroon/5 dark:text-ink dark:hover:bg-ink/10"
             aria-label={`View order ${formatShortOrderId(row.id)}`}
           >
             <Eye className="h-4 w-4" strokeWidth={1.5} />
@@ -127,10 +127,10 @@ export function OrdersPage() {
   return (
     <div className="space-y-4 lg:space-y-6">
       <div>
-        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-saan-ink/45 dark:text-saan-bone/45">
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-saan-ink/45 dark:text-paper/45">
           Fulfillment
         </p>
-        <h1 className="mt-1 font-display text-2xl text-saan-charcoal dark:text-saan-bone md:text-3xl">
+        <h1 className="mt-1 font-display text-2xl text-saan-charcoal dark:text-paper md:text-3xl">
           Orders
         </h1>
       </div>
@@ -138,7 +138,7 @@ export function OrdersPage() {
       <AdminCard>
         <div className="mb-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
           <label className="block space-y-1.5 xl:col-span-2">
-            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-saan-bone/55">
+            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-paper/55">
               Search
             </span>
             <input
@@ -152,7 +152,7 @@ export function OrdersPage() {
             />
           </label>
           <label className="block space-y-1.5">
-            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-saan-bone/55">
+            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-paper/55">
               Status
             </span>
             <select
@@ -172,7 +172,7 @@ export function OrdersPage() {
             </select>
           </label>
           <label className="block space-y-1.5">
-            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-saan-bone/55">
+            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-paper/55">
               Payment
             </span>
             <select
@@ -191,7 +191,7 @@ export function OrdersPage() {
             </select>
           </label>
           <label className="block space-y-1.5">
-            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-saan-bone/55">
+            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-paper/55">
               From
             </span>
             <input
@@ -205,7 +205,7 @@ export function OrdersPage() {
             />
           </label>
           <label className="block space-y-1.5">
-            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-saan-bone/55">
+            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-paper/55">
               To
             </span>
             <input

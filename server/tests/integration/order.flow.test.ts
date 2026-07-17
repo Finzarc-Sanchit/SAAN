@@ -35,11 +35,13 @@ import { createApp } from '../../http/express-app';
 import { connectMongo, disconnectMongo } from '../../infrastructure/database/mongodb/connection';
 import { CartModel } from '../../infrastructure/database/mongodb/models/cart.model';
 import { CategoryModel } from '../../infrastructure/database/mongodb/models/category.model';
+import { CollectionModel } from '../../infrastructure/database/mongodb/models/collection.model';
 import { OrderModel } from '../../infrastructure/database/mongodb/models/order.model';
 import { ProductModel } from '../../infrastructure/database/mongodb/models/product.model';
 import { SizeModel } from '../../infrastructure/database/mongodb/models/size.model';
 import { UserModel } from '../../infrastructure/database/mongodb/models/user.model';
 import { resetConnectionsForTests } from '../../middlewares/ensure-connections.middleware';
+import { seedTestCollection } from '../helpers/catalog-collection';
 import { seedStandardSizes } from '../helpers/catalog-sizes';
 
 function adminAuthHeader(): string {
@@ -58,6 +60,7 @@ describe('Order flow integration', () => {
   let app: Application;
   let mongod: MongoMemoryServer;
   let categoryId = '';
+  let collectionId = '';
   let sizeSId = '';
   let sizeMId = '';
   let userId = '';
@@ -82,12 +85,14 @@ describe('Order flow integration', () => {
     await OrderModel.deleteMany({});
     await ProductModel.deleteMany({});
     await CategoryModel.deleteMany({});
+    await CollectionModel.deleteMany({});
     await SizeModel.deleteMany({});
     await UserModel.deleteMany({});
     await CartModel.syncIndexes();
     await OrderModel.syncIndexes();
     await ProductModel.syncIndexes();
     await CategoryModel.syncIndexes();
+    await CollectionModel.syncIndexes();
 
     const categoryResponse = await request(app)
       .post('/api/v1/categories')
@@ -96,6 +101,7 @@ describe('Order flow integration', () => {
       .expect(201);
 
     categoryId = categoryResponse.body.data.id as string;
+    collectionId = await seedTestCollection(app, adminAuthHeader());
 
     const sizes = await seedStandardSizes(app, adminAuthHeader());
     sizeSId = sizes.sizeSId;
@@ -128,10 +134,21 @@ describe('Order flow integration', () => {
       .set('Authorization', adminAuthHeader())
       .send({
         categoryId,
+        collectionId,
         name: options?.nameSuffix ? `Linen Shirt ${options.nameSuffix}` : 'Linen Shirt',
         description: 'A breathable linen shirt',
         shortDescription: 'Linen shirt',
         fabric: 'Linen',
+        color: 'Ivory',
+        occasion: ['Daily'],
+        fitNotes: "Model is 5'6\" wearing S. Fit relaxed.",
+        care: [
+          'Dry Clean Only',
+          'Do not Wash',
+          'Do not Wring',
+          'Iron at low temperature',
+          'Tumble dry on Low Heat',
+        ],
         basePrice: options?.basePrice ?? 5000,
         status: 'active',
         isFeatured: false,

@@ -13,3 +13,5 @@ export type UserRole = (typeof USER_ROLES)[keyof typeof USER_ROLES];
 
 export { UPLOAD } from './upload';
 export type { AllowedUploadMimeType } from './upload';
+export { PRODUCT_OCCASIONS } from './product-occasion';
+export type { ProductOccasion } from './product-occasion';

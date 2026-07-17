@@ -86,6 +86,8 @@ describe('AuthService', () => {
     email: 'test@example.com',
     firstName: 'Test',
     lastName: 'User',
+    mobileNumber: null,
+    dateOfBirth: null,
     role: USER_ROLES.CUSTOMER,
     isVerified: true,
     passwordHash: 'hashed-password',
@@ -139,6 +141,8 @@ describe('AuthService', () => {
         email: 'test@example.com',
         firstName: 'Test',
         lastName: 'User',
+        mobileNumber: null,
+        dateOfBirth: null,
         role: USER_ROLES.CUSTOMER,
         isVerified: false,
         createdAt: now,
@@ -165,6 +169,8 @@ describe('AuthService', () => {
         email: 'test@example.com',
         firstName: 'Test',
         lastName: 'User',
+        mobileNumber: null,
+        dateOfBirth: null,
         role: USER_ROLES.CUSTOMER,
         isVerified: false,
         createdAt: now,
@@ -326,6 +332,33 @@ describe('AuthService', () => {
       await expect(service.refresh('stale-refresh-token')).rejects.toThrow(
         new UnauthorizedError('Invalid or expired refresh token'),
       );
+    });
+  });
+
+  describe('updateProfile', () => {
+    it('normalizes and persists customer profile details', async () => {
+      repository.findById.mockResolvedValue(verifiedUser);
+      repository.updateProfile.mockResolvedValue({
+        ...verifiedUser,
+        firstName: 'Jueata',
+        lastName: 'Kaur',
+        mobileNumber: '+91 99206 13132',
+        dateOfBirth: new Date('1995-06-12T00:00:00.000Z'),
+      });
+
+      await service.updateProfile('user-1', {
+        firstName: ' Jueata ',
+        lastName: ' Kaur ',
+        mobileNumber: ' +91 99206 13132 ',
+        dateOfBirth: '1995-06-12',
+      });
+
+      expect(repository.updateProfile).toHaveBeenCalledWith('user-1', {
+        firstName: 'Jueata',
+        lastName: 'Kaur',
+        mobileNumber: '+91 99206 13132',
+        dateOfBirth: new Date('1995-06-12T00:00:00.000Z'),
+      });
     });
   });
 

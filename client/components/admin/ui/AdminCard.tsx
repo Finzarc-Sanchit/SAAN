@@ -20,7 +20,7 @@ export function AdminCard({ children, className, title, action }: AdminCardProps
       {(title || action) && (
         <div className="mb-4 flex items-start justify-between gap-3">
           {title ? (
-            <h2 className="font-display text-lg text-saan-charcoal dark:text-saan-bone">
+            <h2 className="font-display text-lg text-saan-charcoal dark:text-paper">
               {title}
             </h2>
           ) : (
@@ -54,7 +54,7 @@ export function AdminInlineError({
   onRetry?: () => void;
 }) {
   return (
-    <div className="flex items-center gap-2 font-body text-xs text-saan-maroon dark:text-red-300">
+    <div className="flex items-center gap-2 font-body text-xs text-ink dark:text-red-300">
       <span>{message ?? "Couldn't load"}</span>
       {onRetry && (
         <button

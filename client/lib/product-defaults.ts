@@ -1,5 +1,8 @@
 import type { ShopProduct } from '@/lib/site-content';
 import { getCollectionById } from '@/lib/site-content';
+import type { Product } from '@/lib/types/product';
+import { computeEffectivePrice } from '@/lib/product-pricing';
+import { SAANLABEL_HOVER_POOL } from '@/lib/saanlabel-images';
 
 export const DEFAULT_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'CUSTOM'] as const;
 
@@ -33,10 +36,13 @@ export type ProductReview = {
 };
 
 export type ProductDetail = ShopProduct & {
+  slug: string;
   collectionLabel: string;
   images: string[];
   highlights: string[];
   sizes: string[];
+  /** Maps size label → catalog sizeId when loaded from the API. */
+  sizeIdByLabel?: Record<string, string>;
   fitNotes: string;
   description: string;
   features: ProductFeature[];
@@ -57,20 +63,7 @@ export type ProductDetail = ShopProduct & {
   gstNote: string;
 };
 
-const GALLERY_POOL = [
-  '/images/products/velvet-anarkali.jpg',
-  '/images/products/organza-saree.jpg',
-  '/images/products/chanderi-kurta.jpg',
-  '/images/products/paper-silk-suit.jpg',
-  '/images/products/zari-lehenga.jpg',
-  '/images/products/linen-coord.jpg',
-  '/images/products/cotton-lawn.jpg',
-  '/images/collections/bloody-maroon.jpg',
-  '/images/collections/ek-sunheri-dopahar.jpg',
-  '/images/collections/jhalak.jpg',
-  '/images/collections/shells.jpg',
-  '/images/collections/effortless.jpg',
-];
+const GALLERY_POOL = [...SAANLABEL_HOVER_POOL];
 
 const COLLECTION_COLOURS: Record<string, { label: string; swatch: string }> = {
   'bloody-maroon': { label: 'Bloody Maroon', swatch: '#4b0006' },
@@ -131,11 +124,27 @@ function buildGallery(mainImage: string): string[] {
   return [mainImage, ...others, mainImage].slice(0, 6);
 }
 
+function normalizeOccasions(
+  occasion: ShopProduct['occasion'] | string | undefined,
+): ShopProduct['occasion'] {
+  if (Array.isArray(occasion)) {
+    return occasion;
+  }
+  if (typeof occasion === 'string' && occasion.length > 0) {
+    return [occasion as ShopProduct['occasion'][number]];
+  }
+  return ['Daily'];
+}
+
+function formatOccasionLabel(product: ShopProduct): string {
+  return normalizeOccasions(product.occasion).join(', ');
+}
+
 function buildHighlights(product: ShopProduct): string[] {
   return [
     `Flattering ${product.name} silhouette`,
     'Soft, flowy fabric for all-day comfort',
-    `Perfect for ${product.occasion.toLowerCase()} and special occasions`,
+    `Perfect for ${formatOccasionLabel(product).toLowerCase()} and special occasions`,
   ];
 }
 
@@ -144,7 +153,7 @@ function buildFitNotes(product: ShopProduct): string {
 }
 
 function buildDescription(product: ShopProduct): string {
-  return `${product.name} from the ${product.collection.replace(/-/g, ' ')} line. ${product.subtitle}. Crafted with intention for ${product.occasion.toLowerCase()} wear — a piece that balances heritage craft with modern ease. Each garment is finished by hand in our atelier, with careful attention to drape, proportion, and lasting comfort.`;
+  return `${product.name} from the ${product.collection.replace(/-/g, ' ')} line. ${product.subtitle}. Crafted with intention for ${formatOccasionLabel(product).toLowerCase()} wear — a piece that balances heritage craft with modern ease. Each garment is finished by hand in our atelier, with careful attention to drape, proportion, and lasting comfort.`;
 }
 
 function buildSizeStock(sizes: string[]): Record<string, number> {
@@ -174,7 +183,8 @@ function buildFabric(product: ShopProduct): string {
 }
 
 function buildEmbellishment(product: ShopProduct): string {
-  if (product.occasion === 'Wedding' || product.occasion === 'Festive') {
+  const occasions = normalizeOccasions(product.occasion);
+  if (occasions.includes('Wedding') || occasions.includes('Festive')) {
     return 'Hand-finished gota patti at cuffs and neckline';
   }
   if (product.category === 'Lehengas') {
@@ -183,24 +193,17 @@ function buildEmbellishment(product: ShopProduct): string {
   return 'Subtle hand embroidery at borders and neckline';
 }
 
-function buildOccasionDetail(product: ShopProduct): string {
-  const map: Record<string, string> = {
-    Festive: 'Festive · Sangeet · Reception',
-    Wedding: 'Wedding · Reception · Cocktail',
-    Daily: 'Daily · Brunch · Office',
-    Cocktail: 'Cocktail · Evening · Reception',
-    Resort: 'Resort · Travel · Day events',
-  };
-  return map[product.occasion] ?? `${product.occasion} · Special occasions`;
-}
+/** Default care copy used when enriching mock catalog products. */
+export const PRODUCT_CARE_INSTRUCTIONS = [
+  'Dry Clean Only',
+  'Do not Wash',
+  'Do not Wring',
+  'Iron at low temperature',
+  'Tumble dry on Low Heat',
+] as const;
 
-function buildCare(product: ShopProduct): string[] {
-  return [
-    'Dry clean only for best longevity of embellishments.',
-    'Store in a breathable garment bag away from direct sunlight.',
-    'Steam lightly; avoid direct iron on embroidered areas.',
-    `Ideal for ${product.occasion.toLowerCase()} wear with minimal wrinkling.`,
-  ];
+function buildCare(): string[] {
+  return [...PRODUCT_CARE_INSTRUCTIONS];
 }
 
 function buildMaking(product: ShopProduct): string {
@@ -241,6 +244,13 @@ function buildGstNote(price: number): string {
 export function enrichShopProduct(product: ShopProduct): ProductDetail {
   const collection = getCollectionById(product.collection);
   const collectionLabel = collection?.title ?? product.collection.replace(/-/g, ' ');
+  const reviews = buildReviews(product);
+  const rating =
+    reviews.length > 0
+      ? Math.round(
+          (reviews.reduce((total, review) => total + review.rating, 0) / reviews.length) * 10,
+        ) / 10
+      : 0;
   const colour = COLLECTION_COLOURS[product.collection] ?? {
     label: collectionLabel,
     swatch: '#4b0006',
@@ -249,6 +259,7 @@ export function enrichShopProduct(product: ShopProduct): ProductDetail {
 
   return {
     ...product,
+    slug: product.id,
     collectionLabel,
     images: buildGallery(product.image),
     highlights: buildHighlights(product),
@@ -259,17 +270,115 @@ export function enrichShopProduct(product: ShopProduct): ProductDetail {
     offers: DEFAULT_OFFERS,
     whyLove: DEFAULT_WHY_LOVE,
     trustBadges: DEFAULT_TRUST_BADGES,
-    rating: 4.9,
-    reviewCount: 23,
+    rating,
+    reviewCount: reviews.length,
     colourLabel: colour.label,
     colourSwatch: colour.swatch,
     sizeStock: buildSizeStock(sizes),
     fabric: buildFabric(product),
     embellishment: buildEmbellishment(product),
-    occasionDetail: buildOccasionDetail(product),
-    care: buildCare(product),
+    occasionDetail: formatOccasionLabel(product),
+    care: buildCare(),
     making: buildMaking(product),
-    reviews: buildReviews(product),
+    reviews,
     gstNote: buildGstNote(product.price),
   };
 }
+
+/** Sorted image URLs for an API product, with a safe placeholder fallback. */
+function sortedImageUrls(product: Product): string[] {
+  return [...product.images]
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((image) => image.imageUrl);
+}
+
+/**
+ * Maps an API product into the storefront card (grid) shape.
+ * Preserves the real `slug` so links resolve to the buyable PDP.
+ */
+export function mapApiProductToShopProduct(
+  product: Product,
+  categoryName?: string,
+): ShopProduct {
+  const images = sortedImageUrls(product);
+  const price = computeEffectivePrice(product);
+
+  return {
+    id: product.id,
+    sku: product.slug.toUpperCase(),
+    name: product.name,
+    subtitle: product.shortDescription,
+    price,
+    mrp: product.basePrice,
+    currency: 'INR',
+    collection: product.categoryId,
+    category: categoryName ?? product.categoryId,
+    occasion: product.occasion,
+    image: images[0] ?? '/images/placeholder-product.jpg',
+    images,
+    isNew: product.isNewArrival,
+    slug: product.slug,
+  };
+}
+
+/**
+ * Maps an API product into the storefront PDP shape.
+ * Disclaimer remains a frontend constant.
+ */
+export function mapApiProductToDetail(product: Product): ProductDetail {
+  const sizes = product.sizes.map((size) => size.size);
+  const images = [...product.images]
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((image) => image.imageUrl);
+  const price = computeEffectivePrice(product);
+  const sizeStock = Object.fromEntries(
+    product.sizes.map((size) => [size.size, size.quantity]),
+  );
+  const occasionLabel = product.occasion.join(', ');
+
+  return {
+    id: product.id,
+    sku: product.slug.toUpperCase(),
+    name: product.name,
+    subtitle: product.shortDescription,
+    price,
+    mrp: product.basePrice,
+    currency: 'INR',
+    collection: product.categoryId,
+    category: product.shortDescription,
+    occasion: product.occasion,
+    image: images[0] ?? '',
+    isNew: product.isNewArrival,
+    slug: product.slug,
+    collectionLabel: product.shortDescription,
+    images: images.length > 0 ? images : ['/images/placeholder-product.jpg'],
+    highlights: [
+      `Flattering ${product.name} silhouette`,
+      'Soft, flowy fabric for all-day comfort',
+      `Perfect for ${occasionLabel.toLowerCase()} and special occasions`,
+    ],
+    sizes: sizes.length > 0 ? sizes : [...DEFAULT_SIZES],
+    sizeIdByLabel: Object.fromEntries(
+      product.sizes.map((size) => [size.size, size.sizeId]),
+    ),
+    fitNotes: product.fitNotes,
+    description: product.description,
+    features: DEFAULT_FEATURES,
+    offers: DEFAULT_OFFERS,
+    whyLove: DEFAULT_WHY_LOVE,
+    trustBadges: DEFAULT_TRUST_BADGES,
+    rating: product.ratingsAverage,
+    reviewCount: product.ratingsCount,
+    colourLabel: product.color,
+    colourSwatch: '#4b0006',
+    sizeStock,
+    fabric: product.fabric,
+    embellishment: '',
+    occasionDetail: occasionLabel,
+    care: product.care.length > 0 ? product.care : buildCare(),
+    making: '',
+    reviews: [],
+    gstNote: buildGstNote(price),
+  };
+}
+

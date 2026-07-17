@@ -33,20 +33,20 @@ export function AdminTopbar({ onToggleSidebar, sidebarCollapsed }: AdminTopbarPr
       <button
         type="button"
         onClick={onToggleSidebar}
-        className="rounded-lg p-2 text-saan-ink/70 hover:bg-saan-bone dark:text-saan-bone/80 dark:hover:bg-white/10"
+        className="rounded-lg p-2 text-saan-ink/70 hover:bg-paper dark:text-paper/80 dark:hover:bg-white/10"
         aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
         <Menu className="h-5 w-5" />
       </button>
 
       <div className="relative hidden min-w-0 flex-1 md:block md:max-w-sm">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-saan-ink/40 dark:text-saan-bone/40" />
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-saan-ink/40 dark:text-paper/40" />
         <input
           type="search"
           placeholder="Search…"
           aria-label="Search (coming soon)"
           disabled
-          className="w-full rounded-lg border border-saan-champagne/50 bg-saan-bone/60 py-2 pl-9 pr-3 font-body text-sm text-saan-ink/50 outline-none dark:border-white/10 dark:bg-white/5 dark:text-saan-bone/50"
+          className="w-full rounded-lg border border-saan-champagne/50 bg-paper/60 py-2 pl-9 pr-3 font-body text-sm text-saan-ink/50 outline-none dark:border-white/10 dark:bg-white/5 dark:text-paper/50"
         />
       </div>
 
@@ -54,7 +54,7 @@ export function AdminTopbar({ onToggleSidebar, sidebarCollapsed }: AdminTopbarPr
         <button
           type="button"
           onClick={handleRefresh}
-          className="rounded-lg p-2 text-saan-ink/70 hover:bg-saan-bone dark:text-saan-bone/80 dark:hover:bg-white/10"
+          className="rounded-lg p-2 text-saan-ink/70 hover:bg-paper dark:text-paper/80 dark:hover:bg-white/10"
           aria-label="Refresh dashboard data"
         >
           <RefreshCw className="h-5 w-5" />
@@ -63,7 +63,7 @@ export function AdminTopbar({ onToggleSidebar, sidebarCollapsed }: AdminTopbarPr
         <button
           type="button"
           onClick={toggleTheme}
-          className="rounded-lg p-2 text-saan-ink/70 hover:bg-saan-bone dark:text-saan-bone/80 dark:hover:bg-white/10"
+          className="rounded-lg p-2 text-saan-ink/70 hover:bg-paper dark:text-paper/80 dark:hover:bg-white/10"
           aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
         >
           {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
@@ -71,7 +71,7 @@ export function AdminTopbar({ onToggleSidebar, sidebarCollapsed }: AdminTopbarPr
 
         <button
           type="button"
-          className="relative rounded-lg p-2 text-saan-ink/70 hover:bg-saan-bone dark:text-saan-bone/80 dark:hover:bg-white/10"
+          className="relative rounded-lg p-2 text-saan-ink/70 hover:bg-paper dark:text-paper/80 dark:hover:bg-white/10"
           aria-label="Notifications"
           disabled
         >

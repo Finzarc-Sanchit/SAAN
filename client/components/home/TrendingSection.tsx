@@ -5,18 +5,21 @@ import { ScrollReveal } from '@/components/motion/ScrollReveal';
 import { TrendingProductCard } from '@/components/ui/TrendingProductCard';
 import { Container } from '@/components/ui/Container';
 import { EditorialSectionHeading } from '@/components/ui/EditorialSectionHeading';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { useStorefrontProducts } from '@/hooks/useStorefrontProducts';
 import { LUXURY_EASE } from '@/lib/motion';
-import { SHOP_PRODUCTS, SECTION_COPY, TRENDING_FILTERS, type TrendingCategory } from '@/lib/site-content';
+import { SECTION_COPY, TRENDING_FILTERS, type TrendingCategory } from '@/lib/site-content';
 import { cn } from '@/lib/utils';
 
 export function TrendingSection() {
   const [activeFilter, setActiveFilter] = useState<TrendingCategory>('new-arrivals');
   const prefersReducedMotion = useReducedMotion();
   const copy = SECTION_COPY.trending;
+  const { products, isLoading } = useStorefrontProducts();
 
   const filteredProducts = useMemo(() => {
-    return SHOP_PRODUCTS.filter((product) => {
+    return products.filter((product) => {
       if (activeFilter === 'new-arrivals') {
         return product.isNew;
       }
@@ -37,12 +40,13 @@ export function TrendingSection() {
       }
       return false;
     });
-  }, [activeFilter]);
+  }, [activeFilter, products]);
 
   const carouselProducts = useMemo(() => {
-    const items = filteredProducts.length > 0 ? filteredProducts : SHOP_PRODUCTS;
+    const items = filteredProducts.length > 0 ? filteredProducts : products;
+    if (items.length === 0) return [];
     return [...items, ...items];
-  }, [filteredProducts]);
+  }, [filteredProducts, products]);
 
   return (
     <section
@@ -72,8 +76,8 @@ export function TrendingSection() {
                 className={cn(
                   'text-label-caps shrink-0 border px-4 py-2.5 transition-colors duration-200',
                   isActive
-                    ? 'border-saan-maroon bg-saan-maroon text-saan-bone'
-                    : 'border-saan-champagne bg-saan-bone text-saan-ink hover:border-saan-maroon hover:bg-saan-maroon hover:text-saan-bone'
+                    ? 'border-saan-maroon bg-saan-maroon text-paper'
+                    : 'border-saan-champagne bg-paper text-saan-ink hover:border-saan-maroon hover:bg-saan-maroon hover:text-paper',
                 )}
               >
                 {filter.label}
@@ -83,18 +87,30 @@ export function TrendingSection() {
         </div>
       </Container>
 
-      <div className="marquee-container w-full">
-        <div
-          className={cn(
-            'trending-track px-5 md:px-8',
-            !prefersReducedMotion && 'animate-marquee-fast hover:[animation-play-state:paused]'
-          )}
-        >
-          {carouselProducts.map((product, index) => (
-            <TrendingProductCard key={`${product.id}-${index}`} product={product} />
+      {isLoading ? (
+        <div className="flex gap-5 overflow-hidden px-5 md:px-8">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Skeleton key={index} className="aspect-[3/4] w-[240px] shrink-0" />
           ))}
         </div>
-      </div>
+      ) : carouselProducts.length > 0 ? (
+        <div className="marquee-container w-full">
+          <div
+            className={cn(
+              'trending-track px-5 md:px-8',
+              !prefersReducedMotion && 'animate-marquee-fast hover:[animation-play-state:paused]',
+            )}
+          >
+            {carouselProducts.map((product, index) => (
+              <TrendingProductCard key={`${product.id}-${index}`} product={product} />
+            ))}
+          </div>
+        </div>
+      ) : (
+        <Container>
+          <p className="text-body text-neutral-600">New pieces are arriving soon.</p>
+        </Container>
+      )}
     </section>
   );
 }

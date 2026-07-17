@@ -47,7 +47,7 @@ export function AuthPasswordField({
           type="button"
           aria-label={visible ? 'Hide password' : 'Show password'}
           onClick={() => setVisible((current) => !current)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-saan-ink/50 hover:text-saan-maroon"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-saan-ink/50 hover:text-ink"
         >
           {visible ? (
             <EyeOff className="h-4 w-4" strokeWidth={1.25} />
@@ -57,7 +57,7 @@ export function AuthPasswordField({
         </button>
       </div>
       {error && (
-        <p id={`${id}-error`} className="mt-2 font-body text-xs text-saan-maroon" role="alert">
+        <p id={`${id}-error`} className="mt-2 font-body text-xs text-ink" role="alert">
           {error}
         </p>
       )}

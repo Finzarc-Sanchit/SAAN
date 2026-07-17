@@ -11,7 +11,7 @@ export function CampaignStatusBadge({ campaign }: { campaign: AdminCampaign }) {
       <span
         className={cn(
           'inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-[0.08em]',
-          'bg-saan-maroon/10 text-saan-maroon dark:bg-red-500/15 dark:text-red-300',
+          'bg-saan-maroon/10 text-ink dark:bg-red-500/15 dark:text-red-300',
         )}
       >
         Inactive

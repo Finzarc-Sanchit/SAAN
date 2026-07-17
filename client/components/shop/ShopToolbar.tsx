@@ -24,7 +24,7 @@ export function ShopToolbar({
         type="button"
         onClick={onOpenFilters}
         className={cn(
-          'flex items-center gap-2.5 border border-saan-champagne bg-white px-5 py-3 text-label-caps text-xs tracking-[0.15em] transition-all duration-300 hover:border-saan-maroon hover:text-saan-maroon'
+          'flex items-center gap-2.5 border border-saan-champagne bg-white px-5 py-3 text-label-caps text-xs tracking-[0.15em] transition-all duration-300 hover:border-saan-maroon hover:text-ink'
         )}
       >
         <SlidersHorizontal className="h-3.5 w-3.5" strokeWidth={1.5} />

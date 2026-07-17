@@ -28,7 +28,7 @@ function VerifiedBadge({ isVerified }: { isVerified: boolean }) {
         'inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-[0.08em]',
         isVerified
           ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300'
-          : 'bg-saan-champagne/40 text-saan-ink/70 dark:bg-white/10 dark:text-saan-bone/70',
+          : 'bg-saan-champagne/40 text-saan-ink/70 dark:bg-white/10 dark:text-paper/70',
       )}
     >
       {isVerified ? 'Verified' : 'Unverified'}
@@ -71,7 +71,7 @@ export function CustomersPage() {
             <p className="truncate font-medium">
               {row.firstName} {row.lastName}
             </p>
-            <p className="truncate text-xs text-saan-ink/50 dark:text-saan-bone/50">
+            <p className="truncate text-xs text-saan-ink/50 dark:text-paper/50">
               {row.email}
             </p>
           </div>
@@ -98,7 +98,7 @@ export function CustomersPage() {
         id: 'joined',
         header: 'Joined',
         cell: (row) => (
-          <span className="text-sm text-saan-ink/70 dark:text-saan-bone/70">
+          <span className="text-sm text-saan-ink/70 dark:text-paper/70">
             {formatOrderDateTime(row.createdAt)}
           </span>
         ),
@@ -111,7 +111,7 @@ export function CustomersPage() {
         cell: (row) => (
           <Link
             href={`/admin/customers/${row.id}`}
-            className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 font-body text-sm text-saan-maroon transition-colors hover:bg-saan-maroon/5 dark:text-saan-gold dark:hover:bg-saan-gold/10"
+            className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 font-body text-sm text-ink transition-colors hover:bg-saan-maroon/5 dark:text-ink dark:hover:bg-ink/10"
             aria-label={`View customer ${row.email}`}
           >
             <Eye className="h-4 w-4" strokeWidth={1.5} />
@@ -126,10 +126,10 @@ export function CustomersPage() {
   return (
     <div className="space-y-4 lg:space-y-6">
       <div>
-        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-saan-ink/45 dark:text-saan-bone/45">
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-saan-ink/45 dark:text-paper/45">
           Community
         </p>
-        <h1 className="mt-1 font-display text-2xl text-saan-charcoal dark:text-saan-bone md:text-3xl">
+        <h1 className="mt-1 font-display text-2xl text-saan-charcoal dark:text-paper md:text-3xl">
           Customers
         </h1>
       </div>
@@ -137,7 +137,7 @@ export function CustomersPage() {
       <AdminCard>
         <div className="mb-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <label className="block space-y-1.5 md:col-span-2">
-            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-saan-bone/55">
+            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-paper/55">
               Search
             </span>
             <input
@@ -151,7 +151,7 @@ export function CustomersPage() {
             />
           </label>
           <label className="block space-y-1.5">
-            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-saan-bone/55">
+            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-paper/55">
               Verification
             </span>
             <select
@@ -168,7 +168,7 @@ export function CustomersPage() {
             </select>
           </label>
           <label className="block space-y-1.5">
-            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-saan-bone/55">
+            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-paper/55">
               From
             </span>
             <input
@@ -182,7 +182,7 @@ export function CustomersPage() {
             />
           </label>
           <label className="block space-y-1.5">
-            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-saan-bone/55">
+            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55 dark:text-paper/55">
               To
             </span>
             <input

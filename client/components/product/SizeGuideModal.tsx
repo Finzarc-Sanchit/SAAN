@@ -46,7 +46,7 @@ export function SizeGuideModal({ isOpen, onClose }: SizeGuideModalProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 12 }}
             transition={{ duration: 0.35, ease: [0.25, 1, 0.5, 1] }}
-            className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 bg-saan-bone px-6 py-8 shadow-xl md:px-8 md:py-10"
+            className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 bg-paper px-6 py-8 shadow-xl md:px-8 md:py-10"
           >
             <button
               type="button"

@@ -81,7 +81,7 @@ export function LoginDialog() {
           <button
             type="button"
             onClick={() => setDialogStep('login')}
-            className="text-label-caps text-saan-maroon underline-offset-2 hover:underline"
+            className="text-label-caps text-ink underline-offset-2 hover:underline"
           >
             Return to sign in
           </button>

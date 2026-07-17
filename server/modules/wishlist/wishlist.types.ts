@@ -14,12 +14,20 @@ export interface Wishlist {
   updatedAt: Date;
 }
 
+export interface WishlistItemProductSize {
+  sizeId: string;
+  size: string;
+  quantity: number;
+}
+
 export interface WishlistItemProductSnapshot {
   name: string;
+  slug: string;
   imageUrl: string | null;
   basePrice: number;
   effectivePrice: number;
   status: ProductStatus;
+  sizes: WishlistItemProductSize[];
 }
 
 export interface WishlistItemWithLiveData extends WishlistItem {

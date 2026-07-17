@@ -40,6 +40,12 @@ export class OrderController {
     res.status(200).json(successResponse(order));
   };
 
+  cancelPendingOrder = async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params as { id: string };
+    const order = await this.orderService.cancelPendingOrder(id, req.user!.id);
+    res.status(200).json(successResponse(order));
+  };
+
   listOrdersAdmin = async (req: Request, res: Response): Promise<void> => {
     const query = req.query as unknown as AdminOrderListQueryDto;
     const { page, limit, status, paymentStatus, search, from, to } = query;

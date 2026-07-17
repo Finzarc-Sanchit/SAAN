@@ -15,6 +15,8 @@ export function AdminProfilePage() {
   const [form, setForm] = useState<UpdateProfileInput>({
     firstName: '',
     lastName: '',
+    mobileNumber: null,
+    dateOfBirth: null,
   });
   const [errors, setErrors] = useState<Partial<Record<keyof UpdateProfileInput, string>>>({});
   const [isSaving, setIsSaving] = useState(false);
@@ -24,6 +26,8 @@ export function AdminProfilePage() {
     setForm({
       firstName: user.firstName,
       lastName: user.lastName,
+      mobileNumber: user.mobileNumber,
+      dateOfBirth: user.dateOfBirth?.slice(0, 10) ?? null,
     });
   }, [user]);
 
@@ -68,10 +72,10 @@ export function AdminProfilePage() {
   return (
     <div className="space-y-4 lg:space-y-6">
       <div>
-        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-saan-ink/45 dark:text-saan-bone/45">
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-saan-ink/45 dark:text-paper/45">
           Account
         </p>
-        <h1 className="mt-1 font-display text-2xl text-saan-charcoal dark:text-saan-bone md:text-3xl">
+        <h1 className="mt-1 font-display text-2xl text-saan-charcoal dark:text-paper md:text-3xl">
           Edit profile
         </h1>
       </div>

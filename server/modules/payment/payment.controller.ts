@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import { successResponse } from '../../shared/utils/response';
-import type { InitiatePaymentDto, OrderIdParamsDto } from './payment.dto';
+import type { InitiatePaymentDto, OrderIdParamsDto, VerifyPaymentDto } from './payment.dto';
 import type { PaymentService } from './payment.service';
 
 export class PaymentController {
@@ -17,6 +17,19 @@ export class PaymentController {
     );
 
     res.status(201).json(successResponse(result));
+  };
+
+  verifyPayment = async (req: Request, res: Response): Promise<void> => {
+    const { orderId } = req.params as OrderIdParamsDto;
+    const body = req.body as VerifyPaymentDto;
+    const payment = await this.paymentService.verifyCheckoutPayment(
+      orderId,
+      req.user!.id,
+      req.user!.role,
+      body,
+    );
+
+    res.status(200).json(successResponse(payment));
   };
 
   listPayments = async (req: Request, res: Response): Promise<void> => {

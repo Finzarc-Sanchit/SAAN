@@ -44,7 +44,7 @@ export function AuthFormField({
         className={cn(inputClassName, error && 'border-saan-maroon')}
       />
       {error && (
-        <p id={`${id}-error`} className="mt-2 font-body text-xs text-saan-maroon" role="alert">
+        <p id={`${id}-error`} className="mt-2 font-body text-xs text-ink" role="alert">
           {error}
         </p>
       )}

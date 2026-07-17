@@ -62,7 +62,7 @@ export function AdjustStockModal({
       panelClassName="dark:bg-[#161916]"
     >
       <form onSubmit={handleSubmit} className="space-y-5 text-left" noValidate>
-        <p className="font-body text-sm text-saan-ink/70 dark:text-saan-bone/70">
+        <p className="font-body text-sm text-saan-ink/70 dark:text-paper/70">
           {product?.name}
         </p>
 

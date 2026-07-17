@@ -1,52 +1,135 @@
 'use client';
 
-import { FormEvent } from 'react';
+import { FormEvent, useId, useState } from 'react';
 import { CtaButton } from '@/components/ui/CtaButton';
+import { Spinner } from '@/components/ui/Spinner';
+import { subscribeToNewsletter } from '@/lib/api/newsletter';
+import { ApiError, getApiErrorMessage } from '@/lib/api/errors';
 import { NEWSLETTER_COPY } from '@/lib/site-content';
+import {
+  newsletterSubscribeSchema,
+  type NewsletterSource,
+} from '@/lib/types/newsletter.schemas';
 import { cn } from '@/lib/utils';
 
 type NewsletterFormProps = {
   variant?: 'light' | 'dark';
   className?: string;
+  source?: NewsletterSource;
 };
 
-export function NewsletterForm({ variant = 'light', className }: NewsletterFormProps) {
+export function NewsletterForm({
+  variant = 'light',
+  className,
+  source = 'other',
+}: NewsletterFormProps) {
   const isDark = variant === 'dark';
+  const emailId = useId();
+  const feedbackId = useId();
+  const [email, setEmail] = useState('');
+  const [feedback, setFeedback] = useState<{ tone: 'success' | 'error'; message: string } | null>(
+    null,
+  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isSubmitting) return;
+
+    setFeedback(null);
+    const parsed = newsletterSubscribeSchema.safeParse({ email, source });
+
+    if (!parsed.success) {
+      setFeedback({
+        tone: 'error',
+        message: parsed.error.issues[0]?.message ?? 'Please enter a valid email address',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await subscribeToNewsletter(parsed.data);
+      setEmail('');
+      setFeedback({
+        tone: 'success',
+        message: response.message,
+      });
+    } catch (error: unknown) {
+      setFeedback({
+        tone: 'error',
+        message:
+          error instanceof ApiError
+            ? getApiErrorMessage(error)
+            : 'We could not complete your subscription. Please try again.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className={cn(
-        'flex flex-col gap-4 sm:flex-row sm:items-end',
-        className
-      )}
-    >
-      <label htmlFor="newsletter-email" className="sr-only">
-        Email address
-      </label>
-      <input
-        id="newsletter-email"
-        type="email"
-        required
-        placeholder={NEWSLETTER_COPY.placeholder}
+    <form onSubmit={handleSubmit} className={className} noValidate>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+        <label htmlFor={emailId} className="sr-only">
+          Email address
+        </label>
+        <input
+          id={emailId}
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          maxLength={254}
+          value={email}
+          onChange={(event) => {
+            setEmail(event.target.value);
+            if (feedback) setFeedback(null);
+          }}
+          disabled={isSubmitting}
+          aria-invalid={feedback?.tone === 'error'}
+          aria-describedby={feedback ? feedbackId : undefined}
+          placeholder={NEWSLETTER_COPY.placeholder}
+          className={cn(
+            'flex-grow border-b bg-transparent px-2 py-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60',
+            isDark
+              ? 'border-paper/30 text-paper placeholder:text-paper/40 focus:border-ink focus-visible:ring-ink/60 focus-visible:ring-offset-midnight'
+              : 'border-neutral-500 text-ink placeholder:text-neutral-500 focus:border-ink focus-visible:ring-ink/40',
+          )}
+        />
+        <CtaButton
+          type="submit"
+          variant={isDark ? 'secondary' : 'primary'}
+          tone={isDark ? 'light' : 'dark'}
+          disabled={isSubmitting}
+          className="gap-2"
+        >
+          {isSubmitting ? (
+            <>
+              <Spinner />
+              Joining
+            </>
+          ) : (
+            NEWSLETTER_COPY.submitLabel
+          )}
+        </CtaButton>
+      </div>
+      <p
+        id={feedbackId}
+        role={feedback?.tone === 'error' ? 'alert' : 'status'}
+        aria-live="polite"
         className={cn(
-          'flex-grow border-b bg-transparent px-2 py-3 focus:outline-none',
-          isDark
-            ? 'border-saan-bone/30 text-saan-bone placeholder:text-saan-bone/40 focus:border-saan-gold'
-            : 'border-saan-gold text-saan-ink placeholder:text-saan-ink/40 focus:border-saan-maroon'
+          'mt-3 min-h-5 text-sm',
+          feedback?.tone === 'error'
+            ? isDark
+              ? 'text-red-200'
+              : 'text-error'
+            : isDark
+              ? 'text-paper/75'
+              : 'text-neutral-700',
         )}
-      />
-      <CtaButton
-        type="submit"
-        variant={isDark ? 'secondary' : 'primary'}
-        tone={isDark ? 'light' : 'dark'}
       >
-        {NEWSLETTER_COPY.submitLabel}
-      </CtaButton>
+        {feedback?.message}
+      </p>
     </form>
   );
 }

@@ -5,15 +5,10 @@ const paymentSchema = new Schema(
     orderId: { type: Schema.Types.ObjectId, ref: 'Order', required: true, index: true },
     paymentMethod: { type: String, required: true, trim: true },
     paymentGateway: { type: String, required: true, trim: true },
-    transactionId: { type: String, default: null, trim: true },
-    gatewayOrderId: { type: String, default: null, trim: true, index: true },
-    gatewayPaymentId: {
-      type: String,
-      default: null,
-      trim: true,
-      unique: true,
-      sparse: true,
-    },
+    transactionId: { type: String, trim: true },
+    gatewayOrderId: { type: String, trim: true, index: true },
+    // Do not default to null — null values collide on a unique index.
+    gatewayPaymentId: { type: String, trim: true },
     amount: { type: Number, required: true, min: 0 },
     currency: { type: String, required: true, trim: true, uppercase: true },
     status: {
@@ -22,7 +17,7 @@ const paymentSchema = new Schema(
       default: 'created',
       index: true,
     },
-    paidAt: { type: Date, default: null },
+    paidAt: { type: Date },
   },
   {
     timestamps: true,
@@ -38,6 +33,18 @@ const paymentSchema = new Schema(
 
         return ret;
       },
+    },
+  },
+);
+
+// Unique only when a real Razorpay payment id exists (allows many unpaid rows).
+paymentSchema.index(
+  { gatewayPaymentId: 1 },
+  {
+    unique: true,
+    name: 'gatewayPaymentId_partial_unique',
+    partialFilterExpression: {
+      gatewayPaymentId: { $exists: true, $type: 'string' },
     },
   },
 );

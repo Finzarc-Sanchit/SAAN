@@ -4,14 +4,11 @@ const dateInputSchema = z.coerce.date();
 
 export const createCampaignDto = z
   .object({
-    tag: z.string().min(1).max(100),
-    title: z.string().min(1).max(200),
-    description: z.string().min(1).max(2000),
     productId: z.string().min(1, 'productId is required'),
-    imageUrl: z.string().url('imageUrl must be a valid URL'),
-    imageAlt: z.string().min(1).max(300),
-    discountPercent: z.number().min(0).max(100).nullish(),
-    ctaText: z.string().min(1).max(100),
+    desktopImageUrl: z.string().url('desktopImageUrl must be a valid URL'),
+    desktopImageAlt: z.string().min(1).max(300),
+    mobileImageUrl: z.string().url('mobileImageUrl must be a valid URL'),
+    mobileImageAlt: z.string().min(1).max(300),
     startDate: dateInputSchema,
     endDate: dateInputSchema,
     priority: z.number().int().min(0),
@@ -29,14 +26,11 @@ export const createCampaignDto = z
 
 export const updateCampaignDto = z
   .object({
-    tag: z.string().min(1).max(100).optional(),
-    title: z.string().min(1).max(200).optional(),
-    description: z.string().min(1).max(2000).optional(),
     productId: z.string().min(1).optional(),
-    imageUrl: z.string().url().optional(),
-    imageAlt: z.string().min(1).max(300).optional(),
-    discountPercent: z.number().min(0).max(100).nullish(),
-    ctaText: z.string().min(1).max(100).optional(),
+    desktopImageUrl: z.string().url().optional(),
+    desktopImageAlt: z.string().min(1).max(300).optional(),
+    mobileImageUrl: z.string().url().optional(),
+    mobileImageAlt: z.string().min(1).max(300).optional(),
     startDate: dateInputSchema.optional(),
     endDate: dateInputSchema.optional(),
     priority: z.number().int().min(0).optional(),

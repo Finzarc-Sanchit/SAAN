@@ -1,68 +1,39 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { ProductBreadcrumbs } from '@/components/product/ProductBreadcrumbs';
-import { ProductAccordion } from '@/components/product/ProductAccordion';
-import { ProductDetailAccordions } from '@/components/product/ProductDetailAccordions';
-import { ProductFeaturesList } from '@/components/product/ProductFeaturesList';
+import { Suspense } from 'react';
 import { ProductGallery } from '@/components/product/ProductGallery';
-import { ProductOffers } from '@/components/product/ProductOffers';
+import { ProductInfoAccordions } from '@/components/product/ProductInfoAccordions';
+import { RelatedProducts } from '@/components/product/ProductRecommendations';
 import { ProductPurchasePanel } from '@/components/product/ProductPurchasePanel';
+import { ProductReviewsSection } from '@/components/product/ProductReviewsSection';
 import { Container } from '@/components/ui/Container';
-import { LUXURY_EASE } from '@/lib/motion';
 import type { ProductDetail } from '@/lib/product-defaults';
-import { getDiscountPercent } from '@/lib/site-content';
 
 type ProductDetailViewProps = {
   product: ProductDetail;
 };
 
 export function ProductDetailView({ product }: ProductDetailViewProps) {
-  const discount = getDiscountPercent(product.price, product.mrp);
-
   return (
-    <section className="bg-saan-bone py-8 md:py-12 lg:py-14">
-      <Container className="max-w-[1200px]">
-        <ProductBreadcrumbs
-          productName={product.name}
-          collectionLabel={product.collectionLabel}
-          collectionId={product.collection}
-        />
+    <>
+      <section className="bg-paper py-8 md:py-12 lg:py-16">
+        <Container>
+          <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-2 lg:gap-16 xl:gap-24">
+            <div className="min-w-0 self-start lg:sticky lg:top-24">
+              <ProductGallery images={product.images} productName={product.name} />
+            </div>
+            <div>
+              <Suspense fallback={null}>
+                <ProductPurchasePanel product={product} />
+              </Suspense>
+              <ProductInfoAccordions product={product} />
+            </div>
+          </div>
+        </Container>
+      </section>
 
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-start lg:gap-10 xl:gap-14">
-          <motion.div
-            initial={{ opacity: 0, x: -12 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.7, ease: LUXURY_EASE }}
-            className="lg:max-w-[420px]"
-          >
-            <ProductGallery
-              images={product.images}
-              productName={product.name}
-              discountPercent={discount}
-            />
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: LUXURY_EASE, delay: 0.1 }}
-          >
-            <ProductPurchasePanel product={product} />
-
-            <ProductFeaturesList features={product.features} />
-            <ProductOffers offers={product.offers} />
-
-            <ProductAccordion title="Description" defaultOpen={false} className="mt-6">
-              <p className="font-body text-sm leading-relaxed text-saan-ink/70">
-                {product.description}
-              </p>
-            </ProductAccordion>
-
-            <ProductDetailAccordions product={product} />
-          </motion.div>
-        </div>
-      </Container>
-    </section>
+      <ProductReviewsSection product={product} />
+      <RelatedProducts product={product} />
+    </>
   );
 }

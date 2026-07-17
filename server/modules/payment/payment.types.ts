@@ -36,10 +36,17 @@ export interface InitiatePaymentResult {
   paymentId: string;
   orderId: string;
   gatewayOrderId: string;
+  /** Amount in smallest currency unit (paise for INR) for Razorpay Checkout. */
   amount: number;
   currency: string;
   paymentGateway: string;
   keyId: string;
+}
+
+export interface VerifyCheckoutPaymentInput {
+  razorpayOrderId: string;
+  razorpayPaymentId: string;
+  razorpaySignature: string;
 }
 
 export interface RazorpayWebhookPaymentEntity {

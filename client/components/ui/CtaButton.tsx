@@ -22,25 +22,23 @@ export function CtaButton({
   onClick,
   disabled = false,
 }: CtaButtonProps) {
-  const base =
-    'inline-flex cursor-pointer items-center justify-center text-label-caps transition-colors duration-300 ease-out disabled:cursor-not-allowed';
+  const base = 'inline-flex cursor-pointer items-center justify-center text-ui transition-colors duration-300 ease-out disabled:cursor-not-allowed';
 
   const variants = {
     primary: cn(
-      'rounded-sm px-8 py-3.5 bg-saan-maroon text-white',
-      'hover:bg-saan-gold hover:text-white'
+      tone === 'light' ? 'btn-primary-fill-light' : 'btn-primary-fill',
+      'px-4 py-2 text-[0.6875rem] tracking-[0.1em] md:px-8 md:py-3.5 md:text-ui',
+      'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink'
     ),
     secondary: cn(
-      'rounded-sm border px-8 py-3.5',
+      'border px-4 py-2 text-[0.6875rem] tracking-[0.1em] md:px-8 md:py-3.5 md:text-ui',
       tone === 'light'
-        ? 'border-saan-bone/80 text-saan-bone hover:border-saan-gold hover:text-saan-gold'
-        : 'border-saan-gold text-saan-maroon hover:bg-saan-gold hover:text-white'
+        ? 'border-white/80 text-white hover:border-ink hover:text-ink'
+        : 'border-neutral-700 text-ink hover:border-ink'
     ),
     link: cn(
-      'border-b pb-1 tracking-[0.1em]',
-      tone === 'light'
-        ? 'border-saan-bone/60 text-saan-bone hover:border-saan-gold hover:text-saan-gold'
-        : 'border-saan-ink text-saan-ink hover:border-saan-maroon hover:text-saan-maroon'
+      'link-underline pb-0.5',
+      tone === 'light' ? 'text-white' : 'text-ink'
     ),
   };
 
@@ -54,14 +52,14 @@ export function CtaButton({
   if (href) {
     return (
       <Link href={href} className={classes} aria-disabled={disabled}>
-        {children}
+        <span>{children}</span>
       </Link>
     );
   }
 
   return (
     <button type={type} className={classes} onClick={onClick} disabled={disabled}>
-      {children}
+      <span>{children}</span>
     </button>
   );
 }

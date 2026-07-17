@@ -121,7 +121,7 @@ export function LoginStep({
         <button
           type="button"
           onClick={onForgotPassword}
-          className="mt-3 font-body text-xs text-saan-ink/60 underline-offset-2 hover:text-saan-maroon hover:underline"
+          className="mt-3 font-body text-xs text-saan-ink/60 underline-offset-2 hover:text-ink hover:underline"
         >
           Forgot password?
         </button>
@@ -129,13 +129,13 @@ export function LoginStep({
 
       {formError && (
         <div className="rounded-sm border border-saan-maroon/20 bg-saan-maroon/5 px-4 py-3" role="alert">
-          <p className="font-body text-sm text-saan-maroon">{formError}</p>
+          <p className="font-body text-sm text-ink">{formError}</p>
           {showResend && (
             <button
               type="button"
               onClick={() => void handleResend()}
               disabled={isResending}
-              className="text-label-caps mt-3 text-saan-maroon underline-offset-2 hover:underline disabled:opacity-50"
+              className="text-label-caps mt-3 text-ink underline-offset-2 hover:underline disabled:opacity-50"
             >
               {isResending ? 'Sending…' : 'Resend verification code'}
             </button>
@@ -160,7 +160,7 @@ export function LoginStep({
           <button
             type="button"
             onClick={onSwitchRegister}
-            className="text-saan-maroon underline-offset-2 hover:underline"
+            className="text-ink underline-offset-2 hover:underline"
           >
             Register
           </button>

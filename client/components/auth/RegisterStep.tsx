@@ -137,7 +137,7 @@ export function RegisterStep({
       />
 
       {formError && (
-        <p className="font-body text-sm text-saan-maroon" role="alert">
+        <p className="font-body text-sm text-ink" role="alert">
           {formError}
         </p>
       )}
@@ -159,7 +159,7 @@ export function RegisterStep({
           <button
             type="button"
             onClick={onSwitchLogin}
-            className="text-saan-maroon underline-offset-2 hover:underline"
+            className="text-ink underline-offset-2 hover:underline"
           >
             Sign in
           </button>

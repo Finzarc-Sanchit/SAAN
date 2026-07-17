@@ -1,136 +1,160 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Container } from '@/components/ui/Container';
-import { ShopToolbar } from '@/components/shop/ShopToolbar';
-import { ShopFilterDrawer } from '@/components/shop/ShopFilterDrawer';
-import { ShopProductCard } from '@/components/shop/ShopProductCard';
-import { SHOP_PRODUCTS } from '@/lib/site-content';
+import { ProductCard } from '@/components/ui/ProductCard';
+import { ShopStickyFilters } from '@/components/shop/ShopStickyFilters';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { useStorefrontProducts } from '@/hooks/useStorefrontProducts';
+import { getProductHref } from '@/lib/product-url';
+import { type ShopFilterState } from '@/lib/shop-filters';
+import { SHOP_CATEGORY_FILTERS, SHOP_SORT_OPTIONS } from '@/lib/site-content';
 
 const MAX_PRICE_LIMIT = 50000;
 
+type CategoryFilterOption = { id: string; label: string };
+
+function buildCategoryOptions(
+  products: { category: string }[],
+): CategoryFilterOption[] {
+  const seen = new Map<string, string>();
+  for (const product of products) {
+    if (product.category && !seen.has(product.category)) {
+      seen.set(product.category, product.category);
+    }
+  }
+
+  if (seen.size === 0) {
+    return [...SHOP_CATEGORY_FILTERS];
+  }
+
+  return [
+    { id: 'all', label: 'All' },
+    ...[...seen.keys()].map((category) => ({ id: category, label: category })),
+  ];
+}
+
 export function ShopCatalog() {
-  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
-  const [sortBy, setSortBy] = useState('featured');
-  const [filters, setFilters] = useState({
-    collection: 'all',
-    category: 'all',
+  const searchParams = useSearchParams();
+  const initialCategory = searchParams.get('category') ?? 'all';
+  const initialSort = searchParams.get('sort') ?? 'featured';
+
+  const [sortBy, setSortBy] = useState(
+    SHOP_SORT_OPTIONS.some((option) => option.id === initialSort)
+      ? initialSort
+      : 'featured',
+  );
+  const [filters, setFilters] = useState<ShopFilterState>({
+    category: initialCategory,
     occasion: 'all',
     maxPrice: MAX_PRICE_LIMIT,
   });
 
-  // Calculate active filters count
-  const activeFiltersCount = useMemo(() => {
-    let count = 0;
-    if (filters.collection !== 'all') count++;
-    if (filters.category !== 'all') count++;
-    if (filters.occasion !== 'all') count++;
-    if (filters.maxPrice < MAX_PRICE_LIMIT) count++;
-    return count;
-  }, [filters]);
+  const { products: catalogProducts, isLoading } = useStorefrontProducts();
 
-  // Filter and Sort products
+  const categoryOptions = useMemo(
+    () => buildCategoryOptions(catalogProducts),
+    [catalogProducts],
+  );
+
   const filteredProducts = useMemo(() => {
-    let result = [...SHOP_PRODUCTS];
+    let result = [...catalogProducts];
 
-    // Filter by collection
-    if (filters.collection !== 'all') {
-      result = result.filter((p) => p.collection === filters.collection);
-    }
-
-    // Filter by category
     if (filters.category !== 'all') {
-      result = result.filter((p) => p.category === filters.category);
+      result = result.filter((product) => product.category === filters.category);
     }
 
-    // Filter by occasion
     if (filters.occasion !== 'all') {
-      result = result.filter((p) => p.occasion === filters.occasion);
+      result = result.filter((product) =>
+        product.occasion.includes(filters.occasion as (typeof product.occasion)[number]),
+      );
     }
 
-    // Filter by price
-    result = result.filter((p) => p.price <= filters.maxPrice);
+    result = result.filter((product) => product.price <= filters.maxPrice);
 
-    // Sort
     if (sortBy === 'price-asc') {
       result.sort((a, b) => a.price - b.price);
     } else if (sortBy === 'price-desc') {
       result.sort((a, b) => b.price - a.price);
     } else if (sortBy === 'newest') {
-      result.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
+      result.sort((a, b) => Number(b.isNew) - Number(a.isNew));
     }
 
     return result;
-  }, [filters, sortBy]);
+  }, [catalogProducts, filters, sortBy]);
+
+  const isSaleCollection =
+    searchParams.get('collection') === 'sale' ||
+    searchParams.get('sale') === 'true';
 
   return (
-    <section
-      id="shop-catalog"
-      className="relative z-10 bg-saan-bone py-16 md:py-24 border-t border-saan-champagne/20"
-    >
+    <section id="shop-catalog" className="section-py bg-paper">
       <Container>
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
+        <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <h2 className="font-display text-4xl md:text-5xl font-normal text-saan-maroon tracking-tight">
-              The Shop
-            </h2>
-            <p className="font-body text-xs text-saan-ink/50 uppercase tracking-widest mt-2">
-              {filteredProducts.length} {filteredProducts.length === 1 ? 'piece' : 'pieces'} on the floor
+            <h1 className="text-h1 text-ink">Shop</h1>
+            <p className="text-caption mt-2 text-neutral-500">
+              Luxury pret, formals, and everyday pieces — finished by hand.
             </p>
           </div>
+
+          <label className="flex items-center gap-3">
+            <span className="text-ui text-neutral-500">Sort</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="border border-neutral-300 bg-paper px-3 py-2 text-body text-ink focus:border-ink focus:outline-none"
+              aria-label="Sort products"
+            >
+              {SHOP_SORT_OPTIONS.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
 
-        {/* Toolbar */}
-        <ShopToolbar
-          onOpenFilters={() => setIsFiltersOpen(true)}
-          sortBy={sortBy}
-          onSortChange={setSortBy}
-          activeFiltersCount={activeFiltersCount}
-        />
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[260px_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)]">
+          <ShopStickyFilters
+            filters={filters}
+            setFilters={setFilters}
+            maxPriceLimit={MAX_PRICE_LIMIT}
+            resultCount={filteredProducts.length}
+            categoryOptions={categoryOptions}
+          />
 
-        {/* Product Grid */}
-        {filteredProducts.length > 0 ? (
-          <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10">
-            {filteredProducts.map((product, index) => (
-              <ShopProductCard
-                key={product.id}
-                product={product}
-                index={index}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="mt-20 flex flex-col items-center justify-center text-center py-12 border border-dashed border-saan-champagne/40 bg-white/50">
-            <p className="font-display text-xl text-saan-maroon">No pieces match your selection</p>
-            <p className="font-body text-sm text-saan-ink/60 mt-2 max-w-sm">
-              Try adjusting your filters or clearing them to explore our full collection.
-            </p>
-            <button
-              type="button"
-              onClick={() =>
-                setFilters({
-                  collection: 'all',
-                  category: 'all',
-                  occasion: 'all',
-                  maxPrice: MAX_PRICE_LIMIT,
-                })
-              }
-              className="mt-6 text-label-caps bg-saan-maroon px-6 py-3 text-xs text-white hover:bg-saan-gold transition-colors"
-            >
-              Clear All Filters
-            </button>
-          </div>
-        )}
-
-        {/* Filter Drawer */}
-        <ShopFilterDrawer
-          isOpen={isFiltersOpen}
-          onClose={() => setIsFiltersOpen(false)}
-          filters={filters}
-          setFilters={setFilters}
-          maxPriceLimit={MAX_PRICE_LIMIT}
-        />
+          {isLoading ? (
+            <div className="grid grid-cols-2 gap-x-5 gap-y-12 md:gap-x-8 md:gap-y-14 lg:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <div key={index} className="flex flex-col gap-3">
+                  <Skeleton className="aspect-[3/4] w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/3" />
+                </div>
+              ))}
+            </div>
+          ) : filteredProducts.length > 0 ? (
+            <div className="grid grid-cols-2 gap-x-5 gap-y-12 md:gap-x-8 md:gap-y-14 lg:grid-cols-3">
+              {filteredProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  href={getProductHref(product)}
+                  showSaleBadge={isSaleCollection}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center border border-dashed border-neutral-300 bg-neutral-100 px-6 py-16 text-center">
+              <p className="text-h3 text-ink">No pieces match your selection</p>
+              <p className="text-body mt-2 max-w-sm text-neutral-700">
+                Try adjusting your filters to explore the full collection.
+              </p>
+            </div>
+          )}
+        </div>
       </Container>
     </section>
   );

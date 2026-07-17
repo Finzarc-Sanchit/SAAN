@@ -10,12 +10,27 @@ import type { Campaign } from './campaign.types';
 const baseProduct: Product = {
   id: 'product-1',
   categoryId: 'cat-1',
-  discountId: null,
+  collectionId: 'collection-1',
+  salePrice: null,
+  discountPercent: null,
+  discountEnabled: false,
+  discountStartDate: null,
+  discountEndDate: null,
   name: 'Linen Shirt',
   slug: 'linen-shirt',
   description: 'A linen shirt',
   shortDescription: 'Linen shirt',
   fabric: 'Linen',
+  color: 'Ivory',
+  occasion: ['Daily'],
+  fitNotes: "Model is 5'6\" wearing S. Fit relaxed.",
+  care: [
+    'Dry Clean Only',
+    'Do not Wash',
+    'Do not Wring',
+    'Iron at low temperature',
+    'Tumble dry on Low Heat',
+  ],
   basePrice: 5000,
   ratingsAverage: 0,
   ratingsCount: 0,
@@ -38,14 +53,11 @@ const baseProduct: Product = {
 
 const baseCampaign: Campaign = {
   id: 'campaign-1',
-  tag: 'NEW ARRIVAL',
-  title: 'Quiet Luxury Edit',
-  description: 'A seasonal story',
   productId: 'product-1',
-  imageUrl: 'https://res.cloudinary.com/demo/image/upload/c.jpg',
-  imageAlt: 'Model in SAAN linen',
-  discountPercent: 20,
-  ctaText: 'Shop now',
+  desktopImageUrl: 'https://res.cloudinary.com/demo/image/upload/desktop.jpg',
+  desktopImageAlt: 'Desktop campaign banner',
+  mobileImageUrl: 'https://res.cloudinary.com/demo/image/upload/mobile.jpg',
+  mobileImageAlt: 'Mobile campaign banner',
   startDate: new Date('2020-01-01'),
   endDate: new Date('2030-01-01'),
   priority: 0,
@@ -108,10 +120,14 @@ describe('CampaignService', () => {
       expect(result[0]).toMatchObject({
         id: 'campaign-1',
         productId: 'product-1',
-        cta: { label: 'Shop now', href: '/shop/product-1' },
-        image: {
-          url: baseCampaign.imageUrl,
-          alt: baseCampaign.imageAlt,
+        productSlug: 'linen-shirt',
+        desktopImage: {
+          url: baseCampaign.desktopImageUrl,
+          alt: baseCampaign.desktopImageAlt,
+        },
+        mobileImage: {
+          url: baseCampaign.mobileImageUrl,
+          alt: baseCampaign.mobileImageAlt,
         },
       });
     });
@@ -123,14 +139,11 @@ describe('CampaignService', () => {
       campaignRepository.create.mockResolvedValue(baseCampaign);
 
       const result = await service.createCampaign({
-        tag: baseCampaign.tag,
-        title: baseCampaign.title,
-        description: baseCampaign.description,
         productId: 'product-1',
-        imageUrl: baseCampaign.imageUrl,
-        imageAlt: baseCampaign.imageAlt,
-        discountPercent: 20,
-        ctaText: 'Shop now',
+        desktopImageUrl: baseCampaign.desktopImageUrl,
+        desktopImageAlt: baseCampaign.desktopImageAlt,
+        mobileImageUrl: baseCampaign.mobileImageUrl,
+        mobileImageAlt: baseCampaign.mobileImageAlt,
         startDate: baseCampaign.startDate,
         endDate: baseCampaign.endDate,
         priority: 0,
@@ -145,13 +158,11 @@ describe('CampaignService', () => {
 
       await expect(
         service.createCampaign({
-          tag: 'X',
-          title: 'Y',
-          description: 'Z',
           productId: 'missing',
-          imageUrl: 'https://example.com/a.jpg',
-          imageAlt: 'alt',
-          ctaText: 'Go',
+          desktopImageUrl: 'https://example.com/desktop.jpg',
+          desktopImageAlt: 'Desktop',
+          mobileImageUrl: 'https://example.com/mobile.jpg',
+          mobileImageAlt: 'Mobile',
           startDate: new Date('2026-01-01'),
           endDate: new Date('2026-12-01'),
           priority: 0,
@@ -164,13 +175,11 @@ describe('CampaignService', () => {
 
       await expect(
         service.createCampaign({
-          tag: 'X',
-          title: 'Y',
-          description: 'Z',
           productId: 'product-1',
-          imageUrl: 'https://example.com/a.jpg',
-          imageAlt: 'alt',
-          ctaText: 'Go',
+          desktopImageUrl: 'https://example.com/desktop.jpg',
+          desktopImageAlt: 'Desktop',
+          mobileImageUrl: 'https://example.com/mobile.jpg',
+          mobileImageAlt: 'Mobile',
           startDate: new Date('2026-01-01'),
           endDate: new Date('2026-12-01'),
           priority: 0,

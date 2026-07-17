@@ -30,6 +30,11 @@ const nextConfig: NextConfig = {
         hostname: 'saanlabel.com',
         pathname: '/cdn/shop/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'cdn.shopify.com',
+        pathname: '/s/files/**',
+      },
     ],
   },
 };

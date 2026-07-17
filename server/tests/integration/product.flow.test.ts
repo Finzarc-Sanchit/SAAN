@@ -33,10 +33,11 @@ jest.mock('../../infrastructure/database/redis/connection', () => {
 import { createApp } from '../../http/express-app';
 import { connectMongo, disconnectMongo } from '../../infrastructure/database/mongodb/connection';
 import { CategoryModel } from '../../infrastructure/database/mongodb/models/category.model';
-import { DiscountModel } from '../../infrastructure/database/mongodb/models/discount.model';
+import { CollectionModel } from '../../infrastructure/database/mongodb/models/collection.model';
 import { ProductModel } from '../../infrastructure/database/mongodb/models/product.model';
 import { SizeModel } from '../../infrastructure/database/mongodb/models/size.model';
 import { resetConnectionsForTests } from '../../middlewares/ensure-connections.middleware';
+import { seedTestCollection } from '../helpers/catalog-collection';
 
 function adminAuthHeader(): string {
   const token = jwt.sign(
@@ -50,6 +51,7 @@ describe('Product flow integration', () => {
   let app: Application;
   let mongod: MongoMemoryServer;
   let categoryId: string;
+  let collectionId: string;
   let sizeSId = '';
   let sizeMId = '';
 
@@ -70,10 +72,11 @@ describe('Product flow integration', () => {
   beforeEach(async () => {
     await ProductModel.deleteMany({});
     await CategoryModel.deleteMany({});
-    await DiscountModel.deleteMany({});
+    await CollectionModel.deleteMany({});
     await SizeModel.deleteMany({});
     await ProductModel.syncIndexes();
     await CategoryModel.syncIndexes();
+    await CollectionModel.syncIndexes();
     await SizeModel.syncIndexes();
 
     const categoryResponse = await request(app)
@@ -83,6 +86,7 @@ describe('Product flow integration', () => {
       .expect(201);
 
     categoryId = categoryResponse.body.data.id as string;
+    collectionId = await seedTestCollection(app, adminAuthHeader());
 
     const sizeSResponse = await request(app)
       .post('/api/v1/sizes')
@@ -100,16 +104,27 @@ describe('Product flow integration', () => {
     sizeMId = sizeMResponse.body.data.sizeId as string;
   });
 
-  it('creates a product without a discount', async () => {
+  it('creates a product without a sale price', async () => {
     const createResponse = await request(app)
       .post('/api/v1/products')
       .set('Authorization', adminAuthHeader())
       .send({
         categoryId,
+        collectionId,
         name: 'Cotton Shirt',
         description: 'A soft cotton shirt.',
         shortDescription: 'Cotton shirt',
         fabric: 'Cotton',
+        color: 'Ivory',
+        occasion: ['Daily'],
+        fitNotes: "Model is 5'6\" wearing S. Fit relaxed.",
+        care: [
+          'Dry Clean Only',
+          'Do not Wash',
+          'Do not Wring',
+          'Iron at low temperature',
+          'Tumble dry on Low Heat',
+        ],
         basePrice: 4500,
         status: 'active',
         isFeatured: false,
@@ -120,37 +135,32 @@ describe('Product flow integration', () => {
       })
       .expect(201);
 
-    expect(createResponse.body.data.discountId).toBeNull();
+    expect(createResponse.body.data.salePrice).toBeNull();
 
     const slugResponse = await request(app).get('/api/v1/products/cotton-shirt').expect(200);
-    expect(slugResponse.body.data.discountId).toBeNull();
+    expect(slugResponse.body.data.salePrice).toBeNull();
   });
 
-  it('creates with category and discount, fetches by slug, adjusts size stock, recalculates top-level stock, archives, and hides archived product publicly', async () => {
-    const discountResponse = await request(app)
-      .post('/api/v1/discounts')
-      .set('Authorization', adminAuthHeader())
-      .send({
-        type: 'percentage',
-        value: 10,
-        validFrom: '2026-01-01T00:00:00.000Z',
-        validTo: '2026-12-31T23:59:59.999Z',
-      })
-      .expect(201);
-
-    const discountId = discountResponse.body.data.id as string;
-
+  it('creates with inline sale price, fetches by slug, adjusts size stock, recalculates top-level stock, archives, and hides archived product publicly', async () => {
     const createResponse = await request(app)
       .post('/api/v1/products')
       .set('Authorization', adminAuthHeader())
       .send({
         categoryId,
-        discountId,
+        collectionId,
         name: 'Linen Coord Set',
         description: 'A relaxed linen coord set for slow afternoons.',
         shortDescription: 'Linen coord set',
         fabric: 'Linen',
+        color: 'Ivory',
+        occasion: ['Daily'],
+        fitNotes: "Model is 5'6\" wearing S. Fit relaxed.",
         basePrice: 8900,
+        salePrice: 8010,
+        discountPercent: 10,
+        discountEnabled: true,
+        discountStartDate: '2026-01-01T00:00:00.000Z',
+        discountEndDate: '2027-01-01T00:00:00.000Z',
         status: 'active',
         isFeatured: false,
         isNewArrival: true,
@@ -168,6 +178,8 @@ describe('Product flow integration', () => {
 
     expect(createResponse.body.data.stock).toBe(12);
     expect(createResponse.body.data.slug).toBe('linen-coord-set');
+    expect(createResponse.body.data.salePrice).toBe(8010);
+    expect(createResponse.body.data.discountPercent).toBe(10);
     expect(createResponse.body.data.sizes[0].sizeId).toBe(sizeSId);
     expect(createResponse.body.data.sizes[1].sizeId).toBe(sizeMId);
 
@@ -176,7 +188,7 @@ describe('Product flow integration', () => {
       .expect(200);
 
     expect(slugResponse.body.data.slug).toBe('linen-coord-set');
-    expect(slugResponse.body.data.discountId).toBe(discountId);
+    expect(slugResponse.body.data.salePrice).toBe(8010);
 
     const stockBefore = slugResponse.body.data.stock as number;
     const sizeQuantityBefore = slugResponse.body.data.sizes[0].quantity as number;

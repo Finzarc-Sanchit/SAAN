@@ -1,198 +1,285 @@
-'use client';
+"use client";
 
-import { Heart, MessageCircle, Star } from 'lucide-react';
-import { useState } from 'react';
-import { useCart } from '@/components/providers/CartProvider';
-import { useRequireAuth } from '@/hooks/useRequireAuth';
-import { useWishlist } from '@/hooks/useWishlist';
-import { ProductQuantitySelector } from '@/components/product/ProductQuantitySelector';
-import { ProductSizeSelector } from '@/components/product/ProductSizeSelector';
-import { SizeGuideModal } from '@/components/product/SizeGuideModal';
-import type { ProductDetail } from '@/lib/product-defaults';
-import { formatPrice, getDiscountPercent } from '@/lib/site-content';
-import { cn } from '@/lib/utils';
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { useCart } from "@/components/providers/CartProvider";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { ProductColorDisplay } from "@/components/product/ProductColorDisplay";
+import { RatingStars } from "@/components/product/RatingStars";
+import { ProductQuantitySelector } from "@/components/product/ProductQuantitySelector";
+import { ProductSizeSelector } from "@/components/product/ProductSizeSelector";
+import { SizeGuideModal } from "@/components/product/SizeGuideModal";
+import { CtaButton } from "@/components/ui/CtaButton";
+import { addCartItem } from "@/lib/api/cart";
+import { listSizes } from "@/lib/api/sizes";
+import { writeBuyNowItem } from "@/lib/checkout/buy-now-storage";
+import type { ProductDetail } from "@/lib/product-defaults";
+import {
+  findSizeIdByLabel,
+  findSizeLabelById,
+} from "@/lib/product-size-catalog";
+import { getProductHref, getVariantFromSearchParams } from "@/lib/product-url";
+import { formatPrice, getDiscountPercent } from "@/lib/site-content";
 
 type ProductPurchasePanelProps = {
   product: ProductDetail;
 };
 
-function StarRating({ rating }: { rating: number }) {
-  return (
-    <div className="flex items-center gap-0.5">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Star
-          key={i}
-          className={cn(
-            'h-3.5 w-3.5',
-            i < Math.floor(rating)
-              ? 'fill-saan-gold text-saan-gold'
-              : 'fill-none text-saan-gold/40'
-          )}
-          strokeWidth={1.25}
-        />
-      ))}
-    </div>
-  );
-}
-
 export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
-  const { addItem, openCart } = useCart();
-  const { requireAuth } = useRequireAuth();
-  const { isWishlisted, toggleWishlist } = useWishlist();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { addItem } = useCart();
+  const { requireAuth, isAuthenticated } = useRequireAuth();
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [sizeError, setSizeError] = useState(false);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
 
-  const currency = product.currency ?? 'INR';
-  const discount = getDiscountPercent(product.price, product.mrp);
-  const saveAmount = product.mrp > product.price ? product.mrp - product.price : 0;
-  const wishlisted = isWishlisted(product.id);
+  const sizeCatalogQuery = useQuery({
+    queryKey: ["sizes", "catalog"],
+    queryFn: listSizes,
+    staleTime: 5 * 60_000,
+  });
 
-  const whatsappHref = `https://wa.me/919876543210?text=${encodeURIComponent(
-    `Hi SAAN, I'd like to know more about ${product.name} (${product.sku}).`
-  )}`;
+  const sizeCatalog = sizeCatalogQuery.data ?? [];
+  const currency = product.currency ?? "INR";
+  const oneLineDescription = product.subtitle;
+  const hasDiscount = product.mrp > product.price;
+  const discountPercent = hasDiscount
+    ? getDiscountPercent(product.price, product.mrp)
+    : 0;
+  const availableQuantity = selectedSize
+    ? Math.max(1, Math.min(10, product.sizeStock[selectedSize] ?? 10))
+    : 10;
 
-  const handleAddToBag = () => {
+  useEffect(() => {
+    const variant = getVariantFromSearchParams(searchParams);
+    if (!variant || sizeCatalog.length === 0) {
+      return;
+    }
+
+    const label = findSizeLabelById(sizeCatalog, variant);
+    if (label && product.sizes.includes(label)) {
+      setSelectedSize(label);
+    }
+  }, [searchParams, sizeCatalog, product.sizes]);
+
+  function syncVariantInUrl(sizeLabel: string | null) {
+    if (!sizeLabel) {
+      router.replace(getProductHref(product.slug), { scroll: false });
+      return;
+    }
+
+    const sizeId =
+      product.sizeIdByLabel?.[sizeLabel] ?? findSizeIdByLabel(sizeCatalog, sizeLabel);
+    if (!sizeId) {
+      return;
+    }
+
+    router.replace(getProductHref(product.slug, { variant: sizeId }), {
+      scroll: false,
+    });
+  }
+
+  function resolveSelectedSizeId(): string | null {
+    if (!selectedSize) return null;
+    return (
+      product.sizeIdByLabel?.[selectedSize] ??
+      findSizeIdByLabel(sizeCatalog, selectedSize) ??
+      null
+    );
+  }
+
+  function handleAddToCart() {
+    if (!product.sizeIdByLabel) {
+      setSizeError(true);
+      return;
+    }
+
     if (!selectedSize) {
       setSizeError(true);
       return;
     }
 
-    requireAuth(() => {
-      setSizeError(false);
-      addItem({
-        productId: product.id,
-        name: product.name,
-        price: product.price,
-        currency,
-        image: product.image,
-        size: selectedSize,
-        quantity,
-      });
-      openCart();
+    const sizeId = resolveSelectedSizeId();
+    if (!sizeId) {
+      setSizeError(true);
+      return;
+    }
+
+    setSizeError(false);
+    // Guests keep the line in localStorage; login syncs it to the server cart.
+    addItem({
+      productId: product.id,
+      sizeId,
+      name: product.name,
+      price: product.price,
+      currency,
+      image: product.image,
+      size: selectedSize,
+      quantity,
     });
-  };
+
+    if (isAuthenticated) {
+      void addCartItem({
+        productId: product.id,
+        sizeId,
+        quantity,
+      }).catch(() => {
+        // Local cart remains the source of truth if the server write fails.
+      });
+    }
+  }
+
+  function handleBuyNow() {
+    if (!selectedSize) {
+      setSizeError(true);
+      return;
+    }
+
+    if (!product.sizeIdByLabel) {
+      setSizeError(true);
+      return;
+    }
+
+    const sizeId = resolveSelectedSizeId();
+    if (!sizeId) {
+      setSizeError(true);
+      return;
+    }
+
+    setSizeError(false);
+    addItem({
+      productId: product.id,
+      sizeId,
+      name: product.name,
+      price: product.price,
+      currency,
+      image: product.image,
+      size: selectedSize,
+      quantity,
+    });
+    writeBuyNowItem({
+      productId: product.id,
+      slug: product.slug,
+      name: product.name,
+      price: product.price,
+      mrp: product.mrp,
+      currency,
+      image: product.image,
+      sizeLabel: selectedSize,
+      sizeId,
+      quantity,
+    });
+
+    if (isAuthenticated) {
+      void addCartItem({
+        productId: product.id,
+        sizeId,
+        quantity,
+      }).catch(() => {
+        // Local cart remains if the server write fails.
+      });
+    }
+
+    requireAuth(() => {
+      router.push("/checkout/bag");
+    });
+  }
 
   return (
     <>
-      <p className="text-label-caps text-[10px] text-saan-ink/45">
-        {product.sku} · {product.collectionLabel}
-      </p>
+      <h1 className="text-h2 text-ink">{product.name}</h1>
 
-      <h1 className="mt-2 font-display text-3xl text-saan-charcoal md:text-4xl">
-        {product.name}
-      </h1>
-      <p className="mt-1 font-display text-base font-light italic text-saan-ink/60">
-        {product.subtitle}
-      </p>
-
-      <div className="mt-3 flex items-center gap-2">
-        <StarRating rating={product.rating} />
-        <span className="font-body text-xs text-saan-ink/50">
-          {product.rating} · {product.reviewCount} reviews
+      <a
+        href="#product-reviews"
+        className="mt-3 inline-flex items-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+        aria-label={`${product.rating.toFixed(1)} out of 5 stars from ${product.reviewCount} reviews`}
+      >
+        <RatingStars rating={product.rating} />
+        <span className="text-caption text-neutral-500">
+          {product.rating.toFixed(1)} · {product.reviewCount}{" "}
+          {product.reviewCount === 1 ? "review" : "reviews"}
         </span>
-      </div>
+      </a>
 
-      <div className="mt-5 flex flex-wrap items-baseline gap-3">
-        <span className="font-body text-2xl font-semibold text-saan-charcoal">
-          {formatPrice(product.price, currency)}
-        </span>
-        {discount > 0 && (
-          <>
-            <span className="font-body text-sm text-saan-ink/40 line-through">
-              {formatPrice(product.mrp, currency)}
-            </span>
-            <span className="rounded-sm bg-saan-champagne px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-saan-maroon">
-              Save {formatPrice(saveAmount, currency)}
-            </span>
-          </>
-        )}
-      </div>
-      <p className="mt-2 font-body text-[11px] text-saan-ink/45">{product.gstNote}</p>
-
-      <div className="mt-6">
-        <p className="text-label-caps text-[10px] text-saan-ink/50">
-          Colour — {product.colourLabel}
-        </p>
-        <div className="mt-2 flex gap-2">
-          <span
-            className="h-8 w-8 rounded-full border-2 border-saan-charcoal ring-2 ring-saan-bone ring-offset-1"
-            style={{ backgroundColor: product.colourSwatch }}
-            aria-label={product.colourLabel}
-          />
+      {hasDiscount ? (
+        <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <p className="text-h3 text-ink">
+            {formatPrice(product.price, currency)}
+          </p>
+          <p className="text-body text-neutral-500 line-through decoration-1">
+            {formatPrice(product.mrp, currency)}
+          </p>
+          <p className="text-ui bg-[#047857] px-2.5 py-1 text-white">
+            {discountPercent}% off
+          </p>
         </div>
-      </div>
-
-      <ProductSizeSelector
-        sizes={product.sizes}
-        selectedSize={selectedSize}
-        onSelect={(size) => {
-          setSelectedSize(size);
-          setSizeError(false);
-        }}
-        fitNotes={product.fitNotes}
-        sizeStock={product.sizeStock}
-        onOpenSizeGuide={() => setSizeGuideOpen(true)}
-      />
-
-      <ProductQuantitySelector quantity={quantity} onChange={setQuantity} />
-
-      {sizeError && (
-        <p className="mt-3 font-body text-xs text-saan-maroon" role="alert">
-          Please select a size before adding to bag.
+      ) : (
+        <p className="text-body-medium mt-3 text-ink">
+          {formatPrice(product.price, currency)}
         </p>
       )}
 
-      <button
-        type="button"
-        onClick={handleAddToBag}
-        className="text-label-caps mt-6 flex w-full items-center justify-center gap-2 bg-saan-charcoal py-4 text-saan-bone transition-colors hover:bg-saan-maroon"
-      >
-        Add to Bag — {formatPrice(product.price * quantity, currency)}
-        <span aria-hidden>→</span>
-      </button>
+      <p className="text-body mt-4 text-neutral-700">{oneLineDescription}</p>
 
-      <div className="mt-3 grid grid-cols-2 gap-3">
-        <button
+      <ProductSizeSelector
+        sizes={product.sizes.filter((size) => size !== "CUSTOM")}
+        selectedSize={selectedSize}
+        onSelect={(size) => {
+          setSelectedSize(size);
+          setQuantity((current) =>
+            Math.min(
+              current,
+              Math.max(1, Math.min(10, product.sizeStock[size] ?? 10)),
+            ),
+          );
+          setSizeError(false);
+          syncVariantInUrl(size);
+        }}
+        onOpenSizeGuide={() => setSizeGuideOpen(true)}
+      />
+
+      <ProductColorDisplay label={product.colourLabel} />
+
+      <ProductQuantitySelector
+        quantity={quantity}
+        onChange={setQuantity}
+        max={availableQuantity}
+      />
+
+      {sizeError && (
+        <p className="text-caption mt-3 text-error" role="alert">
+          {!product.sizeIdByLabel
+            ? "This piece is not available for purchase yet."
+            : "Please select a size before continuing."}
+        </p>
+      )}
+
+      <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <CtaButton
           type="button"
-          aria-label={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
-          aria-pressed={wishlisted}
-          onClick={() => toggleWishlist(product.id)}
-          className={cn(
-            'text-label-caps flex items-center justify-center gap-2 border border-saan-charcoal py-3.5 text-saan-charcoal transition-colors hover:bg-saan-champagne/30',
-            wishlisted && 'border-saan-maroon text-saan-maroon'
-          )}
+          variant="secondary"
+          onClick={handleAddToCart}
+          className="group w-full duration-500 ease-[var(--ease-luxury)] motion-reduce:transition-none [&>span]:transition-transform [&>span]:duration-500 [&>span]:ease-[var(--ease-luxury)] hover:[&>span]:translate-x-1 motion-reduce:[&>span]:transform-none"
         >
-          <Heart
-            className={cn('h-4 w-4', wishlisted && 'fill-saan-maroon')}
-            strokeWidth={1.25}
-          />
-          Save
-        </button>
-        <a
-          href={whatsappHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-label-caps flex items-center justify-center gap-2 bg-[#25D366] py-3.5 text-white transition-opacity hover:opacity-90"
+          Add to Cart
+        </CtaButton>
+        <CtaButton
+          type="button"
+          variant="secondary"
+          onClick={handleBuyNow}
+          className="w-full !border-ink !bg-ink !text-paper shadow-none transition-[box-shadow,transform] duration-500 ease-[var(--ease-luxury)] hover:-translate-y-0.5 hover:!border-ink hover:!bg-ink hover:!text-paper hover:shadow-[0_10px_24px_rgba(11,10,9,0.14)] motion-reduce:transform-none motion-reduce:transition-none"
         >
-          <MessageCircle className="h-4 w-4" strokeWidth={1.25} />
-          Ask on WhatsApp
-        </a>
+          Buy Now
+        </CtaButton>
       </div>
 
-      <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 border-t border-saan-champagne/40 pt-5">
-        {['Free Shipping', '7-Day Returns', 'Authentic'].map((label) => (
-          <span
-            key={label}
-            className="font-body text-[10px] uppercase tracking-widest text-saan-ink/45"
-          >
-            {label}
-          </span>
-        ))}
-      </div>
-
-      <SizeGuideModal isOpen={sizeGuideOpen} onClose={() => setSizeGuideOpen(false)} />
+      <SizeGuideModal
+        isOpen={sizeGuideOpen}
+        onClose={() => setSizeGuideOpen(false)}
+      />
     </>
   );
 }

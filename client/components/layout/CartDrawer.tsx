@@ -47,7 +47,7 @@ export function CartDrawer() {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
-            className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-saan-bone shadow-xl"
+            className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-paper shadow-xl"
           >
             <div className="flex items-center justify-between border-b border-saan-champagne/60 px-6 py-5">
               <h2 className="text-label-caps text-saan-charcoal">
@@ -95,7 +95,7 @@ export function CartDrawer() {
                             Size: {item.size}
                           </p>
                         )}
-                        <p className="mt-1 font-display text-sm text-saan-maroon">
+                        <p className="mt-1 font-display text-sm text-ink">
                           {formatPrice(item.price, item.currency)}
                         </p>
                         <div className="mt-3 flex items-center gap-3">
@@ -120,14 +120,14 @@ export function CartDrawer() {
                               <Plus className="h-3.5 w-3.5" strokeWidth={1.25} />
                             </button>
                           </div>
-                          <span className="font-display text-sm text-saan-maroon">
+                          <span className="font-display text-sm text-ink">
                             {formatPrice(item.price * item.quantity, item.currency)}
                           </span>
                         </div>
                         <button
                           type="button"
                           onClick={() => removeItem(item.productId, item.size)}
-                          className="mt-2 w-fit text-xs uppercase tracking-wider text-saan-ink/50 underline hover:text-saan-maroon"
+                          className="mt-2 w-fit text-xs uppercase tracking-wider text-saan-ink/50 underline hover:text-ink"
                         >
                           Remove
                         </button>
@@ -142,7 +142,7 @@ export function CartDrawer() {
               <div className="border-t border-saan-champagne/60 px-6 py-6">
                 <div className="mb-2 flex justify-between text-sm">
                   <span className="text-saan-ink/70">Subtotal</span>
-                  <span className="font-display text-saan-maroon">
+                  <span className="font-display text-ink">
                     {formatPrice(subtotal, items[0]?.currency ?? 'INR')}
                   </span>
                 </div>
@@ -151,7 +151,7 @@ export function CartDrawer() {
                 </p>
                 <button
                   type="button"
-                  className="text-label-caps w-full bg-saan-maroon py-3.5 text-saan-bone transition-colors hover:bg-saan-gold"
+                  className="text-label-caps w-full bg-saan-maroon py-3.5 text-paper transition-colors hover:bg-ink"
                 >
                   Proceed to Checkout
                 </button>

@@ -1,20 +1,42 @@
 import type { Metadata } from 'next';
-import { Karla, Playfair_Display } from 'next/font/google';
+import { Fraunces } from 'next/font/google';
+import localFont from 'next/font/local';
 import { AppChrome } from '@/components/layout/AppChrome';
 import { LenisProvider } from '@/components/providers/LenisProvider';
 import { AppProviders } from '@/components/providers/AppProviders';
 import './globals.css';
 
-const playfair = Playfair_Display({
+const fraunces = Fraunces({
   subsets: ['latin'],
-  variable: '--font-playfair',
+  variable: '--font-fraunces',
   display: 'swap',
+  axes: ['opsz'],
 });
 
-const karla = Karla({
-  subsets: ['latin'],
-  weight: ['300', '400', '700'],
-  variable: '--font-karla',
+const generalSans = localFont({
+  src: [
+    {
+      path: '../public/fonts/GeneralSans-Regular.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/GeneralSans-Medium.woff2',
+      weight: '500',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/GeneralSans-Semibold.woff2',
+      weight: '600',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/GeneralSans-Bold.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
+  variable: '--font-general-sans',
   display: 'swap',
 });
 
@@ -30,7 +52,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${playfair.variable} ${karla.variable}`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${fraunces.variable} ${generalSans.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <link
           rel="preload"

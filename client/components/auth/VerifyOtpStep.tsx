@@ -126,7 +126,7 @@ export function VerifyOtpStep({ email, onBack, onSuccess }: VerifyOtpStepProps) 
           type="button"
           onClick={() => void handleResend()}
           disabled={isResending || resendCooldown > 0}
-          className="text-label-caps text-saan-maroon disabled:opacity-40"
+          className="text-label-caps text-ink disabled:opacity-40"
         >
           {isResending
             ? 'Sending…'
@@ -139,7 +139,7 @@ export function VerifyOtpStep({ email, onBack, onSuccess }: VerifyOtpStepProps) 
           <button
             type="button"
             onClick={onBack}
-            className="font-body text-xs text-saan-ink/50 hover:text-saan-maroon"
+            className="font-body text-xs text-saan-ink/50 hover:text-ink"
           >
             Back to sign in
           </button>

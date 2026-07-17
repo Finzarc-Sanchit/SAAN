@@ -72,7 +72,7 @@ export function OtpInput({ value, onChange, disabled, error }: OtpInputProps) {
         ))}
       </div>
       {error && (
-        <p className="mt-3 text-center font-body text-xs text-saan-maroon" role="alert">
+        <p className="mt-3 text-center font-body text-xs text-ink" role="alert">
           {error}
         </p>
       )}

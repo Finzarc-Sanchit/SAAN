@@ -1,5 +1,6 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import Lenis from 'lenis';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
@@ -7,6 +8,26 @@ import { useReducedMotion } from '@/hooks/useReducedMotion';
 type LenisProviderProps = {
   children: React.ReactNode;
 };
+
+function scrollPageToTop(lenis: Lenis | null) {
+  if (lenis) {
+    lenis.scrollTo(0, { immediate: true });
+    return;
+  }
+
+  window.scrollTo(0, 0);
+}
+
+function ScrollToTopOnNavigate({ lenisRef }: { lenisRef: React.RefObject<Lenis | null> }) {
+  const pathname = usePathname();
+
+  useEffect(() => {
+    scrollPageToTop(lenisRef.current);
+    requestAnimationFrame(() => scrollPageToTop(lenisRef.current));
+  }, [pathname, lenisRef]);
+
+  return null;
+}
 
 export function LenisProvider({ children }: LenisProviderProps) {
   const reducedMotion = useReducedMotion();
@@ -46,5 +67,10 @@ export function LenisProvider({ children }: LenisProviderProps) {
     };
   }, [reducedMotion]);
 
-  return <>{children}</>;
+  return (
+    <>
+      <ScrollToTopOnNavigate lenisRef={lenisRef} />
+      {children}
+    </>
+  );
 }

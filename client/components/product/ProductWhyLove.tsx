@@ -21,9 +21,9 @@ type ProductWhyLoveProps = {
 
 export function ProductWhyLoveSection({ productName, items }: ProductWhyLoveProps) {
   return (
-    <section className="border-t border-saan-champagne/40 bg-saan-bone py-16 md:py-20">
+    <section className="border-t border-saan-champagne/40 bg-paper py-16 md:py-20">
       <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
-        <h2 className="font-display text-xl uppercase tracking-wide text-saan-maroon md:text-2xl">
+        <h2 className="font-display text-xl uppercase tracking-wide text-ink md:text-2xl">
           Why You&apos;ll Love This {productName.split(' ').slice(-2).join(' ')}
         </h2>
         <ul className="mt-10 grid gap-6 sm:grid-cols-2">

@@ -5,6 +5,7 @@ import type {
   ProductFilter,
   ProductImage,
   ProductListSort,
+  ProductOccasion,
   ProductRepositoryCreateInput,
   ProductRepositoryUpdateInput,
   ProductSize,
@@ -18,6 +19,33 @@ import {
   type ProductImageDocument,
   type ProductSizeDocument,
 } from '../models/product.model';
+
+const DEFAULT_CARE = [
+  'Dry Clean Only',
+  'Do not Wash',
+  'Do not Wring',
+  'Iron at low temperature',
+  'Tumble dry on Low Heat',
+];
+
+function normalizeOccasion(
+  value: ProductOccasion | ProductOccasion[] | undefined,
+): ProductOccasion[] {
+  if (Array.isArray(value) && value.length > 0) {
+    return value;
+  }
+  if (typeof value === 'string' && value.length > 0) {
+    return [value];
+  }
+  return ['Daily'];
+}
+
+function normalizeCare(value: string[] | undefined): string[] {
+  if (Array.isArray(value) && value.length > 0) {
+    return value.map((item) => item.trim()).filter(Boolean);
+  }
+  return [...DEFAULT_CARE];
+}
 
 function sumSizeQuantities(sizes: Pick<ProductSizeDocument, 'quantity'>[]): number {
   return sizes.reduce((total, item) => total + item.quantity, 0);
@@ -45,13 +73,22 @@ function toDomainProduct(doc: ProductDocument): Product {
   return {
     id: doc._id.toString(),
     categoryId: doc.categoryId.toString(),
-    discountId: doc.discountId ? doc.discountId.toString() : null,
+    collectionId: doc.collectionId?.toString() ?? '',
     name: doc.name,
     slug: doc.slug,
     description: doc.description,
     shortDescription: doc.shortDescription,
     fabric: doc.fabric,
+    color: doc.color ?? '',
+    occasion: normalizeOccasion(doc.occasion),
+    fitNotes: doc.fitNotes ?? '',
+    care: normalizeCare(doc.care),
     basePrice: doc.basePrice,
+    salePrice: doc.salePrice ?? null,
+    discountPercent: doc.discountPercent ?? null,
+    discountEnabled: doc.discountEnabled ?? false,
+    discountStartDate: doc.discountStartDate ?? null,
+    discountEndDate: doc.discountEndDate ?? null,
     ratingsAverage: doc.ratingsAverage,
     ratingsCount: doc.ratingsCount,
     stock: doc.stock,
@@ -89,6 +126,12 @@ function buildMongoFilter(filter: ProductFilter): Record<string, unknown> {
       : filter.categoryId;
   }
 
+  if (filter.collectionId) {
+    query.collectionId = Types.ObjectId.isValid(filter.collectionId)
+      ? new Types.ObjectId(filter.collectionId)
+      : filter.collectionId;
+  }
+
   if (filter.status) {
     query.status = filter.status;
   }
@@ -104,6 +147,10 @@ function buildMongoFilter(filter: ProductFilter): Record<string, unknown> {
     query['sizes.size'] = filter.size;
   }
 
+  if (filter.occasion) {
+    query.occasion = filter.occasion;
+  }
+
   if (filter.search) {
     query.$text = { $search: filter.search };
   }
@@ -114,13 +161,22 @@ function buildMongoFilter(filter: ProductFilter): Record<string, unknown> {
 function buildCreatePayload(data: ProductRepositoryCreateInput): Record<string, unknown> {
   return {
     categoryId: new Types.ObjectId(data.categoryId),
-    discountId: data.discountId ? new Types.ObjectId(data.discountId) : null,
+    collectionId: new Types.ObjectId(data.collectionId),
     name: data.name,
     slug: data.slug.toLowerCase(),
     description: data.description,
     shortDescription: data.shortDescription,
     fabric: data.fabric,
+    color: data.color,
+    occasion: data.occasion,
+    fitNotes: data.fitNotes,
+    care: data.care,
     basePrice: data.basePrice,
+    salePrice: data.salePrice ?? null,
+    discountPercent: data.discountPercent ?? null,
+    discountEnabled: data.discountEnabled ?? false,
+    discountStartDate: data.discountStartDate ?? null,
+    discountEndDate: data.discountEndDate ?? null,
     status: data.status,
     isFeatured: data.isFeatured,
     isNewArrival: data.isNewArrival,
@@ -182,12 +238,20 @@ export class MongoProductRepository implements IProductRepository {
       updatePayload.categoryId = new Types.ObjectId(data.categoryId);
     }
 
-    if (data.discountId !== undefined) {
-      updatePayload.discountId = data.discountId ? new Types.ObjectId(data.discountId) : null;
+    if (data.collectionId) {
+      updatePayload.collectionId = new Types.ObjectId(data.collectionId);
     }
 
     if (data.slug) {
       updatePayload.slug = data.slug.toLowerCase();
+    }
+
+    if (data.salePrice !== undefined) {
+      updatePayload.salePrice = data.salePrice;
+    }
+
+    if (data.discountPercent !== undefined) {
+      updatePayload.discountPercent = data.discountPercent;
     }
 
     if (data.sizes) {

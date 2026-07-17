@@ -74,6 +74,7 @@ export async function updateProfile(input: UpdateProfileInput): Promise<User> {
   return apiRequest<User>(`${AUTH_BASE}/me`, {
     method: 'PATCH',
     body: input,
+    withCsrf: true,
   });
 }
 

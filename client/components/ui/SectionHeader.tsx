@@ -24,12 +24,12 @@ export function SectionHeader({
       )}
     >
       {eyebrow && (
-        <p className="text-label-caps mb-3 text-saan-maroon">{eyebrow}</p>
+        <p className="text-label-caps mb-3 text-ink">{eyebrow}</p>
       )}
-      <h2 className="text-display-lg text-saan-maroon">{title}</h2>
+      <h2 className="text-display-lg text-ink">{title}</h2>
       <div
         className={cn(
-          'mt-4 h-px w-16 bg-saan-gold',
+          'mt-4 h-px w-16 bg-ink',
           align === 'center' && 'mx-auto'
         )}
       />

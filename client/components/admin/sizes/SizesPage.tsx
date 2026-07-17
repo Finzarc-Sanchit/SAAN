@@ -95,7 +95,7 @@ export function SizesPage() {
         id: 'sizeId',
         header: 'Size ID',
         cell: (row) => (
-          <code className="rounded bg-saan-bone px-1.5 py-0.5 font-mono text-xs text-saan-ink/70 dark:bg-white/5 dark:text-saan-bone/70">
+          <code className="rounded bg-paper px-1.5 py-0.5 font-mono text-xs text-saan-ink/70 dark:bg-white/5 dark:text-paper/70">
             {row.sizeId}
           </code>
         ),
@@ -143,10 +143,10 @@ export function SizesPage() {
     <div className="space-y-4 lg:space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-saan-ink/45 dark:text-saan-bone/45">
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-saan-ink/45 dark:text-paper/45">
             Catalog
           </p>
-          <h1 className="mt-1 font-display text-2xl text-saan-charcoal dark:text-saan-bone md:text-3xl">
+          <h1 className="mt-1 font-display text-2xl text-saan-charcoal dark:text-paper md:text-3xl">
             Sizes
           </h1>
         </div>
@@ -201,9 +201,9 @@ export function SizesPage() {
         panelClassName="dark:bg-[#161916]"
       >
         <div className="space-y-5 text-left">
-          <p className="font-body text-sm text-saan-ink/70 dark:text-saan-bone/70">
+          <p className="font-body text-sm text-saan-ink/70 dark:text-paper/70">
             Delete size{' '}
-            <span className="font-medium text-saan-charcoal dark:text-saan-bone">
+            <span className="font-medium text-saan-charcoal dark:text-paper">
               {pendingDelete?.label}
             </span>
             ? This cannot be undone. Sizes in use by products cannot be deleted.

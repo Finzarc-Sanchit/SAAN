@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import Link from 'next/link';
+import { CtaButton } from '@/components/ui/CtaButton';
 import { LUXURY_EASE } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 
@@ -25,17 +25,13 @@ export function HeroCtaButton({
       transition={{ duration: 0.45, ease: LUXURY_EASE }}
       className={cn('inline-block', className)}
     >
-      <Link
+      <CtaButton
         href={href}
-        className={cn(
-          'chamfer-btn text-label-caps inline-flex cursor-pointer items-center justify-center px-10 py-4 tracking-[0.12em] transition-all duration-300 ease-out',
-          variant === 'primary'
-            ? 'bg-saan-maroon/90 text-saan-bone backdrop-blur-sm hover:bg-saan-gold hover:text-saan-bone'
-            : 'border border-saan-bone/80 bg-black/20 text-saan-bone backdrop-blur-sm hover:border-saan-gold hover:text-saan-gold'
-        )}
+        variant={variant}
+        tone="light"
       >
         {label}
-      </Link>
+      </CtaButton>
     </motion.div>
   );
 }

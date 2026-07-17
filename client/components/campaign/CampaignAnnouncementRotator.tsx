@@ -1,27 +1,39 @@
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CampaignSlide } from '@/components/campaign/CampaignSlide';
 import { Container } from '@/components/ui/Container';
+import {
+  CAMPAIGN_DESKTOP_IMAGE_SPEC,
+  CAMPAIGN_MOBILE_IMAGE_SPEC,
+} from '@/lib/campaign-image-spec';
+import {
+  isCloudinaryImageUrl,
+  optimizeCampaignImageUrl,
+} from '@/lib/campaign-image-url';
+import { campaignRotatorChrome } from '@/lib/campaign-theme';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { isCampaignActive, fetchActiveCampaignsClient } from '@/lib/data/campaigns';
 import type { Campaign } from '@/lib/types/campaign';
 import { cn } from '@/lib/utils';
 
+function preloadCampaignImage(url: string, width: number) {
+  const src = isCloudinaryImageUrl(url)
+    ? optimizeCampaignImageUrl(url, width)
+    : url;
+  const preload = new window.Image();
+  preload.decoding = 'async';
+  preload.src = src;
+}
+
 const ROTATION_MS = 8000;
 const MANUAL_PAUSE_MS = 12000;
+const EXPIRY_CHECK_MS = 30_000;
 
 type CampaignAnnouncementRotatorProps = {
   initialCampaigns: Campaign[];
   className?: string;
-};
-
-const fadeVariants = {
-  enter: { opacity: 0 },
-  center: { opacity: 1 },
-  exit: { opacity: 0 },
 };
 
 export function CampaignAnnouncementRotator({
@@ -35,11 +47,15 @@ export function CampaignAnnouncementRotator({
   const [rotationPausedUntil, setRotationPausedUntil] = useState(0);
   const isRefetchingRef = useRef(false);
 
-  const activeCampaigns = campaigns.filter((campaign) => isCampaignActive(campaign));
+  const activeCampaigns = useMemo(
+    () => campaigns.filter((campaign) => isCampaignActive(campaign)),
+    [campaigns],
+  );
   const campaignCount = activeCampaigns.length;
   const safeIndex = campaignCount > 0 ? currentIndex % campaignCount : 0;
   const currentCampaign = activeCampaigns[safeIndex];
   const isMulti = campaignCount > 1;
+  const chrome = campaignRotatorChrome;
 
   const pauseRotation = useCallback(() => {
     setRotationPausedUntil(Date.now() + MANUAL_PAUSE_MS);
@@ -76,6 +92,14 @@ export function CampaignAnnouncementRotator({
   }, [campaignCount, currentIndex]);
 
   useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setCampaigns((prev) => prev.filter((campaign) => isCampaignActive(campaign)));
+    }, EXPIRY_CHECK_MS);
+
+    return () => window.clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
     const section = sectionRef.current;
     if (!section || !isMulti) return;
 
@@ -94,37 +118,42 @@ export function CampaignAnnouncementRotator({
     return () => section.removeEventListener('keydown', handleKeyDown);
   }, [goNext, goPrev, isMulti]);
 
-  const handleExpire = useCallback(async (campaignId: string) => {
-    setCampaigns((prev) => {
-      const next = prev.filter((campaign) => campaign.id !== campaignId);
-      return next.filter((campaign) => isCampaignActive(campaign));
-    });
-    setCurrentIndex(0);
-
-    if (isRefetchingRef.current) return;
-    isRefetchingRef.current = true;
-
-    try {
-      const refreshed = await fetchActiveCampaignsClient();
-      if (refreshed.length > 0) {
-        setCampaigns(refreshed);
-        setCurrentIndex(0);
-      }
-    } finally {
-      isRefetchingRef.current = false;
-    }
-  }, []);
-
   useEffect(() => {
     if (campaigns.length === 0 && !isRefetchingRef.current) {
-      void fetchActiveCampaignsClient().then((refreshed) => {
-        if (refreshed.length > 0) {
-          setCampaigns(refreshed);
-          setCurrentIndex(0);
-        }
-      });
+      isRefetchingRef.current = true;
+      void fetchActiveCampaignsClient()
+        .then((refreshed) => {
+          if (refreshed.length > 0) {
+            setCampaigns(refreshed);
+            setCurrentIndex(0);
+          }
+        })
+        .finally(() => {
+          isRefetchingRef.current = false;
+        });
     }
   }, [campaigns.length]);
+
+  // Warm the adjacent slide images so rotation never waits on a cold fetch.
+  useEffect(() => {
+    if (campaignCount < 2) return;
+
+    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+    const width = isDesktop
+      ? CAMPAIGN_DESKTOP_IMAGE_SPEC.displayWidth * 2
+      : CAMPAIGN_MOBILE_IMAGE_SPEC.displayWidth * 2;
+    const nextIndex = (safeIndex + 1) % campaignCount;
+    const prevIndex = (safeIndex - 1 + campaignCount) % campaignCount;
+
+    for (const index of [nextIndex, prevIndex]) {
+      const campaign = activeCampaigns[index];
+      if (!campaign) continue;
+      preloadCampaignImage(
+        isDesktop ? campaign.desktopImage.url : campaign.mobileImage.url,
+        width,
+      );
+    }
+  }, [campaignCount, safeIndex, activeCampaigns]);
 
   if (!currentCampaign) {
     return null;
@@ -136,67 +165,93 @@ export function CampaignAnnouncementRotator({
       tabIndex={isMulti ? 0 : undefined}
       aria-labelledby="campaign-announcement-heading"
       aria-live="polite"
-      className={cn('relative z-20 bg-white section-py outline-none', className)}
+      className={cn('relative z-20 w-full bg-paper section-py outline-none', className)}
     >
       <Container>
-        <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.8, ease: [0.25, 1, 0.5, 1] }}
-          className="min-w-0"
-        >
-          <div className="min-w-0 overflow-hidden border border-saan-champagne/50 bg-white p-6 md:p-10 lg:p-12">
-            <p className="sr-only">
-              Campaign {safeIndex + 1} of {campaignCount}: {currentCampaign.title}.
-            </p>
-            <div className="relative min-w-0">
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.div
-                  key={currentCampaign.id}
-                  variants={fadeVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{ duration: 0.7, ease: 'easeInOut' }}
-                  className="w-full min-w-0"
-                >
-                  <CampaignSlide
-                    campaign={currentCampaign}
-                    onExpire={handleExpire}
-                    isFirst={safeIndex === 0}
-                  />
-                </motion.div>
-              </AnimatePresence>
-            </div>
+        <p className="sr-only">
+          Campaign {safeIndex + 1} of {campaignCount}: {currentCampaign.desktopImage.alt}
+        </p>
 
-            {isMulti && (
-              <div className="mt-8 flex items-center justify-between gap-4 border-t border-saan-champagne/40 pt-6">
-                <button
-                  type="button"
-                  onClick={goPrev}
-                  aria-label="Previous campaign"
-                  className="text-label-caps inline-flex items-center gap-2 text-saan-ink/70 transition-colors hover:text-saan-maroon"
-                >
-                  <ChevronLeft className="h-4 w-4" strokeWidth={1.25} aria-hidden />
-                  Previous
-                </button>
-                <span className="text-[11px] font-medium tracking-[0.18em] text-saan-ink/40 uppercase">
-                  {safeIndex + 1} / {campaignCount}
-                </span>
-                <button
-                  type="button"
-                  onClick={goNext}
-                  aria-label="Next campaign"
-                  className="text-label-caps inline-flex items-center gap-2 text-saan-ink/70 transition-colors hover:text-saan-maroon"
-                >
-                  Next
-                  <ChevronRight className="h-4 w-4" strokeWidth={1.25} aria-hidden />
-                </button>
+        <div className="relative w-full overflow-hidden rounded-2xl md:rounded-3xl">
+          {activeCampaigns.map((campaign, index) => {
+            const isActive = index === safeIndex;
+            const isNeighbor =
+              index === (safeIndex + 1) % campaignCount ||
+              index === (safeIndex - 1 + campaignCount) % campaignCount;
+
+            return (
+              <div
+                key={campaign.id}
+                className={cn(
+                  'w-full transition-opacity ease-in-out',
+                  prefersReducedMotion ? 'duration-0' : 'duration-500',
+                  isActive
+                    ? 'relative z-10 opacity-100'
+                    : 'pointer-events-none absolute inset-0 z-0 opacity-0',
+                )}
+                aria-hidden={!isActive}
+              >
+                {(isActive || isNeighbor || index === 0) && (
+                  <CampaignSlide
+                    campaign={campaign}
+                    isFirst={index === 0}
+                    eager={isActive || isNeighbor || index === 0}
+                  />
+                )}
               </div>
-            )}
-          </div>
-        </motion.div>
+            );
+          })}
+
+          {isMulti && (
+            <>
+              <button
+                type="button"
+                onClick={goPrev}
+                aria-label="Previous campaign"
+                className={cn(
+                  'absolute left-2 top-2 z-20 md:left-5 md:top-1/2 md:-translate-y-1/2 lg:left-6',
+                  chrome.arrow,
+                )}
+              >
+                <ChevronLeft className="h-4 w-4 md:h-5 md:w-5" strokeWidth={1.25} />
+              </button>
+
+              <button
+                type="button"
+                onClick={goNext}
+                aria-label="Next campaign"
+                className={cn(
+                  'absolute right-2 top-2 z-20 md:right-5 md:top-1/2 md:-translate-y-1/2 lg:right-6',
+                  chrome.arrow,
+                )}
+              >
+                <ChevronRight className="h-4 w-4 md:h-5 md:w-5" strokeWidth={1.25} />
+              </button>
+
+              <div
+                className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5 md:bottom-6 md:right-6 md:left-auto md:translate-x-0 md:gap-2"
+                aria-label={`Campaign slide ${safeIndex + 1} of ${campaignCount}`}
+              >
+                {activeCampaigns.map((campaign, index) => (
+                  <button
+                    key={campaign.id}
+                    type="button"
+                    aria-label={`Go to campaign ${index + 1}`}
+                    aria-current={index === safeIndex ? 'true' : undefined}
+                    onClick={() => {
+                      setCurrentIndex(index);
+                      pauseRotation();
+                    }}
+                    className={cn(
+                      'h-1.5 w-1.5 border transition-colors md:h-2 md:w-2',
+                      index === safeIndex ? chrome.dotActive : chrome.dotInactive,
+                    )}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </Container>
     </section>
   );

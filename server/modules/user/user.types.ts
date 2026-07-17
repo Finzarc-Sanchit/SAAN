@@ -18,6 +18,8 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
+  mobileNumber: string | null;
+  dateOfBirth: Date | null;
   role: UserRole;
   isVerified: boolean;
   addresses: Address[];

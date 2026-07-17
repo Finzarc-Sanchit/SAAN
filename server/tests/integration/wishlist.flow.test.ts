@@ -35,10 +35,12 @@ import { createApp } from '../../http/express-app';
 import { connectMongo, disconnectMongo } from '../../infrastructure/database/mongodb/connection';
 import { CartModel } from '../../infrastructure/database/mongodb/models/cart.model';
 import { CategoryModel } from '../../infrastructure/database/mongodb/models/category.model';
+import { CollectionModel } from '../../infrastructure/database/mongodb/models/collection.model';
 import { ProductModel } from '../../infrastructure/database/mongodb/models/product.model';
 import { SizeModel } from '../../infrastructure/database/mongodb/models/size.model';
 import { WishlistModel } from '../../infrastructure/database/mongodb/models/wishlist.model';
 import { resetConnectionsForTests } from '../../middlewares/ensure-connections.middleware';
+import { seedTestCollection } from '../helpers/catalog-collection';
 
 function adminAuthHeader(): string {
   const token = jwt.sign(
@@ -60,6 +62,7 @@ describe('Wishlist flow integration', () => {
   let app: Application;
   let mongod: MongoMemoryServer;
   let categoryId: string;
+  let collectionId: string;
   let productId: string;
   let sizeId: string;
   let customerUserId: string;
@@ -85,11 +88,13 @@ describe('Wishlist flow integration', () => {
     await CartModel.deleteMany({});
     await ProductModel.deleteMany({});
     await CategoryModel.deleteMany({});
+    await CollectionModel.deleteMany({});
     await SizeModel.deleteMany({});
     await WishlistModel.syncIndexes();
     await CartModel.syncIndexes();
     await ProductModel.syncIndexes();
     await CategoryModel.syncIndexes();
+    await CollectionModel.syncIndexes();
 
     const categoryResponse = await request(app)
       .post('/api/v1/categories')
@@ -98,6 +103,7 @@ describe('Wishlist flow integration', () => {
       .expect(201);
 
     categoryId = categoryResponse.body.data.id as string;
+    collectionId = await seedTestCollection(app, adminAuthHeader());
 
     const mSize = await request(app)
       .post('/api/v1/sizes')
@@ -110,10 +116,21 @@ describe('Wishlist flow integration', () => {
       .set('Authorization', adminAuthHeader())
       .send({
         categoryId,
+        collectionId,
         name: 'Linen Shirt',
         description: 'A relaxed linen shirt.',
         shortDescription: 'Linen shirt',
         fabric: 'Linen',
+        color: 'Ivory',
+        occasion: ['Daily'],
+        fitNotes: "Model is 5'6\" wearing S. Fit relaxed.",
+        care: [
+          'Dry Clean Only',
+          'Do not Wash',
+          'Do not Wring',
+          'Iron at low temperature',
+          'Tumble dry on Low Heat',
+        ],
         basePrice: 5000,
         status: 'active',
         isFeatured: false,

@@ -61,8 +61,8 @@ export function ProductDetailAccordions({ product }: ProductDetailAccordionsProp
                       className={cn(
                         'h-3 w-3',
                         i < review.rating
-                          ? 'fill-saan-gold text-saan-gold'
-                          : 'text-saan-gold/30'
+                          ? 'fill-ink text-ink'
+                          : 'text-ink/30'
                       )}
                       strokeWidth={1.25}
                     />

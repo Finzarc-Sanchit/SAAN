@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { authMiddleware } from '../../middlewares/auth.middleware';
 import { validate } from '../../middlewares/validate.middleware';
-import { initiatePaymentDto, orderIdParamsDto } from './payment.dto';
+import { initiatePaymentDto, orderIdParamsDto, verifyPaymentDto } from './payment.dto';
 import type { PaymentController } from './payment.controller';
 
 export function createOrderPaymentRoutes(paymentController: PaymentController): Router {
@@ -14,6 +14,13 @@ export function createOrderPaymentRoutes(paymentController: PaymentController): 
     validate(orderIdParamsDto, 'params'),
     validate(initiatePaymentDto),
     paymentController.initiatePayment,
+  );
+
+  router.post(
+    '/:orderId/payments/verify',
+    validate(orderIdParamsDto, 'params'),
+    validate(verifyPaymentDto),
+    paymentController.verifyPayment,
   );
 
   router.get(

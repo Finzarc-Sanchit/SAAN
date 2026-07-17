@@ -3,6 +3,17 @@ import Razorpay from 'razorpay';
 import { env } from '../../config/env';
 import type { CreateGatewayOrderResult, IPaymentGateway } from './payment-gateway.interface';
 
+function equalHex(expected: string, received: string): boolean {
+  const expectedBuffer = Buffer.from(expected, 'utf8');
+  const receivedBuffer = Buffer.from(received, 'utf8');
+
+  if (expectedBuffer.length !== receivedBuffer.length) {
+    return false;
+  }
+
+  return timingSafeEqual(expectedBuffer, receivedBuffer);
+}
+
 export class RazorpayGatewayService implements IPaymentGateway {
   private readonly client: Razorpay;
 
@@ -22,14 +33,17 @@ export class RazorpayGatewayService implements IPaymentGateway {
   }
 
   async createGatewayOrder(
-    amount: number,
+    amountSubunits: number,
     currency: string,
     internalOrderId: string,
   ): Promise<CreateGatewayOrderResult> {
+    // Receipt must be unique per Razorpay order (max 40 chars).
+    const receipt = `${internalOrderId.slice(-12)}-${Date.now().toString(36)}`.slice(0, 40);
+
     const order = await this.client.orders.create({
-      amount,
+      amount: amountSubunits,
       currency,
-      receipt: internalOrderId,
+      receipt,
     });
 
     return { gatewayOrderId: order.id };
@@ -45,13 +59,22 @@ export class RazorpayGatewayService implements IPaymentGateway {
       .update(body)
       .digest('hex');
 
-    const expectedBuffer = Buffer.from(expectedSignature, 'utf8');
-    const receivedBuffer = Buffer.from(signature, 'utf8');
+    return equalHex(expectedSignature, signature);
+  }
 
-    if (expectedBuffer.length !== receivedBuffer.length) {
+  verifyCheckoutSignature(
+    gatewayOrderId: string,
+    gatewayPaymentId: string,
+    signature: string,
+  ): boolean {
+    if (!gatewayOrderId || !gatewayPaymentId || !signature) {
       return false;
     }
 
-    return timingSafeEqual(expectedBuffer, receivedBuffer);
+    const expectedSignature = createHmac('sha256', env.RAZORPAY_KEY_SECRET)
+      .update(`${gatewayOrderId}|${gatewayPaymentId}`)
+      .digest('hex');
+
+    return equalHex(expectedSignature, signature);
   }
 }

@@ -32,6 +32,11 @@ export function createOrderRoutes(orderController: OrderController): Router {
     validate(updateOrderStatusDto),
     orderController.updateStatus,
   );
+  router.post(
+    '/:id/cancel',
+    validate(orderIdParamsDto, 'params'),
+    orderController.cancelPendingOrder,
+  );
 
   return router;
 }

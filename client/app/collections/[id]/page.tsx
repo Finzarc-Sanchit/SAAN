@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { CollectionHero } from '@/components/collections/CollectionHero';
 import { CollectionProductGrid } from '@/components/collections/CollectionProductGrid';
-import { COLLECTIONS, getCollectionById, getProductsForCollection } from '@/lib/site-content';
+import { COLLECTIONS, getCollectionById } from '@/lib/site-content';
 
 type CollectionPageProps = {
   params: Promise<{ id: string }>;
@@ -29,12 +29,13 @@ export default async function CollectionPage({ params }: CollectionPageProps) {
     notFound();
   }
 
-  const products = getProductsForCollection(id);
-
   return (
-    <main className="min-h-screen bg-saan-bone">
+    <main className="min-h-screen bg-paper">
       <CollectionHero collection={collection} />
-      <CollectionProductGrid products={products} collectionTitle={collection.title} />
+      <CollectionProductGrid
+        collectionTitle={collection.title}
+        collectionSlug={collection.id}
+      />
     </main>
   );
 }

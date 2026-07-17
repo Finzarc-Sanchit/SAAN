@@ -56,16 +56,16 @@ export function MonthlyTargetCard() {
               </PieChart>
             </ResponsiveContainer>
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-              <p className="font-display text-3xl text-saan-charcoal dark:text-saan-bone">
+              <p className="font-display text-3xl text-saan-charcoal dark:text-paper">
                 {Math.round(percent)}%
               </p>
-              <p className="text-[10px] uppercase tracking-wider text-saan-ink/45 dark:text-saan-bone/45">
+              <p className="text-[10px] uppercase tracking-wider text-saan-ink/45 dark:text-paper/45">
                 Achieved
               </p>
             </div>
           </div>
 
-          <p className="mt-2 text-center font-body text-sm text-saan-ink/70 dark:text-saan-bone/70">
+          <p className="mt-2 text-center font-body text-sm text-saan-ink/70 dark:text-paper/70">
             You earned {formatInr(query.data?.todayAmount ?? 0)} today ·{' '}
             {formatInr(query.data?.revenueAmount ?? 0)} this month
           </p>
@@ -79,10 +79,10 @@ export function MonthlyTargetCard() {
               ] as const
             ).map(([label, amount]) => (
               <div key={label} className="text-center">
-                <dt className="text-[10px] font-bold uppercase tracking-wider text-saan-ink/45 dark:text-saan-bone/45">
+                <dt className="text-[10px] font-bold uppercase tracking-wider text-saan-ink/45 dark:text-paper/45">
                   {label}
                 </dt>
-                <dd className="mt-1 font-body text-sm font-medium text-saan-charcoal dark:text-saan-bone">
+                <dd className="mt-1 font-body text-sm font-medium text-saan-charcoal dark:text-paper">
                   {formatInr(amount)}
                 </dd>
               </div>

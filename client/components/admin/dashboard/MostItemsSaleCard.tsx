@@ -23,7 +23,7 @@ export function MostItemsSaleCard() {
       action={
         <button
           type="button"
-          className="rounded-lg p-1.5 text-saan-ink/40 hover:bg-saan-bone dark:text-saan-bone/40 dark:hover:bg-white/10"
+          className="rounded-lg p-1.5 text-saan-ink/40 hover:bg-paper dark:text-paper/40 dark:hover:bg-white/10"
           aria-label="More options"
           disabled
         >
@@ -32,7 +32,7 @@ export function MostItemsSaleCard() {
       }
       className="h-full"
     >
-      <p className="-mt-2 mb-5 font-body text-sm text-saan-ink/50 dark:text-saan-bone/50">
+      <p className="-mt-2 mb-5 font-body text-sm text-saan-ink/50 dark:text-paper/50">
         Top products by units sold
       </p>
 
@@ -45,7 +45,7 @@ export function MostItemsSaleCard() {
       ) : query.isError ? (
         <AdminInlineError onRetry={() => void query.refetch()} />
       ) : (query.data?.length ?? 0) === 0 ? (
-        <p className="py-10 text-center font-body text-sm text-saan-ink/50 dark:text-saan-bone/50">
+        <p className="py-10 text-center font-body text-sm text-saan-ink/50 dark:text-paper/50">
           No paid sales yet.
         </p>
       ) : (
@@ -59,7 +59,7 @@ export function MostItemsSaleCard() {
                   subtitle={`${item.unitsSold.toLocaleString('en-IN')} sold`}
                   className="min-w-0 flex-1"
                 />
-                <span className="shrink-0 font-body text-sm font-semibold text-saan-charcoal dark:text-saan-bone">
+                <span className="shrink-0 font-body text-sm font-semibold text-saan-charcoal dark:text-paper">
                   {item.percentOfTotal}%
                 </span>
               </div>
@@ -73,7 +73,7 @@ export function MostItemsSaleCard() {
               >
                 <div
                   className={cn(
-                    'h-full rounded-full bg-saan-maroon transition-[width] duration-500 dark:bg-saan-gold motion-reduce:transition-none',
+                    'h-full rounded-full bg-saan-maroon transition-[width] duration-500 dark:bg-ink motion-reduce:transition-none',
                   )}
                   style={{ width: `${Math.min(item.percentOfTotal, 100)}%` }}
                 />

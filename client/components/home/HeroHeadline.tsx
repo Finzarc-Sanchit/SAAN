@@ -48,7 +48,7 @@ export function HeroHeadline() {
         initial="hidden"
         animate="visible"
         variants={reducedVariants}
-        className="max-w-4xl text-center font-display text-[clamp(1.75rem,5vw,3.5rem)] leading-[1.15] tracking-tight text-saan-bone"
+        className="max-w-4xl text-center font-display text-[clamp(1.75rem,5vw,3.5rem)] leading-[1.15] tracking-tight text-paper"
       >
         {HEADLINE.split('stillness.')[0]}
         <em className="font-normal italic">stillness.</em>
@@ -61,7 +61,7 @@ export function HeroHeadline() {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="max-w-4xl text-center font-display text-[clamp(1.75rem,5vw,3.5rem)] leading-[1.15] tracking-tight text-saan-bone"
+      className="max-w-4xl text-center font-display text-[clamp(1.75rem,5vw,3.5rem)] leading-[1.15] tracking-tight text-paper"
     >
       {words.map((word, index) => {
         const isStillness = word === 'stillness.';

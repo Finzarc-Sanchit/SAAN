@@ -3,6 +3,7 @@
 import { GripVertical, ImagePlus, Trash2, Upload } from 'lucide-react';
 import { useId, useRef, useState } from 'react';
 import { AdminButton } from '@/components/admin/ui/AdminButton';
+import { AdminFieldError } from '@/components/admin/ui/AdminFormField';
 import { AdminProductThumb } from '@/components/admin/ui/AdminProductThumb';
 import { uploadImageWithProgress } from '@/lib/api/uploads';
 import { ApiError, getApiErrorMessage, getUploadFieldError } from '@/lib/api/errors';
@@ -134,10 +135,22 @@ export function ProductImageUploader({
   }
 
   return (
-    <div className="space-y-3">
+    <div
+      className={cn(
+        'space-y-3',
+        error && 'rounded-xl border border-red-200 bg-red-50/40 p-3 dark:border-red-500/25 dark:bg-red-950/15',
+      )}
+    >
       <div>
-        <h3 className="font-display text-lg text-saan-charcoal dark:text-saan-bone">{title}</h3>
-        <p className="mt-1 font-body text-xs text-saan-ink/50 dark:text-saan-bone/50">
+        <h3
+          className={cn(
+            'font-display text-lg text-saan-charcoal dark:text-paper',
+            error && 'text-red-700 dark:text-red-300',
+          )}
+        >
+          {title}
+        </h3>
+        <p className="mt-1 font-body text-xs text-saan-ink/50 dark:text-paper/50">
           {description}
         </p>
       </div>
@@ -159,13 +172,15 @@ export function ProductImageUploader({
           className={cn(
             'flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-8 transition-colors',
             draggingOver
-              ? 'border-saan-maroon bg-saan-maroon/5 dark:border-saan-gold dark:bg-saan-gold/10'
-              : 'border-saan-champagne/70 bg-saan-bone/40 dark:border-white/15 dark:bg-white/5',
+              ? 'border-saan-maroon bg-saan-maroon/5 dark:border-ink dark:bg-ink/10'
+              : error
+                ? 'border-red-500 bg-red-50/60 dark:border-red-400 dark:bg-red-950/20'
+                : 'border-saan-champagne/70 bg-paper/40 dark:border-white/15 dark:bg-white/5',
             disabled && 'pointer-events-none opacity-50',
           )}
         >
-          <Upload className="h-5 w-5 text-saan-maroon dark:text-saan-gold" strokeWidth={1.5} />
-          <span className="font-body text-sm text-saan-charcoal dark:text-saan-bone">
+          <Upload className="h-5 w-5 text-ink dark:text-ink" strokeWidth={1.5} />
+          <span className="font-body text-sm text-saan-charcoal dark:text-paper">
             {maxImages === 1 ? 'Drop an image here or click to browse' : 'Drop images here or click to browse'}
           </span>
           <input
@@ -189,14 +204,19 @@ export function ProductImageUploader({
           {uploads.map((slot) => (
             <li
               key={slot.id}
-              className="rounded-lg border border-saan-champagne/50 px-3 py-2 dark:border-white/10"
+              className={cn(
+                'rounded-lg border px-3 py-2',
+                slot.error
+                  ? 'border-red-300 bg-red-50/60 dark:border-red-500/30 dark:bg-red-950/20'
+                  : 'border-saan-champagne/50 dark:border-white/10',
+              )}
             >
               <div className="flex items-center justify-between gap-2 font-body text-xs">
                 <span className="truncate">{slot.fileName}</span>
                 {slot.error ? (
                   <button
                     type="button"
-                    className="text-saan-maroon underline dark:text-red-300"
+                    className="font-medium text-red-700 underline dark:text-red-300"
                     onClick={() =>
                       setUploads((prev) => prev.filter((item) => item.id !== slot.id))
                     }
@@ -210,7 +230,7 @@ export function ProductImageUploader({
               {!slot.error ? (
                 <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-saan-champagne/40 dark:bg-white/10">
                   <div
-                    className="h-full bg-saan-maroon motion-reduce:transition-none dark:bg-saan-gold"
+                    className="h-full bg-saan-maroon motion-reduce:transition-none dark:bg-ink"
                     style={{
                       width: `${slot.progress}%`,
                       transition: 'width 320ms cubic-bezier(0.25, 1, 0.5, 1)',
@@ -218,7 +238,7 @@ export function ProductImageUploader({
                   />
                 </div>
               ) : (
-                <p className="mt-1 text-xs text-saan-maroon dark:text-red-300" role="alert">
+                <p className="mt-1 text-xs font-medium text-red-700 dark:text-red-300" role="alert">
                   {slot.error}
                 </p>
               )}
@@ -274,17 +294,13 @@ export function ProductImageUploader({
           ))}
         </ul>
       ) : (
-        <div className="flex items-center gap-2 font-body text-xs text-saan-ink/45 dark:text-saan-bone/45">
+        <div className="flex items-center gap-2 font-body text-xs text-saan-ink/45 dark:text-paper/45">
           <ImagePlus className="h-4 w-4" />
           No images yet
         </div>
       )}
 
-      {error ? (
-        <p className="font-body text-xs text-saan-maroon dark:text-red-300" role="alert">
-          {error}
-        </p>
-      ) : null}
+      <AdminFieldError error={error} />
     </div>
   );
 }
