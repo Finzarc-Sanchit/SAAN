@@ -65,8 +65,9 @@ export function AtelierClosingCopySection() {
                   <div className="mt-7">
                     <CtaButton
                       href={`mailto:${email}?subject=${encodeURIComponent(`Application — ${role.title}`)}`}
-                      variant="link"
+                      variant="primary"
                       tone="light"
+                      className="min-w-[12rem]"
                     >
                       Apply via email
                     </CtaButton>

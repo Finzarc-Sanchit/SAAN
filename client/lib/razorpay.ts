@@ -23,22 +23,6 @@ type RazorpayCheckoutOptions = {
   theme?: {
     color?: string;
   };
-  /** Prefer domestic methods so test checkout is easier on Indian accounts. */
-  config?: {
-    display?: {
-      blocks?: Record<
-        string,
-        {
-          name: string;
-          instruments: Array<{ method: string }>;
-        }
-      >;
-      sequence?: string[];
-      preferences?: {
-        show_default_blocks?: boolean;
-      };
-    };
-  };
   handler: (response: RazorpaySuccessResponse) => void;
   modal?: {
     ondismiss?: () => void;
@@ -95,15 +79,17 @@ function loadRazorpayScript(): Promise<void> {
   return scriptPromise;
 }
 
-/** Razorpay domestic checkout expects a 10-digit Indian mobile number. */
+/** Razorpay domestic checkout expects +91XXXXXXXXXX or a 10-digit Indian mobile. */
 export function normalizeRazorpayContact(phone: string | undefined): string | undefined {
   if (!phone) return undefined;
   const digits = phone.replace(/\D/g, '');
-  if (digits.length === 10) return digits;
-  if (digits.length === 12 && digits.startsWith('91')) return digits.slice(2);
-  if (digits.length === 11 && digits.startsWith('0')) return digits.slice(1);
-  if (digits.length > 10) return digits.slice(-10);
-  return undefined;
+  let national: string | undefined;
+  if (digits.length === 10) national = digits;
+  else if (digits.length === 12 && digits.startsWith('91')) national = digits.slice(2);
+  else if (digits.length === 11 && digits.startsWith('0')) national = digits.slice(1);
+  else if (digits.length > 10) national = digits.slice(-10);
+  if (!national || national.length !== 10) return undefined;
+  return `+91${national}`;
 }
 
 export type OpenRazorpayCheckoutInput = {
@@ -125,18 +111,41 @@ export type OpenRazorpayCheckoutResult =
 function mapPaymentFailureMessage(description?: string): string {
   const text = description?.trim() || 'Payment failed. Please try again.';
   if (/international cards? are not supported/i.test(text)) {
-    return 'Card payments are restricted on this Razorpay account. In test mode, pay with UPI using success@razorpay, or enable Cards in the Razorpay Dashboard.';
+    return 'This Razorpay account only accepts domestic Indian cards. In test mode use Visa 4100 2800 0000 1007 (or Netbanking → Success), not 4111… which is treated as international.';
   }
   if (/incorrect otp|invalid otp|authentication failed/i.test(text)) {
-    return 'Card authentication failed. In test mode use OTP 1234, or click Success on the bank page if shown. Prefer UPI success@razorpay if cards keep failing.';
+    return 'Card authentication failed. In test mode enter any OTP with 4–10 digits (e.g. 123456), or click Success on the bank page. Prefer Netbanking → Success if OTP keeps failing.';
   }
   return text;
 }
 
+function assertCheckoutPayment(payment: InitiatePaymentResult): void {
+  const { keyId, amount, currency, gatewayOrderId } = payment;
+
+  if (!keyId || keyId.includes('placeholder')) {
+    throw new Error(
+      'Razorpay is not configured. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET on the server, then restart.',
+    );
+  }
+
+  if (!gatewayOrderId || !gatewayOrderId.startsWith('order_')) {
+    throw new Error('Invalid payment session. Please try again.');
+  }
+
+  if (!Number.isInteger(amount) || amount < 100) {
+    throw new Error('Invalid payment amount. Please try again.');
+  }
+
+  if (!currency?.trim()) {
+    throw new Error('Invalid payment currency. Please try again.');
+  }
+}
+
 /**
  * Opens Razorpay Checkout and waits for a terminal outcome.
- * Ignores modal `ondismiss` after success/failure — Razorpay often fires
- * dismiss after a successful payment, which would otherwise cancel verify.
+ * Prefers `handler` over `modal.ondismiss` — after Success on the test bank
+ * page Razorpay often closes the modal before (or with) the success handler,
+ * which would otherwise cancel a paid order and skip redirect.
  */
 export async function openRazorpayCheckout(
   input: OpenRazorpayCheckoutInput,
@@ -147,14 +156,24 @@ export async function openRazorpayCheckout(
     throw new Error('Razorpay checkout is unavailable');
   }
 
-  const contact = normalizeRazorpayContact(input.prefill?.contact);
+  assertCheckoutPayment(input.payment);
+
+  const isTestKey = input.payment.keyId.startsWith('rzp_test_');
+  // Test mode: omit contact so Checkout skips phone/saved-card OTP
+  // (v2/otp/verify), which often 400s with a real mobile number.
+  const contact = isTestKey ? undefined : normalizeRazorpayContact(input.prefill?.contact);
 
   return new Promise((resolve) => {
     let settled = false;
+    let dismissTimer: number | null = null;
 
     const finish = (result: OpenRazorpayCheckoutResult) => {
       if (settled) return;
       settled = true;
+      if (dismissTimer !== null) {
+        window.clearTimeout(dismissTimer);
+        dismissTimer = null;
+      }
       resolve(result);
     };
 
@@ -173,33 +192,16 @@ export async function openRazorpayCheckout(
       theme: {
         color: '#0B0A09',
       },
-      config: {
-        display: {
-          blocks: {
-            upi: {
-              name: 'UPI',
-              instruments: [{ method: 'upi' }],
-            },
-            cards_and_netbanking: {
-              name: 'Cards & Netbanking',
-              instruments: [{ method: 'card' }, { method: 'netbanking' }],
-            },
-          },
-          sequence: ['block.upi', 'block.cards_and_netbanking'],
-          preferences: {
-            show_default_blocks: false,
-          },
-        },
-      },
       handler: (response) => {
         finish({ status: 'paid', response });
       },
       modal: {
         ondismiss: () => {
-          // Delay slightly so a successful `handler` can win the race.
-          window.setTimeout(() => {
+          // Brief delay so the success handler can win after mock bank "Success"
+          // without stalling a real cancel. Keep short for faster confirmation redirect.
+          dismissTimer = window.setTimeout(() => {
             finish({ status: 'dismissed' });
-          }, 300);
+          }, 350);
         },
       },
     });

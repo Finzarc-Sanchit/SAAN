@@ -49,6 +49,10 @@ paymentSchema.index(
   },
 );
 
+paymentSchema.index({ createdAt: -1 });
+paymentSchema.index({ status: 1, createdAt: -1 });
+paymentSchema.index({ paymentGateway: 1, createdAt: -1 });
+
 export const PaymentModel = model('Payment', paymentSchema);
 
 export type PaymentDocument = {

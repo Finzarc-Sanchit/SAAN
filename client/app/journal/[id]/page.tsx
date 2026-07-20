@@ -66,7 +66,7 @@ export default async function JournalArticlePage({ params }: JournalArticlePageP
                 </p>
               ))}
               <div className="pt-6">
-                <CtaButton href="/journal" variant="link">
+                <CtaButton href="/journal" variant="primary" className="min-w-[12rem]">
                   Back to Journal
                 </CtaButton>
               </div>

@@ -1,4 +1,7 @@
+import type { Paginated, Pagination } from '../../shared/types/pagination';
 import type {
+  AdminPaymentListFilter,
+  AdminPaymentListItem,
   CreatePaymentInput,
   Payment,
   UpdatePaymentStatusOptions,
@@ -15,4 +18,8 @@ export interface IPaymentRepository {
     status: Payment['status'],
     options?: UpdatePaymentStatusOptions,
   ): Promise<Payment>;
+  findManyAdmin(
+    filter: AdminPaymentListFilter,
+    pagination: Pagination,
+  ): Promise<Paginated<AdminPaymentListItem>>;
 }

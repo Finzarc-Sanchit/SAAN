@@ -1,5 +1,5 @@
 import express, { type Request, type Response } from 'express';
-import { orderPaymentRoutes, paymentWebhookRoutes } from '../modules/payment/payment.module';
+import { orderPaymentRoutes, paymentWebhookRoutes, adminPaymentRoutes } from '../modules/payment/payment.module';
 import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -115,6 +115,7 @@ export function createApp(): express.Application {
   app.use('/api/v1/cart', cartRoutes);
   app.use('/api/v1/orders', orderRoutes);
   app.use('/api/v1/admin/orders', adminOrderRoutes);
+  app.use('/api/v1/admin/payments', adminPaymentRoutes);
   app.use('/api/v1/admin/customers', adminCustomerRoutes);
   app.use('/api/v1/wishlist', wishlistRoutes);
   app.use('/api/v1/uploads', uploadRoutes);

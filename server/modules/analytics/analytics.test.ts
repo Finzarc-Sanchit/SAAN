@@ -19,6 +19,8 @@ import type { Product } from '../product/product.types';
 function createOrderRepositoryMock(): jest.Mocked<IOrderRepository> {
   return {
     findById: jest.fn(),
+    findByOrderNumber: jest.fn(),
+    findByIdOrNumber: jest.fn(),
     findByUser: jest.fn(),
     create: jest.fn(),
     updateStatus: jest.fn(),
@@ -29,6 +31,7 @@ function createOrderRepositoryMock(): jest.Mocked<IOrderRepository> {
     getTimeSeries: jest.fn(),
     getTopSellingProducts: jest.fn(),
     findRecent: jest.fn(),
+    findManyAdmin: jest.fn(),
   };
 }
 
@@ -41,6 +44,8 @@ function createUserRepositoryMock(): jest.Mocked<IUserRepository> {
     removeAddress: jest.fn(),
     setDefaultAddress: jest.fn(),
     countUsersBetween: jest.fn(),
+    findCustomersAdmin: jest.fn(),
+    findCustomerAdminById: jest.fn(),
   };
 }
 
@@ -316,6 +321,7 @@ describe('AnalyticsService', () => {
   it('getRecentOrders enriches primary product and category', async () => {
     const order: Order = {
       id: 'o1',
+      orderNumber: '407-1298468-3682757',
       userId: 'u1',
       addressSnapshot: {
         firstName: 'A',
@@ -377,6 +383,7 @@ describe('AnalyticsService', () => {
         color: 'Ivory',
         occasion: ['Daily'],
         fitNotes: "Model is 5'6\" wearing S. Fit relaxed.",
+        care: ['Dry clean only'],
         basePrice: 5000,
         ratingsAverage: 0,
         ratingsCount: 0,
@@ -396,6 +403,7 @@ describe('AnalyticsService', () => {
         id: 'cat1',
         name: 'Ready-to-Wear',
         slug: 'ready-to-wear',
+        productCount: 12,
       },
     ]);
 

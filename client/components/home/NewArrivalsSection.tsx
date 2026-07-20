@@ -10,6 +10,8 @@ import { useStorefrontProducts } from '@/hooks/useStorefrontProducts';
 import { getProductHref } from '@/lib/product-url';
 import { HOME_COPY } from '@/lib/site-content';
 
+const NEW_ARRIVALS_PRODUCT_COUNT = 8;
+
 export function NewArrivalsSection() {
   const copy = HOME_COPY.newArrivals;
   const { newArrivals, isLoading } = useStorefrontProducts();
@@ -17,36 +19,51 @@ export function NewArrivalsSection() {
   return (
     <section aria-labelledby="new-arrivals-heading" className="section-py bg-paper">
       <Container>
-        <ScrollReveal className="mb-12 md:mb-16">
-          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-            <div className="max-w-xl">
-              <h2 id="new-arrivals-heading" className="text-display-l text-ink">
-                {copy.title}
-              </h2>
-              <p className="text-body-l mt-5 text-neutral-700">{copy.description}</p>
-            </div>
-            <CtaButton href={copy.cta.href} variant="link">
-              {copy.cta.label}
-            </CtaButton>
-          </div>
-        </ScrollReveal>
-
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-10">
-          <ScrollReveal className="lg:col-span-5">
-            <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100 lg:aspect-auto lg:min-h-[720px]">
+        <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12 lg:gap-10">
+          <div className="lg:sticky lg:top-[calc(4.5rem+1px)] lg:col-span-5 lg:self-start">
+            <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100 lg:aspect-auto lg:h-[calc(100svh-5rem)] lg:max-h-[56rem]">
               <Image
                 src={copy.campaignImage.src}
                 alt={copy.campaignImage.alt}
                 fill
                 sizes="(max-width: 1024px) 100vw, 42vw"
                 className="object-cover object-center"
+                priority={false}
               />
+              <div
+                className="pointer-events-none absolute inset-0 bg-gradient-to-t from-midnight/50 via-midnight/10 to-transparent"
+                aria-hidden
+              />
+              <div className="absolute inset-x-0 bottom-0 p-6 md:p-8 lg:p-10">
+                <p className="text-caption uppercase tracking-[0.18em] text-paper/70">
+                  {copy.campaign.eyebrow}
+                </p>
+                <h2 id="new-arrivals-heading" className="text-display-l mt-4 text-paper">
+                  {copy.campaign.headline.map((line) => (
+                    <span key={line} className="block">
+                      {line}
+                    </span>
+                  ))}
+                </h2>
+                <div className="mt-6 space-y-1">
+                  {copy.campaign.body.map((line) => (
+                    <p key={line} className="text-body font-light text-paper/75">
+                      {line}
+                    </p>
+                  ))}
+                </div>
+                <div className="mt-8">
+                  <CtaButton href={copy.cta.href} variant="link" tone="light">
+                    {copy.cta.label} →
+                  </CtaButton>
+                </div>
+              </div>
             </div>
-          </ScrollReveal>
+          </div>
 
           <div className="grid grid-cols-2 gap-x-5 gap-y-12 md:gap-x-8 md:gap-y-14 lg:col-span-7 lg:grid-cols-4">
             {isLoading
-              ? Array.from({ length: 4 }).map((_, index) => (
+              ? Array.from({ length: NEW_ARRIVALS_PRODUCT_COUNT }).map((_, index) => (
                   <div key={index} className="flex flex-col gap-3 lg:col-span-2">
                     <Skeleton className="aspect-[3/4] w-full" />
                     <Skeleton className="h-4 w-3/4" />

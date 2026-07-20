@@ -1,12 +1,13 @@
 'use client';
 
-import { Heart, Search, ShoppingBag } from 'lucide-react';
+import { Heart, ShoppingBag } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { AccountMenu } from '@/components/layout/AccountMenu';
 import { SaanLogo } from '@/components/layout/SaanLogo';
+import { SearchDialog, SearchTrigger } from '@/components/layout/SearchDialog';
 import { TextLink } from '@/components/ui/TextLink';
 import { useCart } from '@/components/providers/CartProvider';
 import { useWishlist } from '@/hooks/useWishlist';
@@ -157,6 +158,7 @@ type HeaderProps = {
 
 export function Header({ variant = 'default' }: HeaderProps) {
   const isMidnight = variant === 'midnight';
+  const [searchOpen, setSearchOpen] = useState(false);
 
   return (
     <header
@@ -167,6 +169,8 @@ export function Header({ variant = 'default' }: HeaderProps) {
           : 'border-neutral-300 bg-paper text-ink'
       )}
     >
+      <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
+
       <div className="relative mx-auto grid h-16 w-full max-w-[var(--container-max)] grid-cols-[1fr_auto_1fr] items-center px-4 sm:px-6 md:h-[72px] lg:px-10 xl:px-12">
         <div className="justify-self-start">
           <SaanLogo variant={isMidnight ? 'light' : 'default'} />
@@ -189,22 +193,24 @@ export function Header({ variant = 'default' }: HeaderProps) {
 
         <div className="flex items-center justify-end gap-5">
           <div className="hidden items-center gap-5 md:flex">
-            <button type="button" aria-label="Search" className={actionClass}>
-              <Search
-                className={cn(iconClass, isMidnight && 'text-paper')}
-                strokeWidth={1.25}
-              />
-            </button>
+            <SearchTrigger
+              onClick={() => setSearchOpen(true)}
+              tone={isMidnight ? 'light' : 'dark'}
+            />
             <AccountMenu tone={isMidnight ? 'light' : 'dark'} />
             <WishlistLink tone={isMidnight ? 'light' : 'dark'} />
             <CartButton tone={isMidnight ? 'light' : 'dark'} />
           </div>
 
           <div className="absolute right-2 top-0 flex h-16 items-center gap-3 sm:right-3 md:hidden">
+            <SearchTrigger
+              onClick={() => setSearchOpen(true)}
+              tone={isMidnight ? 'light' : 'dark'}
+            />
             <AccountMenu tone={isMidnight ? 'light' : 'dark'} />
             <WishlistLink tone={isMidnight ? 'light' : 'dark'} />
             <CartButton tone={isMidnight ? 'light' : 'dark'} />
-            <MobileNav tone={isMidnight ? 'light' : 'dark'} />
+            <MobileNav tone={isMidnight ? 'light' : 'dark'} onOpenSearch={() => setSearchOpen(true)} />
           </div>
         </div>
       </div>

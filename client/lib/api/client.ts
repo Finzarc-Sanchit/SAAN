@@ -1,17 +1,18 @@
 import type { ApiResponse, PaginationMeta } from '@/lib/types/api';
 import type { AuthSession } from '@/lib/types/auth';
-import { API_BASE_PATH, CSRF_HEADER } from '@/lib/api/config';
+import { API_BASE_PATH } from '@/lib/api/config';
 import { ApiError } from '@/lib/api/errors';
 import {
-  applyAuthSession,
-  clearCsrfToken,
-  csrfHeader,
   ensureCsrfToken,
   getCsrfToken,
   syncCsrfHeaderForRequest,
 } from '@/lib/auth/csrf';
-import { writeStoredSession } from '@/lib/auth/session-storage';
-import { clearAccessToken, getAccessToken, setAccessToken } from '@/lib/auth/token-store';
+import {
+  clearClientSession,
+  ensureValidAccessToken,
+  refreshSession,
+  refreshSessionOnce,
+} from '@/lib/auth/session-client';
 
 type RequestOptions = Omit<RequestInit, 'body'> & {
   body?: unknown;
@@ -33,21 +34,12 @@ const AUTH_MUTATION_PATHS = new Set([
   '/api/v1/auth/reset-password',
 ]);
 
-/** Deduplicates concurrent refresh calls — only one may rotate the refresh token at a time. */
-let refreshPromise: Promise<AuthSession | null> | null = null;
-
 function resolveUrl(path: string): string {
   return `${API_BASE_PATH}${path}`;
 }
 
 function needsCsrf(path: string, withCsrf?: boolean): boolean {
   return withCsrf ?? AUTH_MUTATION_PATHS.has(path);
-}
-
-function persistSession(session: AuthSession): void {
-  setAccessToken(session.accessToken, session.user);
-  writeStoredSession({ accessToken: session.accessToken, user: session.user });
-  applyAuthSession(session);
 }
 
 async function parseResponse<T>(response: Response): Promise<{ data: T; meta?: PaginationMeta }> {
@@ -58,43 +50,6 @@ async function parseResponse<T>(response: Response): Promise<{ data: T; meta?: P
   }
 
   return { data: json.data, meta: json.meta };
-}
-
-async function performRefresh(): Promise<AuthSession | null> {
-  try {
-    const csrf = await ensureCsrfToken();
-
-    const response = await fetch(resolveUrl('/api/v1/auth/refresh'), {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: csrfHeader(csrf),
-    });
-    const json = (await response.json()) as ApiResponse<AuthSession>;
-
-    if (!response.ok || !json.success) {
-      return null;
-    }
-
-    persistSession(json.data);
-    return json.data;
-  } catch {
-    return null;
-  }
-}
-
-function refreshSessionOnce(): Promise<AuthSession | null> {
-  if (!refreshPromise) {
-    refreshPromise = performRefresh().finally(() => {
-      refreshPromise = null;
-    });
-  }
-
-  return refreshPromise;
-}
-
-async function refreshSession(): Promise<boolean> {
-  const session = await refreshSessionOnce();
-  return session !== null;
 }
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -113,7 +68,7 @@ export async function apiRequestWithMeta<T>(
     headers.set('Content-Type', 'application/json');
   }
 
-  const token = getAccessToken();
+  const token = skipAuthRefresh ? null : await ensureValidAccessToken();
   if (token) {
     headers.set('Authorization', `Bearer ${token}`);
   }
@@ -160,9 +115,7 @@ export async function restoreSession(): Promise<AuthSession | null> {
 }
 
 export function clearSession(): void {
-  refreshPromise = null;
-  clearAccessToken();
-  clearCsrfToken();
+  clearClientSession();
 }
 
 // Re-export for auth.ts consumers if needed

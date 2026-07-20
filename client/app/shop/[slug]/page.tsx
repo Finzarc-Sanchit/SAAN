@@ -1,12 +1,7 @@
 import { notFound } from 'next/navigation';
 import { ProductDetailView } from '@/components/product/ProductDetailView';
 import { serverApiRequest } from '@/lib/auth/server-fetch';
-import {
-  enrichShopProduct,
-  mapApiProductToDetail,
-  type ProductDetail,
-} from '@/lib/product-defaults';
-import { getShopProductBySlug } from '@/lib/site-content';
+import { mapApiProductToDetail, type ProductDetail } from '@/lib/product-defaults';
 import type { Product } from '@/lib/types/product';
 
 type ProductPageProps = {
@@ -20,8 +15,7 @@ async function loadProductDetail(slug: string): Promise<ProductDetail | null> {
     );
     return mapApiProductToDetail(apiProduct);
   } catch {
-    const staticProduct = getShopProductBySlug(slug);
-    return staticProduct ? enrichShopProduct(staticProduct) : null;
+    return null;
   }
 }
 

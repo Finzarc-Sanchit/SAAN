@@ -36,6 +36,10 @@ export interface TopProductSalesResult {
 
 export interface IOrderRepository {
   findById(id: string): Promise<Order | null>;
+  /** Lookup by customer-facing order id (e.g. 407-1298468-3682757). */
+  findByOrderNumber(orderNumber: string): Promise<Order | null>;
+  /** Resolve Mongo id or order number for customer/admin order detail routes. */
+  findByIdOrNumber(ref: string): Promise<Order | null>;
   findByUser(userId: string, pagination: Pagination): Promise<Paginated<Order>>;
   create(data: CreateOrderInput): Promise<Order>;
   updateStatus(id: string, status: OrderStatus): Promise<Order>;

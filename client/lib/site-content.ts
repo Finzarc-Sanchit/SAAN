@@ -94,89 +94,6 @@ export const TRENDING_FILTERS = [
 
 export type TrendingCategory = (typeof TRENDING_FILTERS)[number]['id'];
 
-export const PRODUCTS = [
-  {
-    id: 'zari-embroidered-lehenga',
-    name: 'Zari Embroidered Lehenga',
-    price: 125000,
-    mrp: 165000,
-    currency: 'INR',
-    category: 'luxury-formals' as const,
-    image: SAANLABEL_PRODUCTS.kaliWhiteBoneGown,
-    isNew: false,
-  },
-  {
-    id: 'silk-chanderi-kurta-set',
-    name: 'Silk Chanderi Kurta Set',
-    price: 42000,
-    mrp: 54900,
-    currency: 'INR',
-    category: 'new-arrivals' as const,
-    image: SAANLABEL_PRODUCTS.whiteCottonCoord,
-    isNew: true,
-  },
-  {
-    id: 'velvet-anarkali-suit',
-    name: 'Velvet Anarkali Suit',
-    price: 68000,
-    mrp: 89900,
-    currency: 'INR',
-    category: 'luxury-pret' as const,
-    image: SAANLABEL_PRODUCTS.whitePersianAnarkali,
-    isNew: true,
-  },
-  {
-    id: 'organza-saree-pearls',
-    name: 'Organza Saree with Pearls',
-    price: 55000,
-    mrp: 72500,
-    currency: 'INR',
-    category: 'new-arrivals' as const,
-    image: SAANLABEL_PRODUCTS.inkBlueSaree,
-    isNew: false,
-  },
-  {
-    id: 'embroidered-paper-silk-suit',
-    name: '3 Piece Embroidered Paper Silk Suit',
-    price: 29900,
-    mrp: 42900,
-    currency: 'INR',
-    category: 'new-arrivals' as const,
-    image: SAANLABEL_PRODUCTS.noirGraceSuit,
-    isNew: true,
-  },
-  {
-    id: 'cotton-lawn-kurta',
-    name: 'Printed Cotton Lawn Kurta',
-    price: 18500,
-    mrp: 24900,
-    currency: 'INR',
-    category: 'luxury-lawn' as const,
-    image: SAANLABEL_PRODUCTS.greenBoneDress,
-    isNew: false,
-  },
-  {
-    id: 'linen-coord-set',
-    name: 'Minimal Linen Co-ord Set',
-    price: 24000,
-    mrp: 31900,
-    currency: 'INR',
-    category: 'luxury-basics' as const,
-    image: SAANLABEL_PRODUCTS.electricBlueCoord,
-    isNew: false,
-  },
-  {
-    id: 'zari-clutch',
-    name: 'Hand-Embroidered Zari Clutch',
-    price: 8900,
-    mrp: 12900,
-    currency: 'INR',
-    category: 'accessories' as const,
-    image: SAANLABEL_PRODUCTS.saanPrintMiniDress,
-    isNew: true,
-  },
-] as const;
-
 export const JOURNAL_POSTS = [
   {
     id: 'ethnic-vs-traditional',
@@ -599,7 +516,8 @@ export const FOOTER_LINKS = {
 export const BRAND = {
   name: 'SAAN',
   tagline: 'Atmospheric Couture',
-  logo: '/images/saan-logo.png',
+  logo: '/images/saan.jpg',
+  logoOnLight: '/images/saan-transparent.png',
   description:
     'Redefining heritage for the modern muse. Ethical craftsmanship meets timeless design.',
   social: {
@@ -607,8 +525,7 @@ export const BRAND = {
   },
 } as const;
 
-export const WHATSAPP_SUPPORT_URL =
-  'https://wa.me/919876543210?text=Hi%20SAAN%2C%20I%20need%20help%20with%20a%20product';
+export { WHATSAPP_SUPPORT_URL } from '@/lib/whatsapp';
 
 export function formatPrice(price: number, currency = 'INR'): string {
   return new Intl.NumberFormat('en-IN', {
@@ -640,218 +557,11 @@ export type ShopProduct = {
   image: string;
   images?: readonly string[];
   isNew: boolean;
-  /** Present for API-backed products; static catalog items fall back to `id`. */
   slug?: string;
 };
 
-export const SHOP_PRODUCTS: readonly ShopProduct[] = [
-  {
-    id: 'the-maroon-anarkali',
-    sku: 'SS-001',
-    name: 'The Maroon Anarkali',
-    subtitle: 'Anarkali set',
-    price: 10500,
-    mrp: 12500,
-    currency: 'INR',
-    collection: 'bloody-maroon',
-    category: 'Anarkalis',
-    occasion: ['Festive'],
-    image: SAANLABEL_PRODUCTS.regalMaroonKurta,
-    isNew: true,
-  },
-  {
-    id: 'bloody-maroon-saree-set',
-    sku: 'SS-002',
-    name: 'Bloody Maroon Saree Set',
-    subtitle: 'Saree + Blouse',
-    price: 22400,
-    mrp: 29900,
-    currency: 'INR',
-    collection: 'bloody-maroon',
-    category: 'Sarees',
-    occasion: ['Wedding'],
-    image: SAANLABEL_PRODUCTS.inkBlueSaree,
-    isNew: false,
-  },
-  {
-    id: 'the-maroon-dhoti-set',
-    sku: 'SS-003',
-    name: 'The Maroon Dhoti Set',
-    subtitle: 'Kurta + Dhoti Pants',
-    price: 16800,
-    mrp: 21900,
-    currency: 'INR',
-    collection: 'bloody-maroon',
-    category: 'Dhoti Sets',
-    occasion: ['Daily'],
-    image: SAANLABEL_PRODUCTS.coralPinkDhoti,
-    isNew: false,
-  },
-  {
-    id: 'sunheri-anarkali',
-    sku: 'SS-004',
-    name: 'Sunheri Anarkali',
-    subtitle: 'Anarkali set',
-    price: 26500,
-    mrp: 34900,
-    currency: 'INR',
-    collection: 'ek-sunheri-dopahar',
-    category: 'Anarkalis',
-    occasion: ['Festive'],
-    image: SAANLABEL_PRODUCTS.purpleGlassKurta,
-    isNew: true,
-  },
-  {
-    id: 'the-jhalak-dress',
-    sku: 'SS-005',
-    name: 'The Jhalak Dress',
-    subtitle: 'Draped Dress',
-    price: 18200,
-    mrp: 24500,
-    currency: 'INR',
-    collection: 'jhalak',
-    category: 'Dresses',
-    occasion: ['Cocktail'],
-    image: SAANLABEL_PRODUCTS.saanPrintKurta,
-    isNew: false,
-  },
-  {
-    id: 'the-shaila-anarkali',
-    sku: 'SS-006',
-    name: 'The Shaila Anarkali',
-    subtitle: 'Anarkali set',
-    price: 28500,
-    mrp: 37900,
-    currency: 'INR',
-    collection: 'shaila',
-    category: 'Anarkalis',
-    occasion: ['Wedding'],
-    image: SAANLABEL_PRODUCTS.whitePersianAnarkali,
-    isNew: true,
-  },
-  {
-    id: 'effortless-pink-anarkali',
-    sku: 'SS-007',
-    name: 'Effortless Pink Anarkali',
-    subtitle: 'Anarkali set',
-    price: 16800,
-    mrp: 22500,
-    currency: 'INR',
-    collection: 'effortless',
-    category: 'Anarkalis',
-    occasion: ['Daily'],
-    image: SAANLABEL_PRODUCTS.pastelMaxiDress,
-    isNew: false,
-  },
-  {
-    id: 'effortless-maroon-kurta',
-    sku: 'SS-008',
-    name: 'Effortless Maroon Kurta',
-    subtitle: 'Kurta set',
-    price: 9800,
-    mrp: 12900,
-    currency: 'INR',
-    collection: 'effortless',
-    category: 'Kurta Sets',
-    occasion: ['Daily'],
-    image: SAANLABEL_PRODUCTS.whiteCottonCoord,
-    isNew: false,
-  },
-  {
-    id: 'sunheri-sharara-set',
-    sku: 'SS-009',
-    name: 'Sunheri Sharara Set',
-    subtitle: 'Kurta + Sharara',
-    price: 24200,
-    mrp: 32500,
-    currency: 'INR',
-    collection: 'ek-sunheri-dopahar',
-    category: 'Sharara Sets',
-    occasion: ['Festive'],
-    image: SAANLABEL_PRODUCTS.saanPrintKurta,
-    isNew: false,
-  },
-  {
-    id: 'sunheri-dupatta-set',
-    sku: 'SS-010',
-    name: 'Sunheri Dupatta Set',
-    subtitle: 'Kurta + Dupatta',
-    price: 21000,
-    mrp: 27900,
-    currency: 'INR',
-    collection: 'ek-sunheri-dopahar',
-    category: 'Kurta Sets',
-    occasion: ['Festive'],
-    image: SAANLABEL_PRODUCTS.noirGraceSuit,
-    isNew: false,
-  },
-  {
-    id: 'jhalak-co-ord',
-    sku: 'SS-011',
-    name: 'Jhalak Co-ord',
-    subtitle: 'Top + Skirt Co-ord',
-    price: 15400,
-    mrp: 19900,
-    currency: 'INR',
-    collection: 'jhalak',
-    category: 'Co-ords',
-    occasion: ['Cocktail'],
-    image: SAANLABEL_PRODUCTS.electricBlueCoord,
-    isNew: false,
-  },
-  {
-    id: 'shaila-lehenga',
-    sku: 'SS-012',
-    name: 'Shaila Lehenga',
-    subtitle: 'Lehenga Set',
-    price: 35000,
-    mrp: 45000,
-    currency: 'INR',
-    collection: 'shaila',
-    category: 'Lehengas',
-    occasion: ['Wedding'],
-    image: SAANLABEL_PRODUCTS.kaliWhiteBoneGown,
-    isNew: true,
-  },
-  {
-    id: 'effortless-white-set',
-    sku: 'SS-013',
-    name: 'Effortless White Set',
-    subtitle: 'Top + Skirt',
-    price: 14400,
-    mrp: 18900,
-    currency: 'INR',
-    collection: 'effortless',
-    category: 'Co-ords',
-    occasion: ['Daily'],
-    image: SAANLABEL_PRODUCTS.greenBoneDress,
-    isNew: false,
-  },
-];
-
-const COLLECTION_PRODUCT_MAP: Record<string, string> = {
-  shells: 'shaila',
-};
-
-export function resolveCollectionId(id: string): string {
-  return COLLECTION_PRODUCT_MAP[id] ?? id;
-}
-
 export function getCollectionById(id: string) {
   return COLLECTIONS.find((c) => c.id === id);
-}
-
-export function getProductsForCollection(collectionId: string): ShopProduct[] {
-  const resolved = resolveCollectionId(collectionId);
-  return SHOP_PRODUCTS.filter((p) => p.collection === resolved);
-}
-
-export function getShopProductById(id: string): ShopProduct | undefined {
-  return SHOP_PRODUCTS.find((p) => p.id === id);
-}
-
-export function getShopProductBySlug(slug: string): ShopProduct | undefined {
-  return SHOP_PRODUCTS.find((p) => p.id === slug);
 }
 
 export const SHOP_COLLECTION_FILTERS = [
@@ -900,11 +610,16 @@ export const HOME_COPY = {
     title: 'New Arrivals',
     description:
       'The latest pieces from our atelier — cut, sewn and finished by hand in Bandra.',
+    campaign: {
+      eyebrow: 'New Season',
+      headline: ['Designed for', 'Everyday Rituals'],
+      body: ['Crafted with intention.', 'Made to be worn every day.'],
+    },
     campaignImage: {
       src: SAANLABEL_SECTIONS.newArrivalsCampaign,
       alt: 'Kali White Bone Gown from the SAAN new arrivals edit',
     },
-    cta: { label: 'View All', href: '/shop?sort=newest' },
+    cta: { label: 'Discover Collection', href: '/shop?sort=newest' },
   },
   brandPhilosophy: {
     headline: ATELIER_COPY.headline,
@@ -927,9 +642,14 @@ export const HOME_COPY = {
   },
   editorialCampaign: {
     title: 'The Luxe Edit',
+    subtitle:
+      'Occasion wear and evening silhouettes — a quiet curation for the moments that ask for more.',
     image: SAANLABEL_SECTIONS.editorialCampaign,
-    href: '/shop',
+    desktopImage: '/images/luxe-edit.webp',
+    imagePrompt:
+      'Full-bleed luxury fashion editorial for an Indian occasion-wear brand. A woman in a refined evening kurta set — deep wine or midnight tones with subtle metallic threadwork — standing in a dim atelier with soft window light from camera-left. Muted palette: charcoal, ivory, and a single signature burgundy accent. Composition: subject slightly off-centre, generous negative space above for headline overlay, calm confident posture, no smile. Shot on medium format, shallow depth of field, film grain, quiet luxury aesthetic like The Row or Toteme. No logos, no text, no busy patterns. Aspect ratio 16:9 landscape, suitable for full-width homepage hero with bottom gradient.',
     cta: { label: 'Shop the Edit', href: '/shop' },
+    featuredCollectionTitle: 'Featured Collection',
   },
   shopByOccasion: {
     title: 'Shop by Occasion',
@@ -939,7 +659,7 @@ export const HOME_COPY = {
     title: FEATURED_COLLECTION.title,
     description: FEATURED_COLLECTION.tagline,
     campaignImage: {
-      src: SAANLABEL_SECTIONS.bestSellersCampaign,
+      src: '/images/best-seller.webp',
       alt: 'Purple Glass Organza Luxe Kurta Set editorial',
     },
     cta: { label: 'Shop Best Sellers', href: '/shop/best-sellers' },
@@ -948,8 +668,8 @@ export const HOME_COPY = {
     title: 'Fourteen hands. One piece.',
     body: ATELIER_LANDING_COPY.body[0],
     detailImage: {
-      src: SAANLABEL_SECTIONS.craftsmanship,
-      alt: 'Ink Blue Glossy Tissue Draped Saree fabric detail',
+      src: '/images/craft-story.webp',
+      alt: 'Hand-finished embroidery in the SAAN atelier',
     },
     cta: ATELIER_LANDING_COPY.cta,
   },
@@ -1012,26 +732,3 @@ export const OCCASION_TILES = [
 ] as const;
 
 export const COMMUNITY_IMAGES = SAANLABEL_INSTAGRAM;
-
-const BEST_SELLER_IDS = [
-  'bloody-maroon-saree-set',
-  'the-jhalak-dress',
-  'shaila-lehenga',
-  'sunheri-sharara-set',
-  'effortless-pink-anarkali',
-  'the-maroon-dhoti-set',
-] as const;
-
-export function getNewArrivalProducts(limit = 8): ShopProduct[] {
-  const arrivals = SHOP_PRODUCTS.filter((product) => product.isNew);
-  return arrivals.length >= limit
-    ? arrivals.slice(0, limit)
-    : [...arrivals, ...SHOP_PRODUCTS.filter((p) => !p.isNew)].slice(0, limit);
-}
-
-export function getBestSellerProducts(): ShopProduct[] {
-  return BEST_SELLER_IDS.map((id) => SHOP_PRODUCTS.find((p) => p.id === id)).filter(
-    (product): product is ShopProduct => product !== undefined
-  );
-}
-

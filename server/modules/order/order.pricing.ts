@@ -18,6 +18,10 @@ function roundMoney(amount: number): number {
 }
 
 export function computeShippingCharge(merchandiseTotal: number): number {
+  if (ORDER_CONSTANTS.STANDARD_SHIPPING_CHARGE <= 0) {
+    return 0;
+  }
+
   if (merchandiseTotal >= ORDER_CONSTANTS.FREE_SHIPPING_MIN_SUBTOTAL) {
     return 0;
   }

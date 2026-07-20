@@ -1,13 +1,14 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { ConflictError } from '../../shared/errors/conflict-error';
 import { NotFoundError } from '../../shared/errors/not-found-error';
+import { SIZE_ID_PREFIX } from '../../shared/constants/size-id';
 import type { ISizeRepository } from './size.repository.interface';
 import { SizeService } from './size.service';
 import type { GarmentSize } from './size.types';
 
 const baseSize: GarmentSize = {
   id: 'size-doc-1',
-  sizeId: '400000000001',
+  sizeId: `${SIZE_ID_PREFIX}00001`,
   label: 'M',
   sortOrder: 0,
   createdAt: new Date('2026-01-01'),
@@ -51,7 +52,7 @@ describe('SizeService', () => {
 
     const result = await service.createSize({ label: 'M' });
 
-    expect(result.sizeId.startsWith('4000000')).toBe(true);
+    expect(result.sizeId.startsWith(SIZE_ID_PREFIX)).toBe(true);
     expect(result.label).toBe('M');
     expect(repository.create).toHaveBeenCalled();
   });

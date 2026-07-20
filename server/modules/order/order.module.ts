@@ -1,5 +1,6 @@
 import { RedisIdempotencyStore } from '../../infrastructure/database/redis/idempotency.store';
 import { MongoOrderRepository } from '../../infrastructure/database/mongodb/repositories/order.repository';
+import { MongoPaymentRepository } from '../../infrastructure/database/mongodb/repositories/payment.repository';
 import { authRepository } from '../auth/auth.module';
 import { cartService } from '../cart/cart.module';
 import { productService } from '../product/product.module';
@@ -10,6 +11,7 @@ import { createOrderRoutes } from './order.routes';
 import { OrderService } from './order.service';
 
 const orderRepository = new MongoOrderRepository();
+const paymentRepository = new MongoPaymentRepository();
 const idempotencyStore = new RedisIdempotencyStore();
 const orderService = new OrderService(
   orderRepository,
@@ -18,6 +20,7 @@ const orderService = new OrderService(
   productService,
   idempotencyStore,
   authRepository,
+  paymentRepository,
 );
 const orderController = new OrderController(orderService);
 

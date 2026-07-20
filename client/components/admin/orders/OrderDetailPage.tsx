@@ -136,7 +136,7 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
         <div>
           <BackLink />
           <h1 className="mt-2 font-display text-2xl text-saan-charcoal dark:text-paper md:text-3xl">
-            Order {formatShortOrderId(order.id)}
+            Order {formatShortOrderId(order.orderNumber)}
           </h1>
           <p className="mt-1 font-body text-xs text-saan-ink/45 dark:text-paper/45">
             Placed {formatOrderDateTime(order.createdAt)}

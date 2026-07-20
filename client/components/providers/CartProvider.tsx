@@ -24,7 +24,10 @@ type CartContextValue = {
   closeCart: () => void;
   clearCart: () => void;
   replaceItems: (items: CartItem[]) => void;
-  addItem: (item: Omit<CartItem, 'quantity'> & { quantity?: number }) => void;
+  addItem: (
+    item: Omit<CartItem, 'quantity'> & { quantity?: number },
+    options?: { openDrawer?: boolean },
+  ) => void;
   removeItem: (productId: string, size?: string) => void;
   updateQuantity: (productId: string, delta: number, size?: string) => void;
 };
@@ -88,23 +91,32 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems(next);
   }, []);
 
-  const addItem = useCallback((item: Omit<CartItem, 'quantity'> & { quantity?: number }) => {
-    const qty = item.quantity ?? 1;
-    const { quantity: _q, ...cartFields } = item;
-    setItems((prev) => {
-      const existing = prev.find((entry) => sameLine(entry, cartFields));
-      if (existing) {
-        return prev.map((entry) =>
-          sameLine(entry, cartFields)
-            ? { ...entry, ...cartFields, quantity: entry.quantity + qty }
-            : entry,
-        );
+  const addItem = useCallback(
+    (
+      item: Omit<CartItem, 'quantity'> & { quantity?: number },
+      options?: { openDrawer?: boolean },
+    ) => {
+      const qty = item.quantity ?? 1;
+      const openDrawer = options?.openDrawer ?? true;
+      const { quantity: _q, ...cartFields } = item;
+      setItems((prev) => {
+        const existing = prev.find((entry) => sameLine(entry, cartFields));
+        if (existing) {
+          return prev.map((entry) =>
+            sameLine(entry, cartFields)
+              ? { ...entry, ...cartFields, quantity: entry.quantity + qty }
+              : entry,
+          );
+        }
+        return [...prev, { ...cartFields, quantity: qty }];
+      });
+      setLastAddedAt(Date.now());
+      if (openDrawer) {
+        setIsOpen(true);
       }
-      return [...prev, { ...cartFields, quantity: qty }];
-    });
-    setLastAddedAt(Date.now());
-    setIsOpen(true);
-  }, []);
+    },
+    [],
+  );
 
   const removeItem = useCallback((productId: string, size?: string) => {
     setItems((prev) =>

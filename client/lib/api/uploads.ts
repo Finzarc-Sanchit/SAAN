@@ -2,7 +2,7 @@ import type { ApiResponse } from '@/lib/types/api';
 import type { UploadImagesResponse, UploadedImage } from '@/lib/types/upload';
 import { API_BASE_PATH } from '@/lib/api/config';
 import { ApiError } from '@/lib/api/errors';
-import { getAccessToken } from '@/lib/auth/token-store';
+import { ensureValidAccessToken, refreshSession } from '@/lib/auth/session-client';
 
 const UPLOADS_BASE = '/api/v1/uploads';
 
@@ -37,17 +37,32 @@ export async function uploadImages(files: File[]): Promise<UploadImagesResponse>
   }
 
   const headers = new Headers();
-  const token = getAccessToken();
+  const token = await ensureValidAccessToken();
   if (token) {
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  const response = await fetch(`${API_BASE_PATH}${UPLOADS_BASE}`, {
+  let response = await fetch(`${API_BASE_PATH}${UPLOADS_BASE}`, {
     method: 'POST',
     credentials: 'same-origin',
     headers,
     body: formData,
   });
+
+  if (response.status === 401 && (await refreshSession())) {
+    const retryHeaders = new Headers();
+    const refreshedToken = await ensureValidAccessToken();
+    if (refreshedToken) {
+      retryHeaders.set('Authorization', `Bearer ${refreshedToken}`);
+    }
+
+    response = await fetch(`${API_BASE_PATH}${UPLOADS_BASE}`, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: retryHeaders,
+      body: formData,
+    });
+  }
 
   const json = (await response.json()) as ApiResponse<UploadImagesResponse>;
 
@@ -70,15 +85,6 @@ export function uploadImageWithProgress(
   return new Promise((resolve, reject) => {
     const formData = new FormData();
     formData.append('files', file);
-
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', `${API_BASE_PATH}${UPLOADS_BASE}`);
-    xhr.withCredentials = true;
-
-    const token = getAccessToken();
-    if (token) {
-      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-    }
 
     let displayPercent = 0;
     let processingTimer: number | null = null;
@@ -162,52 +168,71 @@ export function uploadImageWithProgress(
       reject(error);
     }
 
-    xhr.upload.addEventListener('loadstart', () => {
-      emit(1, 'sending');
-    });
-
-    xhr.upload.addEventListener('progress', (event) => {
-      if (!event.lengthComputable || event.total <= 0) return;
-      const sendRatio = event.loaded / event.total;
-      const sendPercent = sendRatio * SEND_WEIGHT;
-      emit(Math.min(SEND_WEIGHT, sendPercent), 'sending');
-
-      if (sendRatio >= 1) {
-        startProcessingPhase();
-      }
-    });
-
-    xhr.upload.addEventListener('load', () => {
-      startProcessingPhase();
-    });
-
-    xhr.addEventListener('load', () => {
+    void (async () => {
       try {
-        const json = JSON.parse(xhr.responseText) as ApiResponse<UploadImagesResponse>;
-        if (!json.success) {
-          fail(new ApiError(json.error.code, json.error.message, json.error.details));
+        const token = await ensureValidAccessToken();
+        if (settled) {
           return;
         }
-        const image = json.data.images[0];
-        if (!image) {
-          fail(new ApiError('INTERNAL_SERVER_ERROR', 'Upload returned no image', []));
-          return;
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `${API_BASE_PATH}${UPLOADS_BASE}`);
+        xhr.withCredentials = true;
+
+        if (token) {
+          xhr.setRequestHeader('Authorization', `Bearer ${token}`);
         }
-        finishUpload(image);
+
+        xhr.upload.addEventListener('loadstart', () => {
+          emit(1, 'sending');
+        });
+
+        xhr.upload.addEventListener('progress', (event) => {
+          if (!event.lengthComputable || event.total <= 0) return;
+          const sendRatio = event.loaded / event.total;
+          const sendPercent = sendRatio * SEND_WEIGHT;
+          emit(Math.min(SEND_WEIGHT, sendPercent), 'sending');
+
+          if (sendRatio >= 1) {
+            startProcessingPhase();
+          }
+        });
+
+        xhr.upload.addEventListener('load', () => {
+          startProcessingPhase();
+        });
+
+        xhr.addEventListener('load', () => {
+          try {
+            const json = JSON.parse(xhr.responseText) as ApiResponse<UploadImagesResponse>;
+            if (!json.success) {
+              fail(new ApiError(json.error.code, json.error.message, json.error.details));
+              return;
+            }
+            const image = json.data.images[0];
+            if (!image) {
+              fail(new ApiError('INTERNAL_SERVER_ERROR', 'Upload returned no image', []));
+              return;
+            }
+            finishUpload(image);
+          } catch {
+            fail(new ApiError('INTERNAL_SERVER_ERROR', 'Could not parse upload response', []));
+          }
+        });
+
+        xhr.addEventListener('error', () => {
+          fail(new ApiError('INTERNAL_SERVER_ERROR', 'Upload failed', []));
+        });
+
+        xhr.addEventListener('abort', () => {
+          fail(new ApiError('INTERNAL_SERVER_ERROR', 'Upload cancelled', []));
+        });
+
+        xhr.send(formData);
       } catch {
-        fail(new ApiError('INTERNAL_SERVER_ERROR', 'Could not parse upload response', []));
+        fail(new ApiError('UNAUTHORIZED', 'Invalid or expired refresh token', []));
       }
-    });
-
-    xhr.addEventListener('error', () => {
-      fail(new ApiError('INTERNAL_SERVER_ERROR', 'Upload failed', []));
-    });
-
-    xhr.addEventListener('abort', () => {
-      fail(new ApiError('INTERNAL_SERVER_ERROR', 'Upload cancelled', []));
-    });
-
-    xhr.send(formData);
+    })();
   });
 }
 

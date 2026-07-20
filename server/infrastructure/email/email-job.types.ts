@@ -41,6 +41,26 @@ export const emailJobSchema = z.discriminatedUnion('type', [
     preheader: z.string().max(200).optional(),
     content: z.string().min(1).max(20_000),
   }),
+  z.object({
+    type: z.literal('order-confirmation'),
+    to: emailAddressSchema,
+    customerName: z.string().min(1).max(120),
+    orderNumber: z.string().regex(/^\d{3}-\d{7}-\d{7}$/),
+    total: z.number().nonnegative(),
+    currency: z.string().length(3),
+    itemSummary: z.string().min(1).max(2_000),
+    confirmationUrl: z.string().url(),
+  }),
+  z.object({
+    type: z.literal('order-admin-notification'),
+    customerName: z.string().min(1).max(120),
+    customerEmail: emailAddressSchema,
+    orderNumber: z.string().regex(/^\d{3}-\d{7}-\d{7}$/),
+    total: z.number().nonnegative(),
+    currency: z.string().length(3),
+    itemSummary: z.string().min(1).max(2_000),
+    adminOrderUrl: z.string().url(),
+  }),
 ]);
 
 export type EmailJob = z.infer<typeof emailJobSchema>;

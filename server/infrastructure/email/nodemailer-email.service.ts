@@ -127,6 +127,41 @@ export class NodemailerEmailService implements IEmailDeliveryService {
           text: `${job.preheader ? `${job.preheader}\n\n` : ''}${job.content}\n\nYou received this email because you subscribed to SAAN updates.`,
           html: wrapNewsletter(job.content, job.preheader),
         };
+      case 'order-confirmation': {
+        const totalLabel = formatMoney(job.total, job.currency);
+        return {
+          to: job.to,
+          subject: `Order confirmed — ${job.orderNumber}`,
+          text: `Hello ${job.customerName},\n\nThank you for your order ${job.orderNumber}.\n\n${job.itemSummary}\n\nTotal: ${totalLabel}\n\nView your confirmation: ${job.confirmationUrl}`,
+          html: wrapEmail(
+            `<p>Hello ${escapeHtml(job.customerName)},</p><p>Thank you for your order. We’ve confirmed payment and begun preparing your pieces.</p><p><strong>Order</strong> ${escapeHtml(job.orderNumber)}<br><strong>Total</strong> ${escapeHtml(totalLabel)}</p><p style="white-space:pre-wrap">${escapeHtml(job.itemSummary)}</p><p><a href="${escapeHtml(job.confirmationUrl)}">View order confirmation</a></p>`,
+          ),
+        };
+      }
+      case 'order-admin-notification': {
+        const totalLabel = formatMoney(job.total, job.currency);
+        return {
+          to: env.ADMIN_EMAIL,
+          replyTo: job.customerEmail,
+          subject: `New order received — ${job.orderNumber}`,
+          text: `New paid order ${job.orderNumber}\nCustomer: ${job.customerName} <${job.customerEmail}>\nTotal: ${totalLabel}\n\n${job.itemSummary}\n\nAdmin: ${job.adminOrderUrl}`,
+          html: wrapEmail(
+            `<p><strong>New order received</strong></p><p><strong>Order</strong> ${escapeHtml(job.orderNumber)}<br><strong>Customer</strong> ${escapeHtml(job.customerName)} &lt;${escapeHtml(job.customerEmail)}&gt;<br><strong>Total</strong> ${escapeHtml(totalLabel)}</p><p style="white-space:pre-wrap">${escapeHtml(job.itemSummary)}</p><p><a href="${escapeHtml(job.adminOrderUrl)}">Open in admin</a></p>`,
+          ),
+        };
+      }
     }
+  }
+}
+
+function formatMoney(amount: number, currency: string): string {
+  try {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  } catch {
+    return `${currency} ${amount}`;
   }
 }

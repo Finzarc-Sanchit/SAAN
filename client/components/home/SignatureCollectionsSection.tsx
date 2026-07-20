@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ScrollReveal } from '@/components/motion/ScrollReveal';
 import { Container } from '@/components/ui/Container';
-import { TextLink } from '@/components/ui/TextLink';
+import { CtaButton } from '@/components/ui/CtaButton';
 import { HOME_COPY, SIGNATURE_COLLECTIONS } from '@/lib/site-content';
 
 export function SignatureCollectionsSection() {
@@ -48,7 +48,9 @@ export function SignatureCollectionsSection() {
         </div>
 
         <ScrollReveal className="mt-10 flex justify-center md:mt-12">
-          <TextLink href="/collections">View all collections</TextLink>
+          <CtaButton href="/collections" variant="primary" className="min-w-[12rem]">
+            View all collections
+          </CtaButton>
         </ScrollReveal>
       </Container>
     </section>

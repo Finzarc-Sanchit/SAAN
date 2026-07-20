@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import { successResponse } from '../../shared/utils/response';
-import type { InitiatePaymentDto, OrderIdParamsDto, VerifyPaymentDto } from './payment.dto';
+import type { AdminPaymentListQueryDto, InitiatePaymentDto, OrderIdParamsDto, VerifyPaymentDto } from './payment.dto';
 import type { PaymentService } from './payment.service';
 
 export class PaymentController {
@@ -41,6 +41,24 @@ export class PaymentController {
     );
 
     res.status(200).json(successResponse(payments));
+  };
+
+  listPaymentsAdmin = async (req: Request, res: Response): Promise<void> => {
+    const query = req.query as unknown as AdminPaymentListQueryDto;
+    const { page, limit, status, paymentMethod, paymentGateway, search, from, to } = query;
+
+    const result = await this.paymentService.listPaymentsAdmin(
+      { status, paymentMethod, paymentGateway, search, from, to },
+      { page, limit },
+    );
+
+    res.status(200).json(
+      successResponse(result.items, {
+        page: result.page,
+        limit: result.limit,
+        total: result.total,
+      }),
+    );
   };
 
   handleWebhook = async (req: Request, res: Response): Promise<void> => {

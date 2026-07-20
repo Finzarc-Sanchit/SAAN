@@ -113,6 +113,16 @@ const envSchema = z
       }
     }
 
+    // A real key id with a missing secret silently became a placeholder pair and
+    // produced Razorpay checkout AJAX 400s (order created under wrong credentials).
+    if (data.RAZORPAY_KEY_ID && !data.RAZORPAY_KEY_SECRET) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Required when RAZORPAY_KEY_ID is set',
+        path: ['RAZORPAY_KEY_SECRET'],
+      });
+    }
+
     if (data.NODE_ENV !== 'production') {
       return;
     }

@@ -17,6 +17,7 @@ import { addCartItem, clearCart } from '@/lib/api/cart';
 import { ApiError, getApiErrorMessage, getFieldErrors } from '@/lib/api/errors';
 import {
   cancelPendingOrder,
+  fetchOrder,
   initiatePayment,
   listMyOrders,
   placeOrder,
@@ -34,6 +35,7 @@ import {
   writeCheckoutAddressId,
   writePendingOrderId,
 } from '@/lib/checkout/buy-now-storage';
+import { getOrderPublicRef } from '@/lib/admin/order-format';
 import { openRazorpayCheckout, normalizeRazorpayContact } from '@/lib/razorpay';
 import { formatPrice } from '@/lib/site-content';
 import type { Address } from '@/lib/types/address';
@@ -254,11 +256,12 @@ export function CheckoutPage({ step }: { step: CheckoutStep }) {
     setSubmitError(null);
     setIsPaying(true);
 
-    let orderId: string | null = pendingOrderId;
+    // Always the customer-facing ###-#######-####### id — never a Mongo ObjectId.
+    let orderRef: string | null = pendingOrderId;
     let paymentCompleted = false;
 
     try {
-      if (!orderId) {
+      if (!orderRef) {
         const recentOrders = await listMyOrders({ limit: 10 });
         const reusable = recentOrders.find(
           (order) =>
@@ -273,9 +276,9 @@ export function CheckoutPage({ step }: { step: CheckoutStep }) {
         );
 
         if (reusable) {
-          orderId = reusable.id;
-          setPendingOrderId(reusable.id);
-          writePendingOrderId(reusable.id);
+          orderRef = getOrderPublicRef(reusable);
+          setPendingOrderId(orderRef);
+          writePendingOrderId(orderRef);
         } else {
           // Build a server cart for this buy-now line only. Local cart stays
           // intact until payment succeeds so abandoned checkouts keep the item.
@@ -287,13 +290,16 @@ export function CheckoutPage({ step }: { step: CheckoutStep }) {
           });
 
           const order = await placeOrder({ addressId: selectedAddress.addressId });
-          orderId = order.id;
-          setPendingOrderId(order.id);
-          writePendingOrderId(order.id);
+          orderRef = getOrderPublicRef(order);
+          setPendingOrderId(orderRef);
+          writePendingOrderId(orderRef);
         }
+      } else {
+        const pending = await fetchOrder(orderRef);
+        orderRef = getOrderPublicRef(pending);
       }
 
-      const payment = await initiatePayment(orderId);
+      const payment = await initiatePayment(orderRef);
       const checkoutResult = await openRazorpayCheckout({
         payment,
         name: 'SAAN',
@@ -306,20 +312,20 @@ export function CheckoutPage({ step }: { step: CheckoutStep }) {
       });
 
       if (checkoutResult.status === 'dismissed') {
-        await releasePendingOrder(orderId);
+        await releasePendingOrder(orderRef);
         setSubmitError('Payment was cancelled. You can try again when ready.');
         return;
       }
 
       if (checkoutResult.status === 'failed') {
-        await releasePendingOrder(orderId);
+        await releasePendingOrder(orderRef);
         setSubmitError(checkoutResult.message);
         return;
       }
 
       paymentCompleted = true;
 
-      await verifyPayment(orderId, {
+      await verifyPayment(orderRef, {
         razorpayOrderId: checkoutResult.response.razorpay_order_id,
         razorpayPaymentId: checkoutResult.response.razorpay_payment_id,
         razorpaySignature: checkoutResult.response.razorpay_signature,
@@ -327,12 +333,22 @@ export function CheckoutPage({ step }: { step: CheckoutStep }) {
 
       removeItem(item.productId, item.sizeLabel);
       clearBuyNowItem();
-      router.replace(`/order-confirmation/${orderId}`);
+      setPendingOrderId(null);
+      clearPendingOrderId();
+      router.replace(`/order-confirmation/${encodeURIComponent(orderRef)}`);
+      return;
     } catch (error: unknown) {
       // Do not release stock after Razorpay reports a successful charge —
       // verification can be retried without creating a new reservation.
-      if (orderId && !paymentCompleted) {
-        await releasePendingOrder(orderId);
+      if (orderRef && paymentCompleted) {
+        setPendingOrderId(null);
+        clearPendingOrderId();
+        router.replace(`/order-confirmation/${encodeURIComponent(orderRef)}`);
+        return;
+      }
+
+      if (orderRef && !paymentCompleted) {
+        await releasePendingOrder(orderRef);
       }
 
       setSubmitError(

@@ -31,6 +31,8 @@ function createMockRepository(): jest.Mocked<IUserRepository> {
     removeAddress: jest.fn(),
     setDefaultAddress: jest.fn(),
     countUsersBetween: jest.fn(),
+    findCustomersAdmin: jest.fn(),
+    findCustomerAdminById: jest.fn(),
   };
 }
 

@@ -7,7 +7,9 @@ import type { IIdempotencyStore } from '../../shared/idempotency/idempotency-sto
 import type { Paginated, Pagination } from '../../shared/types/pagination';
 import type { IAuthRepository } from '../auth/auth.repository.interface';
 import type { CartService } from '../cart/cart.service';
+import type { IPaymentRepository } from '../payment/payment.repository.interface';
 import type { ProductService } from '../product/product.service';
+import { getPrimaryProductImageUrl } from '../product/product-image';
 import type { UserService } from '../user/user.service';
 import { ORDER_CONSTANTS } from './order.constants';
 import { computeOrderTotals } from './order.pricing';
@@ -18,6 +20,7 @@ import type {
   AdminOrderListItem,
   Order,
   OrderAddressSnapshot,
+  OrderItem,
   OrderPaymentStatus,
   OrderStatus,
   PlaceOrderAddressInput,
@@ -27,6 +30,7 @@ type PreparedOrderLine = {
   productId: string;
   sizeId: string;
   productNameSnapshot: string;
+  productImageSnapshot: string | null;
   quantity: number;
   unitPrice: number;
   totalPrice: number;
@@ -74,10 +78,15 @@ export class OrderService {
     private readonly productService: ProductService,
     private readonly idempotencyStore: IIdempotencyStore,
     private readonly authRepository: IAuthRepository,
+    private readonly paymentRepository: IPaymentRepository,
   ) {}
 
   async listOrdersForUser(userId: string, pagination: Pagination): Promise<Paginated<Order>> {
-    return this.orderRepository.findByUser(userId, pagination);
+    const result = await this.orderRepository.findByUser(userId, pagination);
+    return {
+      ...result,
+      items: await this.enrichOrdersWithProductImages(result.items),
+    };
   }
 
   async listOrdersAdmin(
@@ -88,14 +97,15 @@ export class OrderService {
   }
 
   async getOrderAdminDetail(orderId: string): Promise<AdminOrderDetail> {
-    const order = await this.orderRepository.findById(orderId);
+    // Admin UI routes by customer-facing order id (e.g. 407-1298468-3682757).
+    const order = await this.orderRepository.findByIdOrNumber(orderId);
     if (!order) {
       throw new NotFoundError('Order not found');
     }
 
     const user = await this.authRepository.findById(order.userId);
 
-    return {
+    return this.enrichOrderWithProductImages({
       ...order,
       customer: user
         ? {
@@ -108,11 +118,11 @@ export class OrderService {
             firstName: '',
             lastName: '',
           },
-    };
+    });
   }
 
   async getOrderById(orderId: string, requesterId: string, isAdmin: boolean): Promise<Order> {
-    const order = await this.orderRepository.findById(orderId);
+    const order = await this.orderRepository.findByIdOrNumber(orderId);
 
     if (!order) {
       throw new NotFoundError('Order not found');
@@ -122,7 +132,7 @@ export class OrderService {
       throw new ForbiddenError('You do not have access to this order');
     }
 
-    return order;
+    return this.enrichOrderWithProductImages(order);
   }
 
   async placeOrder(
@@ -143,7 +153,7 @@ export class OrderService {
         throw new NotFoundError('Order not found');
       }
 
-      return existingOrder;
+      return this.enrichOrderWithProductImages(existingOrder);
     }
 
     if (claim.type === 'in_progress') {
@@ -161,7 +171,7 @@ export class OrderService {
         ORDER_CONSTANTS.IDEMPOTENCY_TTL_SECONDS,
       );
 
-      return order;
+      return this.enrichOrderWithProductImages(order);
     } catch (error) {
       await this.idempotencyStore.markFailed(
         ORDER_CONSTANTS.IDEMPOTENCY_SCOPE,
@@ -185,7 +195,7 @@ export class OrderService {
    * Used when checkout payment is abandoned so the next attempt can succeed.
    */
   async cancelPendingOrder(orderId: string, userId: string): Promise<Order> {
-    const order = await this.orderRepository.findById(orderId);
+    const order = await this.orderRepository.findByIdOrNumber(orderId);
 
     if (!order) {
       throw new NotFoundError('Order not found');
@@ -212,8 +222,15 @@ export class OrderService {
       })),
     );
 
-    await this.orderRepository.updatePaymentStatus(orderId, 'failed');
-    return this.orderRepository.updateStatus(orderId, 'cancelled');
+    const payments = await this.paymentRepository.findByOrderId(order.id);
+    await Promise.all(
+      payments
+        .filter((entry) => entry.status === 'created' || entry.status === 'pending')
+        .map((entry) => this.paymentRepository.updateStatus(entry.id, 'failed')),
+    );
+
+    await this.orderRepository.updatePaymentStatus(order.id, 'failed');
+    return this.orderRepository.updateStatus(order.id, 'cancelled');
   }
 
   private async createOrderFromCart(
@@ -248,6 +265,7 @@ export class OrderService {
           productId: line.productId,
           sizeId: line.sizeId,
           productNameSnapshot: line.productNameSnapshot,
+          productImageSnapshot: line.productImageSnapshot,
           quantity: line.quantity,
           unitPrice: line.unitPrice,
           totalPrice: line.totalPrice,
@@ -311,6 +329,7 @@ export class OrderService {
         productId: item.productId,
         sizeId: item.sizeId,
         productNameSnapshot: product.name,
+        productImageSnapshot: getPrimaryProductImageUrl(product.images),
         quantity: item.quantity,
         unitPrice,
         totalPrice,
@@ -375,6 +394,52 @@ export class OrderService {
       await this.rollbackStock(decremented);
       throw error;
     }
+  }
+
+  private async enrichOrderWithProductImages<T extends Order>(order: T): Promise<T> {
+    const enriched = await this.enrichOrdersWithProductImages([order]);
+    return enriched[0] as T;
+  }
+
+  private async enrichOrdersWithProductImages(orders: Order[]): Promise<Order[]> {
+    const missingProductIds = [
+      ...new Set(
+        orders.flatMap((order) =>
+          order.items
+            .filter((item) => !item.productImageSnapshot?.trim())
+            .map((item) => item.productId),
+        ),
+      ),
+    ];
+
+    if (missingProductIds.length === 0) {
+      return orders;
+    }
+
+    const products = await this.productService.getProductsByIds(missingProductIds);
+    const imageByProductId = new Map(
+      products.map((product) => [product.id, getPrimaryProductImageUrl(product.images)]),
+    );
+
+    return orders.map((order) => ({
+      ...order,
+      items: order.items.map((item) => this.enrichOrderItemImage(item, imageByProductId)),
+    }));
+  }
+
+  private enrichOrderItemImage(
+    item: OrderItem,
+    imageByProductId: Map<string, string | null>,
+  ): OrderItem {
+    const snapshot = item.productImageSnapshot?.trim();
+    if (snapshot) {
+      return { ...item, productImageSnapshot: snapshot };
+    }
+
+    return {
+      ...item,
+      productImageSnapshot: imageByProductId.get(item.productId) ?? null,
+    };
   }
 
   private async rollbackStock(adjustments: StockAdjustment[]): Promise<void> {

@@ -55,6 +55,7 @@ function signRazorpayWebhook(body: string, secret: string): string {
 function createOrder(overrides: Partial<Order> = {}): Order {
   return {
     id: 'order-1',
+    orderNumber: '407-1298468-3682757',
     userId: 'user-1',
     addressSnapshot: {
       firstName: 'Test',
@@ -107,12 +108,15 @@ function createPaymentRepositoryMock(): jest.Mocked<IPaymentRepository> {
     findByGatewayOrderId: jest.fn(),
     create: jest.fn(),
     updateStatus: jest.fn(),
+    findManyAdmin: jest.fn(),
   };
 }
 
 function createOrderRepositoryMock(): jest.Mocked<IOrderRepository> {
   return {
     findById: jest.fn(),
+    findByOrderNumber: jest.fn(),
+    findByIdOrNumber: jest.fn(),
     findByUser: jest.fn(),
     create: jest.fn(),
     updateStatus: jest.fn(),
@@ -143,11 +147,42 @@ function createCartServiceMock(): { clearCart: jest.MockedFunction<(userId: stri
   };
 }
 
+function createAuthRepositoryMock(): {
+  findById: jest.MockedFunction<(id: string) => Promise<{
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+  } | null>>;
+} {
+  return {
+    findById: jest.fn<(id: string) => Promise<{
+      id: string;
+      email: string;
+      firstName: string;
+      lastName: string;
+    } | null>>().mockResolvedValue({
+      id: 'user-1',
+      email: 'customer@example.com',
+      firstName: 'Test',
+      lastName: 'User',
+    }),
+  };
+}
+
+function createEmailQueueMock(): { enqueue: jest.MockedFunction<(...args: unknown[]) => Promise<void>> } {
+  return {
+    enqueue: jest.fn<(...args: unknown[]) => Promise<void>>().mockResolvedValue(undefined),
+  };
+}
+
 describe('PaymentService', () => {
   let paymentRepository: jest.Mocked<IPaymentRepository>;
   let orderRepository: jest.Mocked<IOrderRepository>;
   let paymentGateway: jest.Mocked<IPaymentGateway>;
   let cartService: { clearCart: jest.MockedFunction<(userId: string) => Promise<void>> };
+  let authRepository: ReturnType<typeof createAuthRepositoryMock>;
+  let emailQueue: ReturnType<typeof createEmailQueueMock>;
   let service: PaymentService;
 
   beforeEach(() => {
@@ -155,17 +190,21 @@ describe('PaymentService', () => {
     orderRepository = createOrderRepositoryMock();
     paymentGateway = createPaymentGatewayMock();
     cartService = createCartServiceMock();
+    authRepository = createAuthRepositoryMock();
+    emailQueue = createEmailQueueMock();
     service = new PaymentService(
       paymentRepository,
       orderRepository,
       paymentGateway,
       cartService as unknown as import('../cart/cart.service').CartService,
+      authRepository as unknown as import('../auth/auth.repository.interface').IAuthRepository,
+      emailQueue as unknown as import('../../infrastructure/email/email-queue.interface').IEmailQueue,
     );
   });
 
   describe('initiatePayment', () => {
     it('rejects an already-paid order without creating a payment', async () => {
-      orderRepository.findById.mockResolvedValue(
+      orderRepository.findByIdOrNumber.mockResolvedValue(
         createOrder({ paymentStatus: 'paid', status: 'confirmed' }),
       );
 
@@ -181,7 +220,7 @@ describe('PaymentService', () => {
       const order = createOrder();
       const payment = createPayment();
 
-      orderRepository.findById.mockResolvedValue(order);
+      orderRepository.findByIdOrNumber.mockResolvedValue(order);
       paymentRepository.findByOrderId.mockResolvedValue([]);
       paymentGateway.createGatewayOrder.mockResolvedValue({ gatewayOrderId: 'order_DEX6pnlpxyJrHo' });
       paymentRepository.create.mockResolvedValue(payment);
@@ -208,12 +247,16 @@ describe('PaymentService', () => {
       expect(result.keyId).toBe('rzp_test_key_id');
     });
 
-    it('reuses an existing created payment instead of creating another gateway order', async () => {
+    it('creates a fresh gateway order and retires any open payment sessions', async () => {
       const order = createOrder();
       const existing = createPayment({ status: 'created' });
+      const payment = createPayment({ gatewayOrderId: 'order_new' });
 
-      orderRepository.findById.mockResolvedValue(order);
+      orderRepository.findByIdOrNumber.mockResolvedValue(order);
       paymentRepository.findByOrderId.mockResolvedValue([existing]);
+      paymentRepository.updateStatus.mockResolvedValue({ ...existing, status: 'failed' });
+      paymentGateway.createGatewayOrder.mockResolvedValue({ gatewayOrderId: 'order_new' });
+      paymentRepository.create.mockResolvedValue(payment);
 
       const result = await service.initiatePayment(
         'order-1',
@@ -222,10 +265,10 @@ describe('PaymentService', () => {
         'card',
       );
 
-      expect(paymentGateway.createGatewayOrder).not.toHaveBeenCalled();
-      expect(paymentRepository.create).not.toHaveBeenCalled();
-      expect(result.paymentId).toBe(existing.id);
-      expect(result.gatewayOrderId).toBe(existing.gatewayOrderId);
+      expect(paymentRepository.updateStatus).toHaveBeenCalledWith(existing.id, 'failed');
+      expect(paymentGateway.createGatewayOrder).toHaveBeenCalledWith(1_000_000, 'INR', 'order-1');
+      expect(result.gatewayOrderId).toBe('order_new');
+      expect(result.amount).toBe(1_000_000);
     });
   });
 
@@ -240,7 +283,7 @@ describe('PaymentService', () => {
         paidAt: new Date('2026-01-02'),
       });
 
-      orderRepository.findById.mockResolvedValue(order);
+      orderRepository.findByIdOrNumber.mockResolvedValue(order);
       paymentRepository.findByGatewayOrderId.mockResolvedValue(payment);
       paymentGateway.verifyCheckoutSignature.mockReturnValue(true);
       paymentRepository.updateStatus.mockResolvedValue(paidPayment);
@@ -261,10 +304,28 @@ describe('PaymentService', () => {
       expect(orderRepository.updatePaymentStatus).toHaveBeenCalledWith('order-1', 'paid');
       expect(orderRepository.updateStatus).toHaveBeenCalledWith('order-1', 'confirmed');
       expect(cartService.clearCart).toHaveBeenCalledWith('user-1');
+
+      await Promise.resolve();
+      expect(emailQueue.enqueue).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'order-confirmation',
+          to: 'customer@example.com',
+          orderNumber: '407-1298468-3682757',
+        }),
+        { deduplicationId: 'order-confirmation-order-1' },
+      );
+      expect(emailQueue.enqueue).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'order-admin-notification',
+          customerEmail: 'customer@example.com',
+          orderNumber: '407-1298468-3682757',
+        }),
+        { deduplicationId: 'order-admin-order-1' },
+      );
     });
 
     it('rejects invalid checkout signatures', async () => {
-      orderRepository.findById.mockResolvedValue(createOrder());
+      orderRepository.findByIdOrNumber.mockResolvedValue(createOrder());
       paymentRepository.findByGatewayOrderId.mockResolvedValue(createPayment());
       paymentGateway.verifyCheckoutSignature.mockReturnValue(false);
 
@@ -277,6 +338,28 @@ describe('PaymentService', () => {
       ).rejects.toThrow(UnauthorizedError);
 
       expect(paymentRepository.updateStatus).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('listPaymentsAdmin', () => {
+    it('delegates to the repository with filters and pagination', async () => {
+      paymentRepository.findManyAdmin.mockResolvedValue({
+        items: [],
+        page: 1,
+        limit: 20,
+        total: 0,
+      });
+
+      const result = await service.listPaymentsAdmin(
+        { status: 'paid', search: 'customer@example.com' },
+        { page: 1, limit: 20 },
+      );
+
+      expect(paymentRepository.findManyAdmin).toHaveBeenCalledWith(
+        { status: 'paid', search: 'customer@example.com' },
+        { page: 1, limit: 20 },
+      );
+      expect(result.total).toBe(0);
     });
   });
 

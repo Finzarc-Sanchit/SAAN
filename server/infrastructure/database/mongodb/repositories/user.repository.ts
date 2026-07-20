@@ -12,6 +12,8 @@ import type { Paginated, Pagination } from '../../../../shared/types/pagination'
 import { normalizePagination } from '../../../../shared/utils/pagination';
 import { UserModel } from '../models/user.model';
 import { OrderModel } from '../models/order.model';
+import { allocateOrderNumber } from '../order-number';
+import { ORDER_CONSTANTS } from '../../../../modules/order/order.constants';
 
 type RawAddress = {
   addressId: string;
@@ -416,7 +418,7 @@ export class MongoUserRepository implements IUserRepository {
       OrderModel.find({ userId: userObjectId })
         .sort({ createdAt: -1 })
         .limit(5)
-        .select('total status paymentStatus createdAt')
+        .select('orderNumber total status paymentStatus createdAt')
         .lean()
         .exec(),
     ]);
@@ -426,6 +428,24 @@ export class MongoUserRepository implements IUserRepository {
     }
 
     const orderStats = orderStatsRows[0];
+
+    const recentOrders = [];
+    for (const order of recentOrderDocs) {
+      const orderId = order._id.toString();
+      let orderNumber = (order.orderNumber ?? '').trim();
+      if (!ORDER_CONSTANTS.ORDER_NUMBER_PATTERN.test(orderNumber)) {
+        orderNumber = await allocateOrderNumber();
+        await OrderModel.findByIdAndUpdate(order._id, { orderNumber }).exec();
+      }
+      recentOrders.push({
+        id: orderId,
+        orderNumber,
+        total: order.total,
+        status: order.status,
+        paymentStatus: order.paymentStatus,
+        createdAt: order.createdAt,
+      });
+    }
 
     return {
       id: userDoc._id.toString(),
@@ -437,13 +457,7 @@ export class MongoUserRepository implements IUserRepository {
       orderCount: orderStats?.orderCount ?? 0,
       totalSpent: orderStats?.totalSpent ?? 0,
       lastOrderAt: orderStats?.lastOrderAt ?? null,
-      recentOrders: recentOrderDocs.map((order) => ({
-        id: order._id.toString(),
-        total: order.total,
-        status: order.status,
-        paymentStatus: order.paymentStatus,
-        createdAt: order.createdAt,
-      })),
+      recentOrders,
       createdAt: userDoc.createdAt,
       updatedAt: userDoc.updatedAt,
     };

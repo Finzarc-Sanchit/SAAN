@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ScrollReveal } from '@/components/motion/ScrollReveal';
 import { Container } from '@/components/ui/Container';
+import { CtaButton } from '@/components/ui/CtaButton';
 import type { JournalPost } from '@/lib/site-content';
 import { cn } from '@/lib/utils';
 
@@ -120,13 +121,9 @@ export function JournalFeaturedSection({ post, ctaLabel }: JournalFeaturedSectio
                 </Link>
               </h2>
               <p className="text-body-l mt-6 text-neutral-700">{post.excerpt}</p>
-              <Link
-                href={`/journal/${post.id}`}
-                className="text-ui mt-9 inline-flex items-center gap-3 border-b border-ink pb-1 text-ink transition-opacity hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ink"
-              >
+              <CtaButton href={`/journal/${post.id}`} variant="primary" className="mt-9 min-w-[12rem]">
                 {ctaLabel}
-                <span aria-hidden>→</span>
-              </Link>
+              </CtaButton>
             </div>
 
             <Link

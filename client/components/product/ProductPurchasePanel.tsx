@@ -29,7 +29,7 @@ type ProductPurchasePanelProps = {
 export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { addItem } = useCart();
+  const { addItem, closeCart } = useCart();
   const { requireAuth, isAuthenticated } = useRequireAuth();
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -150,16 +150,19 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
     }
 
     setSizeError(false);
-    addItem({
-      productId: product.id,
-      sizeId,
-      name: product.name,
-      price: product.price,
-      currency,
-      image: product.image,
-      size: selectedSize,
-      quantity,
-    });
+    addItem(
+      {
+        productId: product.id,
+        sizeId,
+        name: product.name,
+        price: product.price,
+        currency,
+        image: product.image,
+        size: selectedSize,
+        quantity,
+      },
+      { openDrawer: false },
+    );
     writeBuyNowItem({
       productId: product.id,
       slug: product.slug,
@@ -184,6 +187,7 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
     }
 
     requireAuth(() => {
+      closeCart();
       router.push("/checkout/bag");
     });
   }

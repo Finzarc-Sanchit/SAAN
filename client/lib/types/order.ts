@@ -18,6 +18,8 @@ export type OrderItem = {
   productId: string;
   sizeId: string;
   productNameSnapshot: string;
+  /** Primary product image at time of order (null for legacy orders). */
+  productImageSnapshot: string | null;
   quantity: number;
   unitPrice: number;
   totalPrice: number;
@@ -25,6 +27,8 @@ export type OrderItem = {
 
 export type Order = {
   id: string;
+  /** Customer-facing order id (e.g. 407-1298468-3682757) used in confirmation URLs. */
+  orderNumber: string;
   userId: string;
   addressSnapshot: OrderAddressSnapshot;
   items: OrderItem[];
@@ -47,6 +51,7 @@ export type AdminOrderCustomer = {
 
 export type AdminOrderListItem = {
   id: string;
+  orderNumber: string;
   userId: string;
   customerEmail: string;
   customerName: string;

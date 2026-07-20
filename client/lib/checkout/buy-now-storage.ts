@@ -1,4 +1,5 @@
 import type { BuyNowItem } from '@/lib/types/checkout';
+import { isOrderNumber } from '@/lib/admin/order-format';
 
 const BUY_NOW_STORAGE_KEY = 'saan-buy-now';
 const CHECKOUT_STEP_STORAGE_KEY = 'saan-checkout-step';
@@ -75,14 +76,24 @@ export function readCheckoutAddressId(): string | null {
   return sessionStorage.getItem(CHECKOUT_ADDRESS_STORAGE_KEY);
 }
 
-export function writePendingOrderId(orderId: string): void {
+/** Persist the customer-facing order id (###-#######-#######) — never a Mongo ObjectId. */
+export function writePendingOrderId(orderNumber: string): void {
   if (typeof window === 'undefined') return;
-  sessionStorage.setItem(CHECKOUT_ORDER_STORAGE_KEY, orderId);
+  const normalized = orderNumber.trim();
+  if (!isOrderNumber(normalized)) {
+    throw new Error('Pending checkout must use a customer-facing order id');
+  }
+  sessionStorage.setItem(CHECKOUT_ORDER_STORAGE_KEY, normalized);
 }
 
 export function readPendingOrderId(): string | null {
   if (typeof window === 'undefined') return null;
-  return sessionStorage.getItem(CHECKOUT_ORDER_STORAGE_KEY);
+  const stored = sessionStorage.getItem(CHECKOUT_ORDER_STORAGE_KEY);
+  if (!stored || !isOrderNumber(stored)) {
+    sessionStorage.removeItem(CHECKOUT_ORDER_STORAGE_KEY);
+    return null;
+  }
+  return stored.trim();
 }
 
 export function clearPendingOrderId(): void {

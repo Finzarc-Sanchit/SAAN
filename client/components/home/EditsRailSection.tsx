@@ -18,7 +18,7 @@ export function EditsRailSection() {
             <p className="text-ui text-neutral-500">The Edit</p>
             <h2 className="text-h2 mt-2 text-ink">Curated for the season</h2>
           </div>
-          <CtaButton href="/collections" variant="link">
+          <CtaButton href="/collections" variant="primary" className="min-w-[12rem]">
             View Edits
           </CtaButton>
         </div>

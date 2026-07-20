@@ -1,4 +1,5 @@
 import {
+  CreditCard,
   Images,
   Mail,
   LayoutDashboard,
@@ -37,6 +38,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { label: 'Sizes', href: '/admin/sizes', icon: Ruler },
       { label: 'Campaigns', href: '/admin/campaigns', icon: Megaphone },
       { label: 'Orders', href: '/admin/orders', icon: ShoppingBag },
+      { label: 'Payments', href: '/admin/payments', icon: CreditCard },
       { label: 'Customers', href: '/admin/customers', icon: Users },
       { label: 'Contacts', href: '/admin/contacts', icon: Mail },
       { label: 'Newsletter', href: '/admin/newsletter', icon: UserRoundPlus },

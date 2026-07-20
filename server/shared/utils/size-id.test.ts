@@ -4,9 +4,9 @@ import { generateUniqueSizeId, isValidSizeIdFormat } from './size-id';
 
 describe('isValidSizeIdFormat', () => {
   it('accepts 12-digit IDs with the fixed prefix', () => {
-    expect(isValidSizeIdFormat('400000012345')).toBe(true);
+    expect(isValidSizeIdFormat(`${SIZE_ID_PREFIX}12345`)).toBe(true);
     expect(isValidSizeIdFormat('500000012345')).toBe(false);
-    expect(isValidSizeIdFormat('40000001234')).toBe(false);
+    expect(isValidSizeIdFormat(`${SIZE_ID_PREFIX}1234`)).toBe(false);
   });
 });
 

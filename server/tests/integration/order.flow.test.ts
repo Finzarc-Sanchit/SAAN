@@ -238,7 +238,13 @@ describe('Order flow integration', () => {
       .get('/api/v1/cart')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
-    expect(cartAfterOrder.body.data.items).toHaveLength(0);
+    // Cart clears after successful payment, not on pending order creation.
+    expect(cartAfterOrder.body.data.items).toHaveLength(1);
+    expect(cartAfterOrder.body.data.items[0]).toMatchObject({
+      productId,
+      sizeId: sizeSId,
+      quantity: 2,
+    });
 
     const retryResponse = await request(app)
       .post('/api/v1/orders')

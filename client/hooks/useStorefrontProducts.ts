@@ -1,55 +1,26 @@
+'use client';
+
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { listCategories, categoriesQueryKeys } from '@/lib/api/categories';
 import { listProducts, productsQueryKeys } from '@/lib/api/products';
 import { mapApiProductToShopProduct } from '@/lib/product-defaults';
-import { SHOP_PRODUCTS, type ShopProduct } from '@/lib/site-content';
-import type { Product } from '@/lib/types/product';
+import type { ShopProduct } from '@/lib/site-content';
 
 export const STOREFRONT_PRODUCT_LIMIT = 100;
 
-export const storefrontProductsQueryKey = [
-  ...productsQueryKeys.storefrontDetail('catalog'),
-  'active-list',
-  STOREFRONT_PRODUCT_LIMIT,
-] as const;
+type UseStorefrontProductsOptions = {
+  search?: string;
+  enabled?: boolean;
+};
 
 export function mapStorefrontProducts(
-  products: Product[],
+  products: Parameters<typeof mapApiProductToShopProduct>[0][],
   categoryNameById: Map<string, string>,
 ): ShopProduct[] {
   return products.map((product) =>
     mapApiProductToShopProduct(product, categoryNameById.get(product.categoryId)),
   );
-}
-
-/**
- * Combines buyable API products with editorial fallback products.
- * API records win when either an id or slug collides with a static record.
- */
-export function mergeStorefrontProducts(
-  apiProducts: readonly ShopProduct[],
-  staticProducts: readonly ShopProduct[] = SHOP_PRODUCTS,
-): ShopProduct[] {
-  const claimedKeys = new Set(
-    apiProducts.flatMap((product) =>
-      [product.id, product.slug].filter(
-        (value): value is string => Boolean(value),
-      ),
-    ),
-  );
-  const staticFallbacks = staticProducts.filter((product) => {
-    const keys = [product.id, product.slug].filter(
-      (value): value is string => Boolean(value),
-    );
-    if (keys.some((key) => claimedKeys.has(key))) {
-      return false;
-    }
-    keys.forEach((key) => claimedKeys.add(key));
-    return true;
-  });
-
-  return [...apiProducts, ...staticFallbacks];
 }
 
 export function selectNewArrivals(products: ShopProduct[], limit = 8): ShopProduct[] {
@@ -70,18 +41,38 @@ function selectFlaggedProducts(
   return [...flagged, ...remaining].slice(0, limit);
 }
 
-/** Server-backed catalog enriched with the existing editorial dummy products. */
-export function useStorefrontProducts() {
+function buildStorefrontQueryKey(search?: string) {
+  const normalizedSearch = search?.trim() || undefined;
+  return [
+    ...productsQueryKeys.storefrontDetail('catalog'),
+    'active-list',
+    STOREFRONT_PRODUCT_LIMIT,
+    normalizedSearch ?? '',
+  ] as const;
+}
+
+/** Server-backed storefront catalog — no static product fallbacks. */
+export function useStorefrontProducts(options: UseStorefrontProductsOptions = {}) {
+  const normalizedSearch = options.search?.trim() || undefined;
+  const enabled = options.enabled ?? true;
+
   const productsQuery = useQuery({
-    queryKey: storefrontProductsQueryKey,
-    queryFn: () => listProducts({ status: 'active', limit: STOREFRONT_PRODUCT_LIMIT }),
+    queryKey: buildStorefrontQueryKey(normalizedSearch),
+    queryFn: () =>
+      listProducts({
+        status: 'active',
+        limit: STOREFRONT_PRODUCT_LIMIT,
+        ...(normalizedSearch ? { search: normalizedSearch } : {}),
+      }),
     staleTime: 60_000,
+    enabled,
   });
 
   const categoriesQuery = useQuery({
     queryKey: categoriesQueryKeys.list(),
     queryFn: listCategories,
     staleTime: 5 * 60_000,
+    enabled,
   });
 
   const categoryNameById = useMemo(() => {
@@ -97,10 +88,10 @@ export function useStorefrontProducts() {
     [productsQuery.data?.items],
   );
 
-  const products = useMemo(() => {
-    const apiProducts = mapStorefrontProducts(rawItems, categoryNameById);
-    return mergeStorefrontProducts(apiProducts);
-  }, [rawItems, categoryNameById]);
+  const products = useMemo(
+    () => mapStorefrontProducts(rawItems, categoryNameById),
+    [rawItems, categoryNameById],
+  );
 
   const newArrivals = useMemo(() => selectNewArrivals(products, 8), [products]);
 
@@ -123,7 +114,7 @@ export function useStorefrontProducts() {
     newArrivals,
     bestSellers,
     featured,
-    fromApi: rawItems.length > 0,
+    total: productsQuery.data?.meta.total ?? products.length,
     isLoading: productsQuery.isLoading,
     isError: productsQuery.isError,
     categoryNameById,

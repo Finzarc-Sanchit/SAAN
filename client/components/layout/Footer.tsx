@@ -33,7 +33,7 @@ export function Footer() {
                 src={BRAND.logo}
                 alt={BRAND.name}
                 fill
-                className="object-contain brightness-0 invert"
+                className="object-contain object-left"
                 sizes="96px"
               />
             </Link>

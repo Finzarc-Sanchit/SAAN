@@ -24,8 +24,8 @@ export function AtelierMadeToMeasureSection() {
               {description}
             </p>
             <div className="mt-9">
-              <CtaButton href={cta.href} variant="link">
-                {cta.label} →
+              <CtaButton href={cta.href} variant="primary" className="min-w-[12rem]">
+                {cta.label}
               </CtaButton>
             </div>
           </ScrollReveal>

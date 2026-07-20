@@ -238,7 +238,9 @@ describe('CartService', () => {
 });
 
 describe('MongoCartRepository.addItem', () => {
-  it('increments quantity for an existing productId+sizeId instead of duplicating', async () => {
+  it(
+    'increments quantity for an existing productId+sizeId instead of duplicating',
+    async () => {
     const { MongoCartRepository } = await import(
       '../../infrastructure/database/mongodb/repositories/cart.repository'
     );
@@ -268,5 +270,7 @@ describe('MongoCartRepository.addItem', () => {
     await CartModel.deleteMany({});
     await disconnectMongo();
     await mongod.stop();
-  });
+    },
+    30_000,
+  );
 });

@@ -19,6 +19,7 @@ const orderItemSchema = new Schema(
     productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
     sizeId: { type: String, required: true, trim: true },
     productNameSnapshot: { type: String, required: true, trim: true },
+    productImageSnapshot: { type: String, default: null, trim: true },
     quantity: { type: Number, required: true, min: 1 },
     unitPrice: { type: Number, required: true, min: 0 },
     totalPrice: { type: Number, required: true, min: 0 },
@@ -39,6 +40,8 @@ const orderItemSchema = new Schema(
 const orderSchema = new Schema(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    /** Customer-facing order id (e.g. 407-1298468-3682757). Unique when present. */
+    orderNumber: { type: String, trim: true },
     addressSnapshot: { type: orderAddressSnapshotSchema, required: true },
     items: {
       type: [orderItemSchema],
@@ -95,7 +98,14 @@ const orderSchema = new Schema(
 
 orderSchema.index({ createdAt: -1 });
 orderSchema.index({ paymentStatus: 1, createdAt: -1 });
-
+orderSchema.index(
+  { orderNumber: 1 },
+  {
+    unique: true,
+    sparse: true,
+    name: 'orderNumber_sparse_unique',
+  },
+);
 export const OrderModel = model('Order', orderSchema);
 
 export type OrderItemDocument = {
@@ -103,6 +113,7 @@ export type OrderItemDocument = {
   productId: Types.ObjectId;
   sizeId: string;
   productNameSnapshot: string;
+  productImageSnapshot?: string | null;
   quantity: number;
   unitPrice: number;
   totalPrice: number;
@@ -122,6 +133,7 @@ export type OrderAddressSnapshotDocument = {
 export type OrderDocument = {
   _id: Types.ObjectId;
   userId: Types.ObjectId;
+  orderNumber?: string;
   addressSnapshot: OrderAddressSnapshotDocument;
   items: OrderItemDocument[];
   subtotal: number;

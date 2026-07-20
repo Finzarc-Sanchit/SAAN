@@ -4,6 +4,7 @@ import { InsufficientStockError } from '../../shared/errors/insufficient-stock-e
 import { ValidationError } from '../../shared/errors/validation-error';
 import type { IAuthRepository } from '../auth/auth.repository.interface';
 import type { CartService } from '../cart/cart.service';
+import type { IPaymentRepository } from '../payment/payment.repository.interface';
 import type { ProductService } from '../product/product.service';
 import type { UserService } from '../user/user.service';
 import type { IOrderRepository } from './order.repository.interface';
@@ -11,6 +12,7 @@ import { OrderService } from './order.service';
 import type { Cart } from '../cart/cart.types';
 import type { Order } from './order.types';
 import type { Product } from '../product/product.types';
+import type { IIdempotencyStore } from '../../shared/idempotency/idempotency-store.interface';
 
 const baseProduct: Product = {
   id: 'product-1',
@@ -75,6 +77,7 @@ const discountedProduct: Product = {
   discountEnabled: true,
   discountStartDate: new Date('2026-01-01'),
   discountEndDate: new Date('2027-01-01'),
+  images: [{ imageId: 'image-2', imageUrl: 'https://example.com/dress.jpg', sortOrder: 0 }],
 };
 
 const cartWithItems: Cart = {
@@ -116,7 +119,10 @@ const savedAddress = {
 function createOrderRepositoryMock(): jest.Mocked<IOrderRepository> {
   return {
     findById: jest.fn(),
+    findByOrderNumber: jest.fn(),
+    findByIdOrNumber: jest.fn(),
     findByUser: jest.fn(),
+    findManyAdmin: jest.fn(),
     create: jest.fn(),
     updateStatus: jest.fn(),
     updatePaymentStatus: jest.fn(),
@@ -166,6 +172,15 @@ function createIdempotencyStoreMock(): jest.Mocked<IIdempotencyStore> {
   };
 }
 
+function createPaymentRepositoryMock(): jest.Mocked<
+  Pick<IPaymentRepository, 'findByOrderId' | 'updateStatus'>
+> {
+  return {
+    findByOrderId: jest.fn(),
+    updateStatus: jest.fn(),
+  };
+}
+
 describe('OrderService.placeOrder', () => {
   let orderRepository: jest.Mocked<IOrderRepository>;
   let cartService: jest.Mocked<Pick<CartService, 'getCart' | 'clearCart'>>;
@@ -175,6 +190,7 @@ describe('OrderService.placeOrder', () => {
   >;
   let idempotencyStore: jest.Mocked<IIdempotencyStore>;
   let authRepository: jest.Mocked<Pick<IAuthRepository, 'findById'>>;
+  let paymentRepository: jest.Mocked<Pick<IPaymentRepository, 'findByOrderId' | 'updateStatus'>>;
   let orderService: OrderService;
 
   beforeEach(() => {
@@ -184,6 +200,8 @@ describe('OrderService.placeOrder', () => {
     productService = createProductServiceMock();
     idempotencyStore = createIdempotencyStoreMock();
     authRepository = createAuthRepositoryMock();
+    paymentRepository = createPaymentRepositoryMock();
+    paymentRepository.findByOrderId.mockResolvedValue([]);
     orderService = new OrderService(
       orderRepository,
       cartService as unknown as CartService,
@@ -191,6 +209,7 @@ describe('OrderService.placeOrder', () => {
       productService as unknown as ProductService,
       idempotencyStore,
       authRepository as unknown as IAuthRepository,
+      paymentRepository as unknown as IPaymentRepository,
     );
 
     idempotencyStore.claimOrGetExisting.mockResolvedValue({ type: 'claimed' });
@@ -229,6 +248,7 @@ describe('OrderService.placeOrder', () => {
   it('snapshots the saved address when addressId is provided', async () => {
     const createdOrder: Order = {
       id: 'order-1',
+      orderNumber: '407-1298468-3682757',
       userId: 'user-1',
       addressSnapshot: {
         firstName: savedAddress.firstName,
@@ -276,11 +296,13 @@ describe('OrderService.placeOrder', () => {
   it('snapshots a fresh address payload without persisting it', async () => {
     orderRepository.create.mockImplementation(async (input) => ({
       id: 'order-1',
+      orderNumber: '407-1298468-3682757',
       userId: input.userId,
       addressSnapshot: input.addressSnapshot,
       items: input.items.map((item, index) => ({
         orderItemId: `item-${index}`,
         ...item,
+        productImageSnapshot: item.productImageSnapshot ?? null,
       })),
       subtotal: input.subtotal,
       discount: input.discount,
@@ -323,11 +345,13 @@ describe('OrderService.placeOrder', () => {
   it('computes totals server-side from live prices and snapshots line items', async () => {
     orderRepository.create.mockImplementation(async (input) => ({
       id: 'order-1',
+      orderNumber: '407-1298468-3682757',
       userId: input.userId,
       addressSnapshot: input.addressSnapshot,
       items: input.items.map((item, index) => ({
         orderItemId: `item-${index}`,
         ...item,
+        productImageSnapshot: item.productImageSnapshot ?? null,
       })),
       subtotal: input.subtotal,
       discount: input.discount,
@@ -356,6 +380,7 @@ describe('OrderService.placeOrder', () => {
           expect.objectContaining({
             productId: 'product-1',
             productNameSnapshot: 'Linen Shirt',
+            productImageSnapshot: 'https://example.com/shirt.jpg',
             quantity: 2,
             unitPrice: 5000,
             totalPrice: 10000,
@@ -363,6 +388,7 @@ describe('OrderService.placeOrder', () => {
           expect.objectContaining({
             productId: 'product-2',
             productNameSnapshot: 'Silk Dress',
+            productImageSnapshot: 'https://example.com/dress.jpg',
             quantity: 1,
             unitPrice: 9000,
             totalPrice: 9000,
@@ -394,6 +420,7 @@ describe('OrderService.placeOrder', () => {
   it('returns the existing order for a repeated idempotency key', async () => {
     const existingOrder: Order = {
       id: 'order-existing',
+      orderNumber: '512-8472910-1938472',
       userId: 'user-1',
       addressSnapshot: {
         firstName: 'Asha',
@@ -408,7 +435,7 @@ describe('OrderService.placeOrder', () => {
       items: [],
       subtotal: 10000,
       discount: 0,
-      shippingCharge: 99,
+      shippingCharge: 0,
       total: 10099,
       currency: 'INR',
       status: 'pending',
@@ -445,6 +472,7 @@ describe('OrderService.placeOrder', () => {
   it('cancelPendingOrder restores stock and marks the order cancelled', async () => {
     const pendingOrder = {
       id: 'order-pending',
+      orderNumber: '628-3910472-5847391',
       userId: 'user-1',
       addressSnapshot: {
         firstName: 'Asha',
@@ -462,6 +490,7 @@ describe('OrderService.placeOrder', () => {
           productId: 'product-1',
           sizeId: 'size-m',
           productNameSnapshot: 'Linen Shirt',
+          productImageSnapshot: null,
           quantity: 1,
           unitPrice: 4500,
           totalPrice: 4500,
@@ -478,7 +507,39 @@ describe('OrderService.placeOrder', () => {
       updatedAt: new Date(),
     };
 
-    orderRepository.findById.mockResolvedValue(pendingOrder);
+    orderRepository.findByIdOrNumber.mockResolvedValue(pendingOrder);
+    paymentRepository.findByOrderId.mockResolvedValue([
+      {
+        id: 'pay-1',
+        orderId: 'order-pending',
+        paymentMethod: 'card',
+        paymentGateway: 'razorpay',
+        transactionId: null,
+        gatewayOrderId: 'order_abc',
+        gatewayPaymentId: null,
+        amount: 4500,
+        currency: 'INR',
+        status: 'created',
+        paidAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ]);
+    paymentRepository.updateStatus.mockResolvedValue({
+      id: 'pay-1',
+      orderId: 'order-pending',
+      paymentMethod: 'card',
+      paymentGateway: 'razorpay',
+      transactionId: null,
+      gatewayOrderId: 'order_abc',
+      gatewayPaymentId: null,
+      amount: 4500,
+      currency: 'INR',
+      status: 'failed',
+      paidAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
     orderRepository.updatePaymentStatus.mockResolvedValue({
       ...pendingOrder,
       paymentStatus: 'failed',
@@ -492,6 +553,7 @@ describe('OrderService.placeOrder', () => {
     const result = await orderService.cancelPendingOrder('order-pending', 'user-1');
 
     expect(productService.adjustStock).toHaveBeenCalledWith('product-1', 'size-m', 1);
+    expect(paymentRepository.updateStatus).toHaveBeenCalledWith('pay-1', 'failed');
     expect(orderRepository.updatePaymentStatus).toHaveBeenCalledWith('order-pending', 'failed');
     expect(orderRepository.updateStatus).toHaveBeenCalledWith('order-pending', 'cancelled');
     expect(result.status).toBe('cancelled');
@@ -499,16 +561,15 @@ describe('OrderService.placeOrder', () => {
 });
 
 describe('computeOrderTotals', () => {
-  it('applies free shipping above the merchandise threshold', async () => {
+  it('applies complimentary shipping for all merchandise totals', async () => {
     const { computeOrderTotals } = await import('./order.pricing');
 
-    const totals = computeOrderTotals([
-      { quantity: 1, basePrice: 6000, unitPrice: 6000 },
-    ]);
+    const high = computeOrderTotals([{ quantity: 1, basePrice: 6000, unitPrice: 6000 }]);
+    expect(high.shippingCharge).toBe(0);
+    expect(high.total).toBe(6000);
 
-    expect(totals.subtotal).toBe(6000);
-    expect(totals.discount).toBe(0);
-    expect(totals.shippingCharge).toBe(0);
-    expect(totals.total).toBe(6000);
+    const low = computeOrderTotals([{ quantity: 1, basePrice: 3600, unitPrice: 3600 }]);
+    expect(low.shippingCharge).toBe(0);
+    expect(low.total).toBe(3600);
   });
 });

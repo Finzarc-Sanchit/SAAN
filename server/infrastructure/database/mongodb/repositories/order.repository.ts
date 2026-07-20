@@ -26,6 +26,14 @@ import {
   type OrderDocument,
   type OrderItemDocument,
 } from '../models/order.model';
+import { allocateOrderNumber } from '../order-number';
+import { ORDER_CONSTANTS } from '../../../../modules/order/order.constants';
+
+const ORDER_NUMBER_RE = ORDER_CONSTANTS.ORDER_NUMBER_PATTERN;
+
+function normalizeOrderNumber(value: string): string {
+  return value.trim();
+}
 
 function toDomainAddressSnapshot(doc: OrderAddressSnapshotDocument): OrderAddressSnapshot {
   return {
@@ -46,6 +54,7 @@ function toDomainOrderItem(doc: OrderItemDocument): OrderItem {
     productId: doc.productId.toString(),
     sizeId: doc.sizeId,
     productNameSnapshot: doc.productNameSnapshot,
+    productImageSnapshot: doc.productImageSnapshot ?? null,
     quantity: doc.quantity,
     unitPrice: doc.unitPrice,
     totalPrice: doc.totalPrice,
@@ -53,8 +62,15 @@ function toDomainOrderItem(doc: OrderItemDocument): OrderItem {
 }
 
 function toDomainOrder(doc: OrderDocument): Order {
+  const id = doc._id.toString();
+  const orderNumber = normalizeOrderNumber(doc.orderNumber ?? '');
+  if (!ORDER_NUMBER_RE.test(orderNumber)) {
+    throw new Error(`Order ${id} is missing a customer-facing orderNumber`);
+  }
+
   return {
-    id: doc._id.toString(),
+    id,
+    orderNumber,
     userId: doc.userId.toString(),
     addressSnapshot: toDomainAddressSnapshot(doc.addressSnapshot),
     items: doc.items.map(toDomainOrderItem),
@@ -70,6 +86,37 @@ function toDomainOrder(doc: OrderDocument): Order {
   };
 }
 
+/**
+ * Guarantees every persisted order has a marketplace-style order id for public URLs.
+ * Allocates and writes one when missing (legacy rows / old SAAN-#### values).
+ */
+async function withEnsuredOrderNumber(doc: OrderDocument): Promise<OrderDocument> {
+  const existing = normalizeOrderNumber(doc.orderNumber ?? '');
+  if (ORDER_NUMBER_RE.test(existing)) {
+    return { ...doc, orderNumber: existing };
+  }
+
+  const orderNumber = await allocateOrderNumber();
+  const updated = await OrderModel.findByIdAndUpdate(
+    doc._id,
+    { orderNumber },
+    { new: true },
+  )
+    .lean<OrderDocument>()
+    .exec();
+
+  if (!updated) {
+    return { ...doc, orderNumber };
+  }
+
+  return updated;
+}
+
+async function toDomainOrderEnsured(doc: OrderDocument): Promise<Order> {
+  const ensured = await withEnsuredOrderNumber(doc);
+  return toDomainOrder(ensured);
+}
+
 function dateTruncUnit(period: AnalyticsPeriod): 'month' | 'quarter' | 'year' {
   if (period === 'quarterly') {
     return 'quarter';
@@ -82,12 +129,32 @@ function dateTruncUnit(period: AnalyticsPeriod): 'month' | 'quarter' | 'year' {
 
 export class MongoOrderRepository implements IOrderRepository {
   async findById(id: string): Promise<Order | null> {
-    if (!Types.ObjectId.isValid(id)) {
+    if (!Types.ObjectId.isValid(id) || id.length !== 24) {
       return null;
     }
 
     const doc = await OrderModel.findById(id).lean<OrderDocument>().exec();
-    return doc ? toDomainOrder(doc) : null;
+    return doc ? toDomainOrderEnsured(doc) : null;
+  }
+
+  async findByOrderNumber(orderNumber: string): Promise<Order | null> {
+    const normalized = normalizeOrderNumber(orderNumber);
+    if (!ORDER_NUMBER_RE.test(normalized)) {
+      return null;
+    }
+
+    const doc = await OrderModel.findOne({ orderNumber: normalized })
+      .lean<OrderDocument>()
+      .exec();
+    return doc ? toDomainOrderEnsured(doc) : null;
+  }
+
+  async findByIdOrNumber(ref: string): Promise<Order | null> {
+    const byNumber = await this.findByOrderNumber(ref);
+    if (byNumber) {
+      return byNumber;
+    }
+    return this.findById(ref);
   }
 
   async findByUser(userId: string, pagination: Pagination): Promise<Paginated<Order>> {
@@ -114,8 +181,10 @@ export class MongoOrderRepository implements IOrderRepository {
       OrderModel.countDocuments(query).exec(),
     ]);
 
+    const items = await Promise.all(docs.map((doc) => toDomainOrderEnsured(doc)));
+
     return {
-      items: docs.map(toDomainOrder),
+      items,
       page,
       limit,
       total,
@@ -127,13 +196,17 @@ export class MongoOrderRepository implements IOrderRepository {
       throw new NotFoundError('User not found');
     }
 
+    const orderNumber = await allocateOrderNumber();
+
     const doc = await OrderModel.create({
       userId: new Types.ObjectId(data.userId),
+      orderNumber,
       addressSnapshot: data.addressSnapshot,
       items: data.items.map((item) => ({
         productId: new Types.ObjectId(item.productId),
         sizeId: item.sizeId,
         productNameSnapshot: item.productNameSnapshot,
+        productImageSnapshot: item.productImageSnapshot ?? null,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         totalPrice: item.totalPrice,
@@ -151,12 +224,13 @@ export class MongoOrderRepository implements IOrderRepository {
   }
 
   async updateStatus(id: string, status: OrderStatus): Promise<Order> {
-    if (!Types.ObjectId.isValid(id)) {
+    const order = await this.findByIdOrNumber(id);
+    if (!order) {
       throw new NotFoundError('Order not found');
     }
 
     const doc = await OrderModel.findByIdAndUpdate(
-      id,
+      order.id,
       { status },
       { new: true, runValidators: true },
     )
@@ -167,16 +241,17 @@ export class MongoOrderRepository implements IOrderRepository {
       throw new NotFoundError('Order not found');
     }
 
-    return toDomainOrder(doc);
+    return toDomainOrderEnsured(doc);
   }
 
   async updatePaymentStatus(id: string, paymentStatus: OrderPaymentStatus): Promise<Order> {
-    if (!Types.ObjectId.isValid(id)) {
+    const order = await this.findByIdOrNumber(id);
+    if (!order) {
       throw new NotFoundError('Order not found');
     }
 
     const doc = await OrderModel.findByIdAndUpdate(
-      id,
+      order.id,
       { paymentStatus },
       { new: true, runValidators: true },
     )
@@ -187,7 +262,7 @@ export class MongoOrderRepository implements IOrderRepository {
       throw new NotFoundError('Order not found');
     }
 
-    return toDomainOrder(doc);
+    return toDomainOrderEnsured(doc);
   }
 
   async getMonthlySales(year: number): Promise<MonthlySalesBucket[]> {
@@ -333,7 +408,7 @@ export class MongoOrderRepository implements IOrderRepository {
       .lean<OrderDocument[]>()
       .exec();
 
-    return docs.map(toDomainOrder);
+    return Promise.all(docs.map((doc) => toDomainOrderEnsured(doc)));
   }
 
   async findManyAdmin(
@@ -362,13 +437,17 @@ export class MongoOrderRepository implements IOrderRepository {
     }
 
     const searchTerm = filter.search?.trim();
-    if (searchTerm && Types.ObjectId.isValid(searchTerm)) {
+    if (searchTerm && Types.ObjectId.isValid(searchTerm) && searchTerm.length === 24) {
       match._id = new Types.ObjectId(searchTerm);
+    } else if (searchTerm && ORDER_NUMBER_RE.test(searchTerm)) {
+      match.orderNumber = normalizeOrderNumber(searchTerm);
     }
 
     const { page, limit, skip } = normalizePagination(pagination);
     const emailRegex =
-      searchTerm && !Types.ObjectId.isValid(searchTerm)
+      searchTerm &&
+      !(Types.ObjectId.isValid(searchTerm) && searchTerm.length === 24) &&
+      !ORDER_NUMBER_RE.test(searchTerm)
         ? new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
         : null;
 
@@ -402,6 +481,7 @@ export class MongoOrderRepository implements IOrderRepository {
     const [facet] = await OrderModel.aggregate<{
       items: Array<{
         _id: Types.ObjectId;
+        orderNumber?: string;
         userId: Types.ObjectId;
         customerUser?: {
           email?: string;
@@ -430,9 +510,17 @@ export class MongoOrderRepository implements IOrderRepository {
     const rows = facet?.items ?? [];
     const total = facet?.total[0]?.count ?? 0;
 
-    return {
-      items: rows.map((row) => ({
+    const items: AdminOrderListItem[] = [];
+    for (const row of rows) {
+      let orderNumber = normalizeOrderNumber(row.orderNumber ?? '');
+      if (!ORDER_NUMBER_RE.test(orderNumber)) {
+        orderNumber = await allocateOrderNumber();
+        await OrderModel.findByIdAndUpdate(row._id, { orderNumber }).exec();
+      }
+
+      items.push({
         id: row._id.toString(),
+        orderNumber,
         userId: row.userId.toString(),
         customerEmail: row.customerUser?.email ?? 'Unknown',
         customerName: row.customerUser
@@ -445,7 +533,11 @@ export class MongoOrderRepository implements IOrderRepository {
         status: row.status,
         paymentStatus: row.paymentStatus,
         createdAt: row.createdAt,
-      })),
+      });
+    }
+
+    return {
+      items,
       page,
       limit,
       total,

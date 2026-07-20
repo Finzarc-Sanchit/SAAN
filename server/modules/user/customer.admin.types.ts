@@ -21,6 +21,7 @@ export type AdminCustomerListFilter = {
 
 export type AdminCustomerRecentOrder = {
   id: string;
+  orderNumber: string;
   total: number;
   status: OrderStatus;
   paymentStatus: OrderPaymentStatus;

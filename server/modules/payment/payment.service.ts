@@ -4,18 +4,25 @@ import { NotFoundError } from '../../shared/errors/not-found-error';
 import { UnauthorizedError } from '../../shared/errors/unauthorized-error';
 import { USER_ROLES } from '../../shared/constants';
 import type { UserRole } from '../../shared/constants';
+import { env } from '../../config/env';
 import { logger } from '../../middlewares/request-logger';
+import type { IEmailQueue } from '../../infrastructure/email/email-queue.interface';
 import type { IPaymentGateway } from '../../infrastructure/payment-gateway/payment-gateway.interface';
 import { toSmallestCurrencyUnit } from '../../shared/utils/money';
+import type { IAuthRepository } from '../auth/auth.repository.interface';
 import type { CartService } from '../cart/cart.service';
 import type { IOrderRepository } from '../order/order.repository.interface';
+import type { Order } from '../order/order.types';
 import type { IPaymentRepository } from './payment.repository.interface';
 import type {
+  AdminPaymentListFilter,
+  AdminPaymentListItem,
   InitiatePaymentResult,
   Payment,
   RazorpayWebhookPayload,
   VerifyCheckoutPaymentInput,
 } from './payment.types';
+import type { Paginated, Pagination } from '../../shared/types/pagination';
 
 const TERMINAL_PAYMENT_STATUSES = new Set<Payment['status']>(['paid', 'refunded']);
 
@@ -25,6 +32,8 @@ export class PaymentService {
     private readonly orderRepository: IOrderRepository,
     private readonly paymentGateway: IPaymentGateway,
     private readonly cartService: CartService,
+    private readonly authRepository: IAuthRepository,
+    private readonly emailQueue: IEmailQueue,
   ) {}
 
   async initiatePayment(
@@ -33,7 +42,7 @@ export class PaymentService {
     role: UserRole,
     paymentMethod: string,
   ): Promise<InitiatePaymentResult> {
-    const order = await this.orderRepository.findById(orderId);
+    const order = await this.orderRepository.findByIdOrNumber(orderId);
 
     if (!order) {
       throw new NotFoundError('Order not found');
@@ -47,25 +56,20 @@ export class PaymentService {
 
     const amountSubunits = toSmallestCurrencyUnit(order.total, order.currency);
 
-    // Reuse an open gateway order so retries don't create duplicate Razorpay receipts.
-    const existingPayments = await this.paymentRepository.findByOrderId(orderId);
-    const reusable = existingPayments.find(
-      (entry) =>
-        (entry.status === 'created' || entry.status === 'pending') &&
-        Boolean(entry.gatewayOrderId),
+    if (amountSubunits < 100) {
+      throw new ConflictError('Order total is below the minimum payable amount');
+    }
+
+    // Invalidate open gateway sessions before creating a new one. Reusing an
+    // order_id created under a previous RAZORPAY_KEY_ID causes checkout AJAX 400s.
+    const existingPayments = await this.paymentRepository.findByOrderId(order.id);
+    const openPayments = existingPayments.filter(
+      (entry) => entry.status === 'created' || entry.status === 'pending',
     );
 
-    if (reusable?.gatewayOrderId) {
-      return {
-        paymentId: reusable.id,
-        orderId: order.id,
-        gatewayOrderId: reusable.gatewayOrderId,
-        amount: amountSubunits,
-        currency: reusable.currency,
-        paymentGateway: reusable.paymentGateway,
-        keyId: this.paymentGateway.getPublicKeyId(),
-      };
-    }
+    await Promise.all(
+      openPayments.map((entry) => this.paymentRepository.updateStatus(entry.id, 'failed')),
+    );
 
     const { gatewayOrderId } = await this.paymentGateway.createGatewayOrder(
       amountSubunits,
@@ -101,7 +105,7 @@ export class PaymentService {
     role: UserRole,
     input: VerifyCheckoutPaymentInput,
   ): Promise<Payment> {
-    const order = await this.orderRepository.findById(orderId);
+    const order = await this.orderRepository.findByIdOrNumber(orderId);
 
     if (!order) {
       throw new NotFoundError('Order not found');
@@ -110,7 +114,7 @@ export class PaymentService {
     this.assertOrderAccess(order.userId, userId, role);
 
     if (order.paymentStatus === 'paid') {
-      const payments = await this.paymentRepository.findByOrderId(orderId);
+      const payments = await this.paymentRepository.findByOrderId(order.id);
       const paid = payments.find((entry) => entry.status === 'paid');
       if (paid) {
         return paid;
@@ -123,7 +127,7 @@ export class PaymentService {
 
     const payment = await this.paymentRepository.findByGatewayOrderId(input.razorpayOrderId);
 
-    if (!payment || payment.orderId !== orderId) {
+    if (!payment || payment.orderId !== order.id) {
       throw new NotFoundError('Payment not found for this order');
     }
 
@@ -139,7 +143,7 @@ export class PaymentService {
       )
     ) {
       logger.warn(
-        { orderId, gatewayOrderId: input.razorpayOrderId },
+        { orderId: order.id, gatewayOrderId: input.razorpayOrderId },
         'Rejected checkout payment with invalid signature',
       );
       throw new UnauthorizedError('Invalid payment signature');
@@ -151,9 +155,12 @@ export class PaymentService {
       transactionId: input.razorpayPaymentId,
     });
 
-    await this.orderRepository.updatePaymentStatus(orderId, 'paid');
-    await this.orderRepository.updateStatus(orderId, 'confirmed');
+    await this.orderRepository.updatePaymentStatus(order.id, 'paid');
+    const confirmedOrder = await this.orderRepository.updateStatus(order.id, 'confirmed');
     await this.cartService.clearCart(order.userId);
+
+    // QStash publish only — never waits for SMTP.
+    this.enqueueOrderPaidEmails(confirmedOrder);
 
     return updatedPayment;
   }
@@ -163,7 +170,7 @@ export class PaymentService {
     userId: string,
     role: UserRole,
   ): Promise<Payment[]> {
-    const order = await this.orderRepository.findById(orderId);
+    const order = await this.orderRepository.findByIdOrNumber(orderId);
 
     if (!order) {
       throw new NotFoundError('Order not found');
@@ -171,7 +178,14 @@ export class PaymentService {
 
     this.assertOrderAccess(order.userId, userId, role);
 
-    return this.paymentRepository.findByOrderId(orderId);
+    return this.paymentRepository.findByOrderId(order.id);
+  }
+
+  async listPaymentsAdmin(
+    filter: AdminPaymentListFilter,
+    pagination: Pagination,
+  ): Promise<Paginated<AdminPaymentListItem>> {
+    return this.paymentRepository.findManyAdmin(filter, pagination);
   }
 
   async handleWebhook(rawPayload: string | Buffer, signature: string): Promise<void> {
@@ -234,14 +248,97 @@ export class PaymentService {
 
     if (nextStatus === 'paid') {
       await this.orderRepository.updatePaymentStatus(updatedPayment.orderId, 'paid');
-      await this.orderRepository.updateStatus(updatedPayment.orderId, 'confirmed');
-      const order = await this.orderRepository.findById(updatedPayment.orderId);
-      if (order) {
-        await this.cartService.clearCart(order.userId);
-      }
+      const confirmedOrder = await this.orderRepository.updateStatus(
+        updatedPayment.orderId,
+        'confirmed',
+      );
+      await this.cartService.clearCart(confirmedOrder.userId);
+      this.enqueueOrderPaidEmails(confirmedOrder);
     } else if (nextStatus === 'failed') {
       await this.orderRepository.updatePaymentStatus(updatedPayment.orderId, 'failed');
     }
+  }
+
+  /**
+   * Marks open gateway payments as failed when a pending order is abandoned.
+   * Prevents reusing a Razorpay order created under a different key or amount.
+   */
+  async abandonOpenPayments(orderId: string): Promise<void> {
+    const payments = await this.paymentRepository.findByOrderId(orderId);
+
+    await Promise.all(
+      payments
+        .filter((entry) => entry.status === 'created' || entry.status === 'pending')
+        .map((entry) => this.paymentRepository.updateStatus(entry.id, 'failed')),
+    );
+  }
+
+  /**
+   * Fire-and-forget QStash enqueue so verify/webhook responses are not blocked by SMTP.
+   * Deduplication IDs keep client verify + webhook from double-sending.
+   */
+  private enqueueOrderPaidEmails(order: Order): void {
+    void this.notifyOrderPaid(order).catch((error: unknown) => {
+      logger.error(
+        { err: error, orderId: order.id, orderNumber: order.orderNumber },
+        'Failed to enqueue order paid emails',
+      );
+    });
+  }
+
+  private async notifyOrderPaid(order: Order): Promise<void> {
+    const user = await this.authRepository.findById(order.userId);
+    const rawEmail = user?.email?.trim();
+    if (!user || !rawEmail) {
+      logger.warn({ orderId: order.id }, 'Skipping order emails — customer email missing');
+      return;
+    }
+
+    const customerEmail = rawEmail.toLowerCase();
+    const customerName =
+      `${order.addressSnapshot.firstName} ${order.addressSnapshot.lastName}`.trim() ||
+      `${user.firstName} ${user.lastName}`.trim() ||
+      'Customer';
+
+    const itemSummary =
+      order.items
+        .map(
+          (line) =>
+            `${line.productNameSnapshot} × ${line.quantity}`,
+        )
+        .join('\n') || 'Order items';
+
+    const confirmationUrl = `${env.APP_URL.replace(/\/$/, '')}/order-confirmation/${encodeURIComponent(order.orderNumber)}`;
+    const adminOrderUrl = `${env.APP_URL.replace(/\/$/, '')}/admin/orders/${encodeURIComponent(order.orderNumber)}`;
+
+    await Promise.all([
+      this.emailQueue.enqueue(
+        {
+          type: 'order-confirmation',
+          to: customerEmail,
+          customerName,
+          orderNumber: order.orderNumber,
+          total: order.total,
+          currency: order.currency,
+          itemSummary,
+          confirmationUrl,
+        },
+        { deduplicationId: `order-confirmation-${order.id}` },
+      ),
+      this.emailQueue.enqueue(
+        {
+          type: 'order-admin-notification',
+          customerName,
+          customerEmail,
+          orderNumber: order.orderNumber,
+          total: order.total,
+          currency: order.currency,
+          itemSummary,
+          adminOrderUrl,
+        },
+        { deduplicationId: `order-admin-${order.id}` },
+      ),
+    ]);
   }
 
   private assertOrderAccess(orderUserId: string, requestUserId: string, role: UserRole): void {

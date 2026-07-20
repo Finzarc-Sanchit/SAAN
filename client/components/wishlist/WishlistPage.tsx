@@ -14,7 +14,6 @@ import { useWishlist } from '@/hooks/useWishlist';
 import { useStorefrontProducts } from '@/hooks/useStorefrontProducts';
 import { getWishlist, wishlistQueryKeys } from '@/lib/api/wishlist';
 import { getProductHref } from '@/lib/product-url';
-import { SHOP_PRODUCTS } from '@/lib/site-content';
 import type { WishlistItem } from '@/lib/types/wishlist';
 
 function WishlistLoadingState() {
@@ -60,11 +59,6 @@ function GuestWishlistGrid({
 
   const resolved = useMemo(() => {
     const byId = new Map(products.map((product) => [product.id, product]));
-    for (const product of SHOP_PRODUCTS) {
-      if (!byId.has(product.id)) {
-        byId.set(product.id, product);
-      }
-    }
 
     return productIds
       .map((id) => byId.get(id))

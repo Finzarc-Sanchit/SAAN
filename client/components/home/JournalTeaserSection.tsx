@@ -15,7 +15,7 @@ export function JournalTeaserSection() {
             <p className="text-ui text-neutral-500">Journal</p>
             <h2 className="text-h2 mt-2 text-ink">Stories from the atelier</h2>
           </div>
-          <CtaButton href="/journal" variant="link">
+          <CtaButton href="/journal" variant="primary" className="min-w-[12rem]">
             Read Journal
           </CtaButton>
         </div>

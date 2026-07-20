@@ -60,7 +60,7 @@ export function OrdersPage() {
         id: 'orderId',
         header: 'Order',
         cell: (row) => (
-          <span className="font-mono text-sm font-medium">{formatShortOrderId(row.id)}</span>
+          <span className="font-mono text-sm font-medium">{formatShortOrderId(row.orderNumber)}</span>
         ),
       },
       {
@@ -111,9 +111,9 @@ export function OrdersPage() {
         className: 'text-right',
         cell: (row) => (
           <Link
-            href={`/admin/orders/${row.id}`}
+            href={`/admin/orders/${encodeURIComponent(row.orderNumber)}`}
             className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 font-body text-sm text-ink transition-colors hover:bg-saan-maroon/5 dark:text-ink dark:hover:bg-ink/10"
-            aria-label={`View order ${formatShortOrderId(row.id)}`}
+            aria-label={`View order ${formatShortOrderId(row.orderNumber)}`}
           >
             <Eye className="h-4 w-4" strokeWidth={1.5} />
             View

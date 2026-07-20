@@ -70,7 +70,7 @@ export function TestimonialsSection() {
         </div>
 
         <div className="mt-10">
-          <CtaButton href={copy.cta.href} variant="link">
+          <CtaButton href={copy.cta.href} variant="primary" className="min-w-[12rem]">
             {copy.cta.label}
           </CtaButton>
         </div>

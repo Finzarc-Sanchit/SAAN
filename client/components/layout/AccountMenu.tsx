@@ -120,14 +120,32 @@ export function AccountMenu({ className, tone = 'dark' }: AccountMenuProps) {
               Dashboard
             </Link>
           ) : (
-            <Link
-              href="/account"
-              role="menuitem"
-              onClick={() => setOpen(false)}
-              className="text-ui block px-4 py-2.5 text-ink transition-colors hover:bg-neutral-100"
-            >
-              Profile
-            </Link>
+            <>
+              <Link
+                href="/account"
+                role="menuitem"
+                onClick={() => setOpen(false)}
+                className="text-ui block px-4 py-2.5 text-ink transition-colors hover:bg-neutral-100"
+              >
+                Profile
+              </Link>
+              <Link
+                href="/account/orders"
+                role="menuitem"
+                onClick={() => setOpen(false)}
+                className="text-ui block px-4 py-2.5 text-ink transition-colors hover:bg-neutral-100"
+              >
+                Order history
+              </Link>
+              <Link
+                href="/account/addresses"
+                role="menuitem"
+                onClick={() => setOpen(false)}
+                className="text-ui block px-4 py-2.5 text-ink transition-colors hover:bg-neutral-100"
+              >
+                Addresses
+              </Link>
+            </>
           )}
           <button
             type="button"

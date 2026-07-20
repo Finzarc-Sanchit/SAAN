@@ -117,6 +117,38 @@ function buildSort(sort?: ProductListSort): Record<string, 1 | -1> {
   }
 }
 
+const PRODUCT_SEARCH_FIELDS = [
+  'name',
+  'slug',
+  'description',
+  'shortDescription',
+  'fabric',
+  'color',
+] as const;
+
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function buildProductSearchClause(search: string): Record<string, unknown> {
+  const terms = search.trim().split(/\s+/).filter(Boolean);
+  if (terms.length === 0) {
+    return {};
+  }
+
+  const termClauses = terms.map((term) => {
+    const regex = new RegExp(escapeRegex(term), 'i');
+    return {
+      $or: [
+        ...PRODUCT_SEARCH_FIELDS.map((field) => ({ [field]: regex })),
+        { occasion: regex },
+      ],
+    };
+  });
+
+  return termClauses.length === 1 ? termClauses[0]! : { $and: termClauses };
+}
+
 function buildMongoFilter(filter: ProductFilter): Record<string, unknown> {
   const query: Record<string, unknown> = {};
 
@@ -151,11 +183,16 @@ function buildMongoFilter(filter: ProductFilter): Record<string, unknown> {
     query.occasion = filter.occasion;
   }
 
-  if (filter.search) {
-    query.$text = { $search: filter.search };
+  if (!filter.search?.trim()) {
+    return query;
   }
 
-  return query;
+  const searchClause = buildProductSearchClause(filter.search);
+  if (Object.keys(query).length === 0) {
+    return searchClause;
+  }
+
+  return { $and: [query, searchClause] };
 }
 
 function buildCreatePayload(data: ProductRepositoryCreateInput): Record<string, unknown> {

@@ -9,6 +9,7 @@ import { ProductImageUploader } from '@/components/admin/products/ProductImageUp
 import { CampaignStorefrontPreview } from '@/components/admin/campaigns/CampaignStorefrontPreview';
 import { AdminButton } from '@/components/admin/ui/AdminButton';
 import { AdminCard, AdminInlineError, AdminSkeleton } from '@/components/admin/ui/AdminCard';
+import { AdminProductSearchSelect } from '@/components/admin/ui/AdminProductSearchSelect';
 import {
   AdminFormField,
   adminInputClassName,
@@ -27,13 +28,11 @@ import {
   updateCampaign,
 } from '@/lib/api/campaigns';
 import { ApiError, getApiErrorMessage, getFieldErrors } from '@/lib/api/errors';
-import { fetchAdminProduct, listProducts, productsQueryKeys } from '@/lib/api/products';
 import {
   campaignFormSchema,
   type AdminCampaign,
   type CreateCampaignInput,
 } from '@/lib/types/campaign';
-import type { Product } from '@/lib/types/product';
 
 type CampaignFormPageProps = {
   mode: 'create' | 'edit';
@@ -101,24 +100,10 @@ export function CampaignFormPage({ mode, campaignId }: CampaignFormPageProps) {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [hydratedId, setHydratedId] = useState<string | null>(null);
 
-  const activeProductsQuery = useQuery({
-    queryKey: productsQueryKeys.list({ status: 'active', limit: 100, page: 1 }),
-    queryFn: () => listProducts({ status: 'active', limit: 100, page: 1 }),
-  });
-
   const detailQuery = useQuery({
     queryKey: campaignsQueryKeys.detail(campaignId ?? ''),
     queryFn: () => getCampaign(campaignId!),
     enabled: mode === 'edit' && Boolean(campaignId),
-  });
-
-  const linkedProductId =
-    mode === 'edit' ? detailQuery.data?.productId ?? form.productId : form.productId;
-
-  const linkedProductQuery = useQuery({
-    queryKey: productsQueryKeys.detail(linkedProductId ?? ''),
-    queryFn: () => fetchAdminProduct(linkedProductId!),
-    enabled: Boolean(linkedProductId),
   });
 
   useEffect(() => {
@@ -127,17 +112,6 @@ export function CampaignFormPage({ mode, campaignId }: CampaignFormPageProps) {
     setForm(campaignToForm(detailQuery.data));
     setHydratedId(detailQuery.data.id);
   }, [mode, detailQuery.data, hydratedId]);
-
-  const productOptions = useMemo(() => {
-    const map = new Map<string, Product>();
-    for (const product of activeProductsQuery.data?.items ?? []) {
-      map.set(product.id, product);
-    }
-    if (linkedProductQuery.data) {
-      map.set(linkedProductQuery.data.id, linkedProductQuery.data);
-    }
-    return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
-  }, [activeProductsQuery.data?.items, linkedProductQuery.data]);
 
   const createMutation = useMutation({
     mutationFn: createCampaign,
@@ -176,10 +150,8 @@ export function CampaignFormPage({ mode, campaignId }: CampaignFormPageProps) {
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
   const pageReady = useMemo(
-    () =>
-      !activeProductsQuery.isLoading &&
-      (mode === 'create' || (!detailQuery.isLoading && hydratedId !== null)),
-    [activeProductsQuery.isLoading, mode, detailQuery.isLoading, hydratedId],
+    () => mode === 'create' || (!detailQuery.isLoading && hydratedId !== null),
+    [mode, detailQuery.isLoading, hydratedId],
   );
 
   function patchForm<K extends keyof FormState>(key: K, value: FormState[K]) {
@@ -293,22 +265,12 @@ export function CampaignFormPage({ mode, campaignId }: CampaignFormPageProps) {
               hint="Clicking the banner opens this product page."
               className="md:col-span-2"
             >
-              <select
+              <AdminProductSearchSelect
                 id="campaign-product"
                 value={form.productId}
-                onChange={(e) => patchForm('productId', e.target.value)}
-                className={adminInputClassName}
+                onChange={(productId) => patchForm('productId', productId)}
                 disabled={isSubmitting}
-                required
-              >
-                <option value="">Select active product</option>
-                {productOptions.map((product) => (
-                  <option key={product.id} value={product.id}>
-                    {product.name}
-                    {product.status !== 'active' ? ` (${product.status})` : ''}
-                  </option>
-                ))}
-              </select>
+              />
             </AdminFormField>
 
             <AdminFormField label="Priority" htmlFor="campaign-priority" error={fieldErrors.priority}>

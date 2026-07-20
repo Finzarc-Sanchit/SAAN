@@ -1,10 +1,34 @@
 import { addUtcDays } from '@/lib/admin/format';
 import { dateInputToIso, toDateInputValue } from '@/lib/admin/date-range-status';
 
-export function formatShortOrderId(orderId: string): string {
-  const compact = orderId.replace(/[^a-f0-9]/gi, '');
-  const tail = compact.slice(-8).toUpperCase();
-  return `#${tail || orderId.slice(0, 8)}`;
+/** Amazon-style marketplace order id: `407-1298468-3682757` */
+const ORDER_NUMBER_RE = /^\d{3}-\d{7}-\d{7}$/;
+
+export function isOrderNumber(value: string): boolean {
+  return ORDER_NUMBER_RE.test(value.trim());
+}
+
+/**
+ * Display label for a customer-facing order id (e.g. #407-1298468-3682757).
+ */
+export function formatShortOrderId(orderNumber: string): string {
+  const normalized = orderNumber.trim();
+  if (!ORDER_NUMBER_RE.test(normalized)) {
+    throw new Error('Expected a customer-facing order id (###-#######-#######)');
+  }
+  return `#${normalized}`;
+}
+
+/**
+ * Public URL segment for orders — always ###-#######-#######.
+ * Never returns a Mongo ObjectId.
+ */
+export function getOrderPublicRef(order: { orderNumber?: string }): string {
+  const number = order.orderNumber?.trim() ?? '';
+  if (!ORDER_NUMBER_RE.test(number)) {
+    throw new Error('Order is missing a customer-facing order id');
+  }
+  return number;
 }
 
 export function formatOrderDateTime(value: string): string {

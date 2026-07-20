@@ -1,6 +1,6 @@
 'use client';
 
-import { Menu, X } from 'lucide-react';
+import { Menu, Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { TextLink } from '@/components/ui/TextLink';
@@ -10,9 +10,10 @@ import { cn } from '@/lib/utils';
 type MobileNavProps = {
   className?: string;
   tone?: 'light' | 'dark';
+  onOpenSearch?: () => void;
 };
 
-export function MobileNav({ className, tone = 'dark' }: MobileNavProps) {
+export function MobileNav({ className, tone = 'dark', onOpenSearch }: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const isLight = tone === 'light';
@@ -59,6 +60,19 @@ export function MobileNav({ className, tone = 'dark' }: MobileNavProps) {
               className="fixed inset-x-0 top-16 z-[70] max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-neutral-300 bg-paper px-5 py-8 md:hidden"
             >
               <nav aria-label="Mobile navigation" className="flex flex-col gap-5">
+                {onOpenSearch ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpen(false);
+                      onOpenSearch();
+                    }}
+                    className="inline-flex items-center gap-2 text-ui text-ink transition-opacity hover:opacity-65"
+                  >
+                    <Search className="h-4 w-4" strokeWidth={1.25} aria-hidden />
+                    Search
+                  </button>
+                ) : null}
                 {NAV_LINKS.map((link) => (
                   <TextLink
                     key={link.href}

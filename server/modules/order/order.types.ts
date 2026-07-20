@@ -18,6 +18,8 @@ export interface OrderItem {
   productId: string;
   sizeId: string;
   productNameSnapshot: string;
+  /** Primary product image at time of order (optional for legacy rows). */
+  productImageSnapshot: string | null;
   quantity: number;
   unitPrice: number;
   totalPrice: number;
@@ -25,6 +27,8 @@ export interface OrderItem {
 
 export interface Order {
   id: string;
+  /** Customer-facing order id (e.g. 407-1298468-3682757) — used in confirmation URLs. */
+  orderNumber: string;
   userId: string;
   addressSnapshot: OrderAddressSnapshot;
   items: OrderItem[];
@@ -43,6 +47,7 @@ export interface CreateOrderItemInput {
   productId: string;
   sizeId: string;
   productNameSnapshot: string;
+  productImageSnapshot?: string | null;
   quantity: number;
   unitPrice: number;
   totalPrice: number;
@@ -82,6 +87,7 @@ export type AdminOrderCustomer = {
 
 export type AdminOrderListItem = {
   id: string;
+  orderNumber: string;
   userId: string;
   customerEmail: string;
   customerName: string;

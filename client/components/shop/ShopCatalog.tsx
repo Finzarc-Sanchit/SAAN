@@ -39,6 +39,7 @@ export function ShopCatalog() {
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get('category') ?? 'all';
   const initialSort = searchParams.get('sort') ?? 'featured';
+  const searchQuery = searchParams.get('search')?.trim() ?? '';
 
   const [sortBy, setSortBy] = useState(
     SHOP_SORT_OPTIONS.some((option) => option.id === initialSort)
@@ -51,7 +52,9 @@ export function ShopCatalog() {
     maxPrice: MAX_PRICE_LIMIT,
   });
 
-  const { products: catalogProducts, isLoading } = useStorefrontProducts();
+  const { products: catalogProducts, isLoading, total } = useStorefrontProducts({
+    search: searchQuery || undefined,
+  });
 
   const categoryOptions = useMemo(
     () => buildCategoryOptions(catalogProducts),
@@ -93,9 +96,15 @@ export function ShopCatalog() {
       <Container>
         <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <h1 className="text-h1 text-ink">Shop</h1>
+            <h1 className="text-h1 text-ink">
+              {searchQuery ? `Results for “${searchQuery}”` : 'Shop'}
+            </h1>
             <p className="text-caption mt-2 text-neutral-500">
-              Luxury pret, formals, and everyday pieces — finished by hand.
+              {searchQuery
+                ? isLoading
+                  ? 'Searching the collection…'
+                  : `${total} ${total === 1 ? 'piece' : 'pieces'} found`
+                : 'Luxury pret, formals, and everyday pieces — finished by hand.'}
             </p>
           </div>
 

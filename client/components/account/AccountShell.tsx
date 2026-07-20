@@ -35,7 +35,7 @@ function AccountShellLoading() {
   );
 }
 
-export function AccountShell({ children }: { children: React.ReactNode }) {
+export function AccountShell({ children }: { children: React.ReactNode; }) {
   const pathname = usePathname();
   const router = useRouter();
   const {

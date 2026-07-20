@@ -24,7 +24,7 @@ export function BestSellersSection() {
           <p className="text-body-l mt-5 max-w-lg text-neutral-700">{copy.description}</p>
         </ScrollReveal>
 
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-12">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:items-stretch lg:gap-12">
           <div className="grid grid-cols-2 gap-x-5 gap-y-12 md:gap-x-8 md:gap-y-14 lg:col-span-7 lg:grid-cols-3">
             {isLoading
               ? Array.from({ length: 6 }).map((_, index) => (
@@ -47,8 +47,8 @@ export function BestSellersSection() {
                   )}
           </div>
 
-          <ScrollReveal delay={0.15} className="lg:col-span-5">
-            <div className="relative aspect-[3/4] overflow-hidden bg-neutral-100 lg:aspect-auto lg:min-h-[640px]">
+          <ScrollReveal delay={0.15} className="lg:col-span-5 lg:h-full">
+            <div className="relative aspect-[3/4] overflow-hidden bg-neutral-100 lg:aspect-auto lg:h-full lg:min-h-[800px]">
               <Image
                 src={copy.campaignImage.src}
                 alt={copy.campaignImage.alt}
@@ -57,7 +57,7 @@ export function BestSellersSection() {
                 className="object-cover object-center"
               />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-midnight/60 to-transparent p-6 md:p-8">
-                <CtaButton href={copy.cta.href} variant="link" tone="light">
+                <CtaButton href={copy.cta.href} variant="primary" tone="light" className="min-w-[12rem]">
                   {copy.cta.label}
                 </CtaButton>
               </div>

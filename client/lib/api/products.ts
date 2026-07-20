@@ -15,6 +15,7 @@ export const productsQueryKeys = {
   list: (params: ProductListParams) => [...productsQueryKeys.all, 'list', params] as const,
   detail: (id: string) => [...productsQueryKeys.all, 'detail', id] as const,
   storefrontDetail: (slug: string) => ['products', 'storefront', slug] as const,
+  search: (query: string, limit: number) => ['products', 'search', query, limit] as const,
 };
 
 function buildListQuery(params: ProductListParams): string {

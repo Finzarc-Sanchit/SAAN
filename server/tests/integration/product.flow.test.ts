@@ -155,6 +155,7 @@ describe('Product flow integration', () => {
         color: 'Ivory',
         occasion: ['Daily'],
         fitNotes: "Model is 5'6\" wearing S. Fit relaxed.",
+        care: ['Dry clean only'],
         basePrice: 8900,
         salePrice: 8010,
         discountPercent: 10,

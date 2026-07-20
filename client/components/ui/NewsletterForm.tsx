@@ -98,14 +98,10 @@ export function NewsletterForm({
         />
         <CtaButton
           type="submit"
-          variant={isDark ? 'secondary' : 'primary'}
+          variant="primary"
           tone={isDark ? 'light' : 'dark'}
           disabled={isSubmitting}
-          className={cn(
-            'gap-2',
-            isDark &&
-              'transition-[transform,letter-spacing,box-shadow] duration-300 hover:-translate-y-0.5 hover:border-white hover:text-white hover:tracking-[0.16em] hover:shadow-[0_8px_24px_rgba(255,255,255,0.08)] focus-visible:border-white focus-visible:text-white motion-reduce:hover:translate-y-0',
-          )}
+          className="gap-2"
         >
           {isSubmitting ? (
             <>

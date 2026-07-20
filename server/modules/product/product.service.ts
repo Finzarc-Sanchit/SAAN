@@ -140,6 +140,15 @@ export class ProductService {
     return product;
   }
 
+  async getProductsByIds(ids: string[]): Promise<Product[]> {
+    const uniqueIds = [...new Set(ids.filter(Boolean))];
+    if (uniqueIds.length === 0) {
+      return [];
+    }
+
+    return this.productRepository.findByIds(uniqueIds);
+  }
+
   async listProducts(
     filter: ProductFilter,
     pagination: Pagination,

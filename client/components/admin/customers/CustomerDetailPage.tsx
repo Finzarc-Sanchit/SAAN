@@ -222,10 +222,10 @@ export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
                   >
                     <td className="px-2 py-3">
                       <Link
-                        href={`/admin/orders/${order.id}`}
+                        href={`/admin/orders/${encodeURIComponent(order.orderNumber)}`}
                         className="font-mono text-sm font-medium text-ink hover:underline dark:text-ink"
                       >
-                        {formatShortOrderId(order.id)}
+                        {formatShortOrderId(order.orderNumber)}
                       </Link>
                     </td>
                     <td className="px-2 py-3 tabular-nums">{formatInr(order.total)}</td>

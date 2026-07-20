@@ -12,7 +12,7 @@ type CollectionProductGridProps = {
   collectionSlug?: string;
 };
 
-/** Shows the merged server and editorial catalog until backend collections exist. */
+/** Shows active catalog products for a collection page. */
 export function CollectionProductGrid({
   collectionTitle,
 }: CollectionProductGridProps) {

@@ -16,6 +16,33 @@ export interface Payment {
   updatedAt: Date;
 }
 
+export type AdminPaymentListFilter = {
+  status?: PaymentStatus;
+  paymentMethod?: string;
+  paymentGateway?: string;
+  search?: string;
+  from?: Date;
+  to?: Date;
+};
+
+export type AdminPaymentListItem = {
+  id: string;
+  orderId: string;
+  orderNumber: string;
+  customerName: string;
+  customerEmail: string;
+  paymentMethod: string;
+  paymentGateway: string;
+  transactionId: string | null;
+  gatewayOrderId: string | null;
+  gatewayPaymentId: string | null;
+  amount: number;
+  currency: string;
+  status: PaymentStatus;
+  paidAt: Date | null;
+  createdAt: Date;
+};
+
 export interface CreatePaymentInput {
   orderId: string;
   paymentMethod: string;

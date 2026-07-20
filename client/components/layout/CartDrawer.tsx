@@ -151,7 +151,7 @@ export function CartDrawer() {
                 </p>
                 <button
                   type="button"
-                  className="text-label-caps w-full bg-saan-maroon py-3.5 text-paper transition-colors hover:bg-ink"
+                  className="text-label-caps w-full bg-ink py-3.5 text-paper transition-colors hover:bg-saan-charcoal"
                 >
                   Proceed to Checkout
                 </button>
