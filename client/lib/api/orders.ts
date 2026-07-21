@@ -77,12 +77,35 @@ export async function fetchOrder(id: string): Promise<Order> {
 }
 
 export async function listMyOrders(params: { page?: number; limit?: number } = {}): Promise<Order[]> {
+  const result = await listMyOrdersPage(params);
+  return result.items;
+}
+
+export type CustomerOrderListResult = {
+  items: Order[];
+  meta: PaginationMeta;
+};
+
+export async function listMyOrdersPage(
+  params: { page?: number; limit?: number } = {},
+): Promise<CustomerOrderListResult> {
   const search = new URLSearchParams();
   if (params.page) search.set('page', String(params.page));
   if (params.limit) search.set('limit', String(params.limit));
   const qs = search.toString();
 
-  return apiRequest<Order[]>(`${ORDERS_BASE}${qs ? `?${qs}` : ''}`);
+  const { data, meta } = await apiRequestWithMeta<Order[]>(
+    `${ORDERS_BASE}${qs ? `?${qs}` : ''}`,
+  );
+
+  return {
+    items: data,
+    meta: meta ?? {
+      page: params.page ?? 1,
+      limit: params.limit ?? 20,
+      total: data.length,
+    },
+  };
 }
 
 export async function placeOrder(

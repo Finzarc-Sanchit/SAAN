@@ -21,7 +21,7 @@ type AddAddressFormProps = {
 };
 
 const inputClassName =
-  'mt-2 h-12 w-full border border-neutral-300 bg-paper px-4 text-body text-ink outline-none transition-colors placeholder:text-neutral-500 focus:border-ink';
+  'mt-2 h-12 w-full border border-neutral-200 bg-paper px-4 text-body text-ink outline-none transition-colors placeholder:text-neutral-500 focus:border-[#2874f0]';
 
 export function AddAddressForm({
   initialFirstName,
@@ -104,25 +104,22 @@ export function AddAddressForm({
   return (
     <form
       onSubmit={(event) => void handleSubmit(event)}
-      className="min-w-0 border border-neutral-300 bg-neutral-100 p-4 sm:p-6 lg:p-7"
+      className="min-w-0 border border-neutral-200 bg-paper p-4 sm:p-6"
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-5">
         <div>
-          <h3 className="text-h3 text-ink">Add an address</h3>
-          <p className="mt-2 text-body text-neutral-700">
-            Save a delivery address for future orders.
-          </p>
+          <h3 className="text-lg font-medium text-ink">Add a new address</h3>
         </div>
         <button
           type="button"
           onClick={onCancel}
-          className="self-start text-ui text-neutral-700 underline decoration-neutral-300 underline-offset-4 hover:text-ink"
+          className="self-start text-ui font-medium text-[#2874f0] underline-offset-4 hover:underline"
         >
           Cancel
         </button>
       </div>
 
-      <div className="mt-7 grid gap-5 sm:grid-cols-2">
+      <div className="mt-6 grid gap-5 sm:grid-cols-2">
         <AddressField
           label="First name"
           value={form.firstName}
@@ -193,7 +190,7 @@ export function AddAddressForm({
           type="checkbox"
           checked={isDefault}
           onChange={(event) => setIsDefault(event.target.checked)}
-          className="h-4 w-4 accent-ink"
+          className="h-4 w-4 accent-[#2874f0]"
         />
         Use as my default delivery address
       </label>
@@ -207,7 +204,7 @@ export function AddAddressForm({
       <button
         type="submit"
         disabled={isSaving}
-        className="mt-7 inline-flex min-h-11 w-full items-center justify-center bg-ink px-6 text-ui text-paper transition-colors hover:bg-neutral-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+        className="mt-7 inline-flex min-h-11 w-full items-center justify-center bg-[#2874f0] px-6 text-ui text-paper transition-colors hover:bg-[#1f63d3] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2874f0] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
       >
         {isSaving ? 'Saving address…' : 'Save address'}
       </button>

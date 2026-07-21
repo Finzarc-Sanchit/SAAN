@@ -36,25 +36,29 @@ import { cn } from '@/lib/utils';
 
 const PAGE_LIMIT = 20;
 
+const APPOINTMENT_STATUS_SURFACE: Record<AppointmentStatus, string> = {
+  pending:
+    'border-amber-300/70 bg-amber-500/10 text-amber-800 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-200',
+  confirmed:
+    'border-emerald-300/70 bg-emerald-500/10 text-emerald-800 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-300',
+  completed:
+    'border-saan-maroon/30 bg-saan-maroon/10 text-ink dark:text-ink',
+  cancelled:
+    'border-saan-champagne bg-saan-champagne/45 text-saan-ink/65 dark:border-white/15 dark:bg-white/10 dark:text-paper/65',
+  rejected:
+    'border-red-300/70 bg-red-500/10 text-red-800 dark:border-red-400/30 dark:bg-red-400/10 dark:text-red-300',
+  no_show:
+    'border-orange-300/70 bg-orange-500/10 text-orange-800 dark:border-orange-400/30 dark:bg-orange-400/10 dark:text-orange-200',
+  rescheduled:
+    'border-sky-300/70 bg-sky-500/10 text-sky-800 dark:border-sky-400/30 dark:bg-sky-400/10 dark:text-sky-200',
+};
+
 function StatusBadge({ status }: { status: AppointmentStatus }) {
   return (
     <span
       className={cn(
-        'inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-[0.08em]',
-        status === 'pending' &&
-          'bg-amber-500/10 text-amber-800 dark:bg-amber-400/10 dark:text-amber-200',
-        status === 'confirmed' &&
-          'bg-emerald-500/10 text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-300',
-        status === 'completed' &&
-          'bg-saan-maroon/10 text-ink dark:text-ink',
-        status === 'cancelled' &&
-          'bg-saan-champagne/45 text-saan-ink/65 dark:bg-white/10 dark:text-paper/65',
-        status === 'rejected' &&
-          'bg-red-500/10 text-red-800 dark:bg-red-400/10 dark:text-red-300',
-        status === 'no_show' &&
-          'bg-orange-500/10 text-orange-800 dark:bg-orange-400/10 dark:text-orange-200',
-        status === 'rescheduled' &&
-          'bg-sky-500/10 text-sky-800 dark:bg-sky-400/10 dark:text-sky-200',
+        'inline-flex rounded-full border px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-[0.08em]',
+        APPOINTMENT_STATUS_SURFACE[status],
       )}
     >
       {APPOINTMENT_STATUS_LABELS[status]}
@@ -71,6 +75,41 @@ const STATUS_ACTIONS: Array<{ status: StatusAction; label: string }> = [
   { status: 'completed', label: 'Complete' },
   { status: 'no_show', label: 'No show' },
 ];
+
+function StatusActionButton({
+  status,
+  label,
+  isActive,
+  disabled,
+  onClick,
+}: {
+  status: StatusAction;
+  label: string;
+  isActive: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      aria-pressed={isActive}
+      aria-label={`Set status to ${label}`}
+      onClick={onClick}
+      className={cn(
+        'inline-flex items-center rounded-full border px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] transition-colors',
+        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-saan-maroon',
+        'disabled:cursor-not-allowed',
+        APPOINTMENT_STATUS_SURFACE[status],
+        isActive
+          ? 'ring-2 ring-current ring-offset-1 opacity-70'
+          : 'hover:brightness-95 dark:hover:brightness-110',
+      )}
+    >
+      {label}
+    </button>
+  );
+}
 
 export function AppointmentsPage() {
   const queryClient = useQueryClient();
@@ -424,7 +463,8 @@ export function AppointmentsPage() {
         isOpen={Boolean(selectedId)}
         onClose={() => setSelectedId(null)}
         title="Appointment detail"
-        panelClassName="max-w-2xl"
+        scrollable
+        panelClassName="max-w-5xl max-h-[min(84vh,760px)] px-6 py-7 sm:px-8 sm:py-8"
       >
         {detailQuery.isLoading ? (
           <div className="space-y-3" aria-label="Loading appointment">
@@ -442,187 +482,200 @@ export function AppointmentsPage() {
           />
         ) : detail ? (
           <article className="space-y-6 text-left font-body text-sm text-saan-charcoal">
-            <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex flex-wrap items-start justify-between gap-3 border-b border-saan-champagne/50 pb-5">
               <div>
-                <p className="font-medium">
+                <p className="text-base font-medium">
                   {detail.firstName} {detail.lastName}
                 </p>
                 <a
-                  className="underline-offset-2 hover:underline"
+                  className="mt-1 block underline-offset-2 hover:underline"
                   href={`mailto:${detail.email}`}
                 >
                   {detail.email}
                 </a>
-                <p>{detail.phone}</p>
+                <p className="mt-1">{detail.phone}</p>
                 <p className="mt-1 text-xs text-saan-ink/50">{detail.referenceCode}</p>
               </div>
               <StatusBadge status={detail.status} />
             </div>
 
-            <dl className="grid gap-3 sm:grid-cols-2">
-              <div>
-                <dt className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50">
-                  Date
-                </dt>
-                <dd className="mt-1">{detail.appointmentDate}</dd>
-              </div>
-              <div>
-                <dt className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50">
-                  Time
-                </dt>
-                <dd className="mt-1">{detail.timeSlot}</dd>
-              </div>
-              <div>
-                <dt className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50">
-                  Type
-                </dt>
-                <dd className="mt-1 capitalize">{detail.appointmentType.replace(/_/g, ' ')}</dd>
-              </div>
-            </dl>
+            <div className="grid gap-4 lg:grid-cols-2">
+              <section className="rounded-2xl border border-saan-champagne/50 bg-saan-champagne/10 p-4 sm:p-5">
+                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50">
+                  Appointment overview
+                </p>
+                <dl className="mt-4 grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <dt className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50">
+                      Date
+                    </dt>
+                    <dd className="mt-1">{detail.appointmentDate}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50">
+                      Time
+                    </dt>
+                    <dd className="mt-1">{detail.timeSlot}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50">
+                      Type
+                    </dt>
+                    <dd className="mt-1 capitalize">{detail.appointmentType.replace(/_/g, ' ')}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50">
+                      Received
+                    </dt>
+                    <dd className="mt-1">
+                      <time dateTime={detail.createdAt}>{formatAdminDate(detail.createdAt)}</time>
+                    </dd>
+                  </div>
+                </dl>
+              </section>
 
-            <div>
-              <label
-                htmlFor="appointment-admin-notes"
-                className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50"
-              >
-                Notes
-              </label>
-              <textarea
-                id="appointment-admin-notes"
-                rows={3}
-                value={notesDraft}
-                onChange={(event) => setNotesDraft(event.target.value)}
-                className={cn(adminInputClassName, 'mt-2')}
-              />
-              <div className="mt-2 flex justify-end">
-                <AdminButton
-                  variant="secondary"
-                  isLoading={notesMutation.isPending}
-                  onClick={() =>
-                    notesMutation.mutate({
-                      id: detail.id,
-                      notes: notesDraft.trim() ? notesDraft.trim() : null,
-                    })
-                  }
+              <section className="rounded-2xl border border-saan-champagne/50 bg-paper p-4 sm:p-5">
+                <label
+                  htmlFor="appointment-admin-notes"
+                  className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50"
                 >
-                  Save notes
-                </AdminButton>
-              </div>
-            </div>
-
-            <div className="space-y-3 border-t border-saan-champagne/50 pt-5">
-              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50">
-                Update status
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {STATUS_ACTIONS.map((action) => (
+                  Internal notes
+                </label>
+                <textarea
+                  id="appointment-admin-notes"
+                  rows={5}
+                  value={notesDraft}
+                  onChange={(event) => setNotesDraft(event.target.value)}
+                  className={cn(adminInputClassName, 'mt-4')}
+                />
+                <div className="mt-3 flex justify-end">
                   <AdminButton
-                    key={action.status}
                     variant="secondary"
-                    disabled={
-                      statusMutation.isPending || detail.status === action.status
-                    }
+                    isLoading={notesMutation.isPending}
                     onClick={() =>
-                      statusMutation.mutate({
+                      notesMutation.mutate({
                         id: detail.id,
-                        nextStatus: action.status,
-                        note: statusNote.trim() || undefined,
-                        reason:
-                          action.status === 'cancelled' || action.status === 'rejected'
-                            ? cancellationReason.trim() || undefined
-                            : undefined,
+                        notes: notesDraft.trim() ? notesDraft.trim() : null,
                       })
                     }
                   >
-                    {action.label}
+                    Save notes
                   </AdminButton>
-                ))}
-              </div>
-              <label className="block space-y-1.5">
-                <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55">
-                  Status note (optional)
-                </span>
-                <input
-                  type="text"
-                  value={statusNote}
-                  onChange={(event) => setStatusNote(event.target.value)}
-                  className={adminInputClassName}
-                  maxLength={1000}
-                />
-              </label>
-              <label className="block space-y-1.5">
-                <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55">
-                  Cancellation / rejection reason
-                </span>
-                <input
-                  type="text"
-                  value={cancellationReason}
-                  onChange={(event) => setCancellationReason(event.target.value)}
-                  className={adminInputClassName}
-                  maxLength={1000}
-                />
-              </label>
+                </div>
+              </section>
             </div>
 
-            <div className="space-y-3 border-t border-saan-champagne/50 pt-5">
-              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50">
-                Reschedule
-              </p>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <label className="block space-y-1.5">
-                  <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55">
-                    New date
-                  </span>
-                  <input
-                    type="date"
-                    value={rescheduleDate}
-                    onChange={(event) => setRescheduleDate(event.target.value)}
-                    className={adminInputClassName}
-                  />
-                </label>
-                <label className="block space-y-1.5">
-                  <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55">
-                    New time (HH:mm)
-                  </span>
-                  <input
-                    type="time"
-                    value={rescheduleTime}
-                    onChange={(event) => setRescheduleTime(event.target.value)}
-                    className={adminInputClassName}
-                  />
-                </label>
-              </div>
-              <label className="block space-y-1.5">
-                <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55">
-                  Reason (optional)
-                </span>
-                <input
-                  type="text"
-                  value={rescheduleReason}
-                  onChange={(event) => setRescheduleReason(event.target.value)}
-                  className={adminInputClassName}
-                  maxLength={1000}
-                />
-              </label>
-              <AdminButton
-                isLoading={rescheduleMutation.isPending}
-                disabled={!rescheduleDate || !rescheduleTime}
-                onClick={() =>
-                  rescheduleMutation.mutate({
-                    id: detail.id,
-                    appointmentDate: rescheduleDate,
-                    timeSlot: rescheduleTime,
-                    reason: rescheduleReason.trim() || undefined,
-                  })
-                }
-              >
-                Reschedule
-              </AdminButton>
-            </div>
+            <div className="grid gap-4 border-t border-saan-champagne/50 pt-5 lg:grid-cols-2">
+              <section className="space-y-4 rounded-2xl border border-saan-champagne/50 bg-paper p-4 sm:p-5">
+                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50">
+                  Update status
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {STATUS_ACTIONS.map((action) => (
+                    <StatusActionButton
+                      key={action.status}
+                      status={action.status}
+                      label={action.label}
+                      isActive={detail.status === action.status}
+                      disabled={statusMutation.isPending || detail.status === action.status}
+                      onClick={() =>
+                        statusMutation.mutate({
+                          id: detail.id,
+                          nextStatus: action.status,
+                          note: statusNote.trim() || undefined,
+                          reason:
+                            action.status === 'cancelled' || action.status === 'rejected'
+                              ? cancellationReason.trim() || undefined
+                              : undefined,
+                        })
+                      }
+                    />
+                  ))}
+                </div>
+                <div className="space-y-3">
+                  <label className="block space-y-1.5">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55">
+                      Status note (optional)
+                    </span>
+                    <input
+                      type="text"
+                      value={statusNote}
+                      onChange={(event) => setStatusNote(event.target.value)}
+                      className={adminInputClassName}
+                      maxLength={1000}
+                    />
+                  </label>
+                  <label className="block space-y-1.5">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55">
+                      Cancellation / rejection reason
+                    </span>
+                    <input
+                      type="text"
+                      value={cancellationReason}
+                      onChange={(event) => setCancellationReason(event.target.value)}
+                      className={adminInputClassName}
+                      maxLength={1000}
+                    />
+                  </label>
+                </div>
+              </section>
 
-            <time className="block text-xs text-saan-ink/50" dateTime={detail.createdAt}>
-              Received {formatAdminDate(detail.createdAt)}
-            </time>
+              <section className="space-y-4 rounded-2xl border border-saan-champagne/50 bg-paper p-4 sm:p-5">
+                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/50">
+                  Reschedule
+                </p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="block space-y-1.5">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55">
+                      New date
+                    </span>
+                    <input
+                      type="date"
+                      value={rescheduleDate}
+                      onChange={(event) => setRescheduleDate(event.target.value)}
+                      className={adminInputClassName}
+                    />
+                  </label>
+                  <label className="block space-y-1.5">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55">
+                      New time (HH:mm)
+                    </span>
+                    <input
+                      type="time"
+                      value={rescheduleTime}
+                      onChange={(event) => setRescheduleTime(event.target.value)}
+                      className={adminInputClassName}
+                    />
+                  </label>
+                </div>
+                <label className="block space-y-1.5">
+                  <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-saan-ink/55">
+                    Reason (optional)
+                  </span>
+                  <input
+                    type="text"
+                    value={rescheduleReason}
+                    onChange={(event) => setRescheduleReason(event.target.value)}
+                    className={adminInputClassName}
+                    maxLength={1000}
+                  />
+                </label>
+                <AdminButton
+                  isLoading={rescheduleMutation.isPending}
+                  disabled={!rescheduleDate || !rescheduleTime}
+                  onClick={() =>
+                    rescheduleMutation.mutate({
+                      id: detail.id,
+                      appointmentDate: rescheduleDate,
+                      timeSlot: rescheduleTime,
+                      reason: rescheduleReason.trim() || undefined,
+                    })
+                  }
+                >
+                  Reschedule
+                </AdminButton>
+              </section>
+            </div>
           </article>
         ) : null}
       </ModalShell>
