@@ -13,6 +13,7 @@ import {
   refreshSession,
   refreshSessionOnce,
 } from '@/lib/auth/session-client';
+import { getAccessToken } from '../auth/token-store';
 
 type RequestOptions = Omit<RequestInit, 'body'> & {
   body?: unknown;
@@ -42,7 +43,7 @@ function needsCsrf(path: string, withCsrf?: boolean): boolean {
   return withCsrf ?? AUTH_MUTATION_PATHS.has(path);
 }
 
-async function parseResponse<T>(response: Response): Promise<{ data: T; meta?: PaginationMeta }> {
+async function parseResponse<T>(response: Response): Promise<{ data: T; meta?: PaginationMeta; }> {
   const json = (await response.json()) as ApiResponse<T>;
 
   if (!json.success) {
