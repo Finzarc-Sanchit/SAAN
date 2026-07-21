@@ -1,22 +1,45 @@
 'use client';
 
 import Link from 'next/link';
-import { ProductCard } from '@/components/ui/ProductCard';
+import { useQuery } from '@tanstack/react-query';
+import { ProductInfiniteGrid } from '@/components/catalog/ProductInfiniteGrid';
 import { Container } from '@/components/ui/Container';
-import { Skeleton } from '@/components/ui/Skeleton';
-import { useStorefrontProducts } from '@/hooks/useStorefrontProducts';
-import { getProductHref } from '@/lib/product-url';
+import { useInfiniteStorefrontProducts } from '@/hooks/useInfiniteStorefrontProducts';
+import {
+  fetchStorefrontCollectionBySlug,
+  storefrontCollectionsQueryKeys,
+} from '@/lib/api/storefront-collections';
 
 type CollectionProductGridProps = {
   collectionTitle: string;
-  collectionSlug?: string;
+  collectionSlug: string;
 };
 
 /** Shows active catalog products for a collection page. */
 export function CollectionProductGrid({
   collectionTitle,
+  collectionSlug,
 }: CollectionProductGridProps) {
-  const { products: pieces, isLoading } = useStorefrontProducts();
+  const collectionQuery = useQuery({
+    queryKey: storefrontCollectionsQueryKeys.detail(collectionSlug),
+    queryFn: () => fetchStorefrontCollectionBySlug(collectionSlug),
+  });
+
+  const collectionId = collectionQuery.data?.id;
+
+  const {
+    products,
+    total,
+    isLoading: isProductsLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteStorefrontProducts({
+    collectionId,
+    enabled: Boolean(collectionId),
+  });
+
+  const isLoading = collectionQuery.isLoading || isProductsLoading;
 
   return (
     <section className="section-py bg-paper">
@@ -26,43 +49,33 @@ export function CollectionProductGrid({
           <p className="text-caption mt-2 text-neutral-500">
             {isLoading
               ? 'Loading pieces…'
-              : `${pieces.length} ${pieces.length === 1 ? 'piece' : 'pieces'}`}
+              : `${total} ${total === 1 ? 'piece' : 'pieces'}`}
           </p>
         </div>
 
-        {isLoading ? (
-          <div className="grid grid-cols-2 gap-x-5 gap-y-12 md:grid-cols-3 lg:grid-cols-4 md:gap-x-8 md:gap-y-14">
-            {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="flex flex-col gap-3">
-                <Skeleton className="aspect-[3/4] w-full" />
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/3" />
-              </div>
-            ))}
-          </div>
-        ) : pieces.length > 0 ? (
-          <div className="grid grid-cols-2 gap-x-5 gap-y-12 md:grid-cols-3 lg:grid-cols-4 md:gap-x-8 md:gap-y-14">
-            {pieces.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                href={getProductHref(product)}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="max-w-md">
-            <p className="text-body text-neutral-700">
-              Pieces from this line are arriving soon. Explore the full shop for more.
-            </p>
-            <Link
-              href="/shop"
-              className="mt-4 inline-block text-caption uppercase tracking-[0.14em] text-ink underline-offset-4 hover:underline"
-            >
-              Visit the shop
-            </Link>
-          </div>
-        )}
+        <ProductInfiniteGrid
+          products={products}
+          isLoading={isLoading}
+          isFetchingNextPage={isFetchingNextPage}
+          hasNextPage={hasNextPage}
+          onLoadMore={() => {
+            void fetchNextPage();
+          }}
+          className="md:grid-cols-3 lg:grid-cols-4"
+          emptyState={
+            <div className="max-w-md">
+              <p className="text-body text-neutral-700">
+                Pieces from this line are arriving soon. Explore the full shop for more.
+              </p>
+              <Link
+                href="/shop"
+                className="mt-4 inline-block text-caption uppercase tracking-[0.14em] text-ink underline-offset-4 hover:underline"
+              >
+                Visit the shop
+              </Link>
+            </div>
+          }
+        />
       </Container>
     </section>
   );

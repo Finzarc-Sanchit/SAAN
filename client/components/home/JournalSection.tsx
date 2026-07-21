@@ -4,13 +4,20 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ScrollReveal } from '@/components/motion/ScrollReveal';
 import { Container } from '@/components/ui/Container';
+import { journalArticleHref, mapJournalToCard } from '@/lib/journal';
 import { JOURNAL_POSTS } from '@/lib/site-content';
 
 export function JournalSection() {
-  const posts = [...JOURNAL_POSTS, ...JOURNAL_POSTS];
+  const posts = [
+    ...JOURNAL_POSTS.map(mapJournalToCard),
+    ...JOURNAL_POSTS.map(mapJournalToCard),
+  ];
 
   return (
-    <section aria-labelledby="journal-heading" className="section-surface-maroon section-py relative z-10 overflow-hidden">
+    <section
+      aria-labelledby="journal-heading"
+      className="section-surface-maroon section-py relative z-10 overflow-hidden"
+    >
       <Container className="mb-12">
         <ScrollReveal>
           <div className="flex flex-col items-start justify-between gap-4 border-b border-saan-champagne/60 pb-4 md:flex-row md:items-end">
@@ -37,13 +44,13 @@ export function JournalSection() {
           {posts.map((post, index) => (
             <Link
               key={`${post.id}-${index}`}
-              href={`/journal/${post.id}`}
+              href={journalArticleHref(post.slug)}
               className="journal-card group mx-4 cursor-pointer"
             >
               <div className="mb-4 aspect-[4/3] overflow-hidden">
                 <Image
                   src={post.image}
-                  alt={post.title}
+                  alt={post.imageAlt || post.title}
                   width={350}
                   height={263}
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"

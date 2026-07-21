@@ -3,14 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Heart } from 'lucide-react';
-import { useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/components/providers/AuthProvider';
-import { useWishlist } from '@/hooks/useWishlist';
-import {
-  addWishlistItem,
-  removeWishlistItemByProductId,
-  wishlistQueryKeys,
-} from '@/lib/api/wishlist';
+import { useDebouncedWishlistSync } from '@/hooks/useDebouncedWishlistSync';
 import { getProductHoverImage } from '@/lib/product-images';
 import { formatPrice, getDiscountPercent, type ShopProduct } from '@/lib/site-content';
 import { cn } from '@/lib/utils';
@@ -31,45 +24,14 @@ export function ProductCard({
   showSaleBadge = false,
   className,
 }: ProductCardProps) {
-  const queryClient = useQueryClient();
-  const { isAuthenticated } = useAuth();
-  const { isWishlisted, toggleWishlist } = useWishlist();
-  const wishlisted = isWishlisted(product.id);
+  const { wishlisted, toggle: handleWishlistToggle } = useDebouncedWishlistSync(product.id);
   const hoverImage = getProductHoverImage(product.images, product.image);
   const currency = product.currency ?? 'INR';
   const discountPercent = getDiscountPercent(product.price, product.mrp);
   const hasDiscount = discountPercent > 0;
 
-  function invalidateWishlist() {
-    void queryClient.invalidateQueries({ queryKey: wishlistQueryKeys.all });
-  }
-
-  function handleWishlistToggle() {
-    const nextWishlisted = !wishlisted;
-    toggleWishlist(product.id);
-
-    if (!isAuthenticated) {
-      return;
-    }
-
-    if (nextWishlisted) {
-      void addWishlistItem(product.id)
-        .then(() => invalidateWishlist())
-        .catch(() => {
-          toggleWishlist(product.id);
-        });
-      return;
-    }
-
-    void removeWishlistItemByProductId(product.id)
-      .then(() => invalidateWishlist())
-      .catch(() => {
-        toggleWishlist(product.id);
-      });
-  }
-
   return (
-    <article className={cn('group relative flex flex-col', className)}>
+    <article className={cn('product-card group/card relative flex flex-col', className)}>
       <Link href={href} className="product-image-crossfade block bg-neutral-100">
         <div className="relative aspect-[3/4] overflow-hidden">
           <Image
@@ -87,7 +49,7 @@ export function ProductCard({
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 40vw, 28vw"
             className="product-image-hover absolute inset-0 object-cover object-center"
           />
-          <span className="absolute inset-x-2 bottom-2 z-10 hidden h-11 translate-y-2 items-center justify-center bg-midnight/95 px-4 text-ui uppercase tracking-[0.14em] text-paper opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100 motion-reduce:transform-none motion-reduce:transition-none md:flex">
+          <span className="absolute inset-x-2 bottom-2 z-10 hidden h-11 translate-y-2 items-center justify-center bg-midnight/95 px-4 text-ui uppercase tracking-[0.14em] text-paper opacity-0 transition-all duration-300 group-hover/card:translate-y-0 group-hover/card:opacity-100 group-focus-within/card:translate-y-0 group-focus-within/card:opacity-100 motion-reduce:transform-none motion-reduce:transition-none md:flex">
             Buy now
           </span>
         </div>
@@ -107,7 +69,10 @@ export function ProductCard({
             : `Add ${product.name} to wishlist`
         }
         aria-pressed={wishlisted}
-        onClick={handleWishlistToggle}
+        onClick={(e) => {
+          handleWishlistToggle();
+          (e.currentTarget as HTMLButtonElement).blur();
+        }}
         className={cn(
           'absolute right-0.5 top-0.5 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-paper/90 text-ink shadow-sm backdrop-blur-sm transition-colors hover:text-signature focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signature/40 md:right-4 md:top-4 md:h-9 md:w-9',
           wishlisted && 'text-signature',

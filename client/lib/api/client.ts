@@ -13,7 +13,6 @@ import {
   refreshSession,
   refreshSessionOnce,
 } from '@/lib/auth/session-client';
-import { getAccessToken } from '@/lib/auth/token-store';
 
 type RequestOptions = Omit<RequestInit, 'body'> & {
   body?: unknown;
@@ -97,17 +96,14 @@ export async function apiRequestWithMeta<T>(
     const refreshed = await refreshSession();
 
     if (refreshed) {
-      const accessToken = getAccessToken();
-      if (accessToken) {
-        const retryHeaders = new Headers(headers);
-        retryHeaders.set('Authorization', `Bearer ${accessToken}`);
-        syncCsrfHeaderForRequest(retryHeaders, getCsrfToken());
+      const retryHeaders = new Headers(headers);
+      retryHeaders.set('Authorization', `Bearer ${getAccessToken()}`);
+      syncCsrfHeaderForRequest(retryHeaders, getCsrfToken());
 
-        response = await fetch(resolveUrl(path), {
-          ...requestInit,
-          headers: retryHeaders,
-        });
-      }
+      response = await fetch(resolveUrl(path), {
+        ...requestInit,
+        headers: retryHeaders,
+      });
     }
   }
 

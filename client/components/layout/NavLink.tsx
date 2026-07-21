@@ -28,7 +28,7 @@ export function NavLink({ href, label, onNavigate }: NavLinkProps) {
       aria-current={active ? 'page' : undefined}
       className={cn(
         'text-xs uppercase tracking-[0.2em] text-saan-ink transition-opacity duration-300 hover:opacity-60',
-        active && 'border-b border-saan-charcoal pb-0.5'
+        active && 'link-underline is-active border-b-0 pb-0',
       )}
     >
       {label}

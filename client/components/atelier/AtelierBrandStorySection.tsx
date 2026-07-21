@@ -3,134 +3,117 @@ import { ScrollReveal } from '@/components/motion/ScrollReveal';
 import { Container } from '@/components/ui/Container';
 import { ATELIER_COPY } from '@/lib/site-content';
 
+const STORY_IMAGES = {
+  left: {
+    src: "/images/brand-story-1.webp",
+    alt: ATELIER_COPY.visit.image.alt,
+  },
+  right: {
+    src: ATELIER_COPY.classicStatement.portrait.src,
+    alt: ATELIER_COPY.classicStatement.portrait.alt,
+  },
+} as const;
+
 export function AtelierBrandStorySection() {
-  const { hero, headline, intro, closing, founder } = ATELIER_COPY;
+  const { headline, intro, closing } = ATELIER_COPY;
+  const [opening, ...bodyIntro] = intro;
+  const [closingLead, closingClose, pullQuote] = closing.paragraphs;
 
   return (
-    <>
-      <section
-        aria-labelledby="atelier-hero-heading"
-        className="relative flex min-h-[72svh] items-end overflow-hidden bg-saan-maroon text-paper"
-      >
-        <div
-          className="pointer-events-none absolute -top-[35%] right-[-20%] aspect-square w-[75vw] rounded-full border border-paper/10"
-          aria-hidden
-        />
-        <div
-          className="pointer-events-none absolute top-[12%] right-[14%] h-2.5 w-2.5 rounded-full bg-ink"
-          aria-hidden
-        />
-        <Container className="relative py-16 sm:py-20 lg:py-24">
-          <div className="grid items-end gap-14 lg:grid-cols-12">
-            <ScrollReveal className="lg:col-span-8">
-              <h1
-                id="atelier-hero-heading"
-                className="text-[clamp(5rem,15vw,12rem)] leading-[0.76] font-semibold tracking-[-0.075em]"
-              >
-                {hero.title}
-              </h1>
-            </ScrollReveal>
-            <ScrollReveal className="lg:col-span-4 lg:pb-2" delay={0.12}>
-              <blockquote className="max-w-md text-[clamp(1.5rem,3vw,2.25rem)] leading-[1.25] font-light italic">
-                “{hero.statement}”
-              </blockquote>
-              <p className="mt-8 text-[10px] font-semibold tracking-[0.2em] text-paper/55 uppercase sm:text-[11px]">
-                {hero.signature}
-              </p>
-            </ScrollReveal>
-          </div>
-        </Container>
-      </section>
-
-      <section
-        aria-labelledby="atelier-brand-story-heading"
-        className="section-py bg-paper"
-      >
-        <Container>
-          <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
-            <ScrollReveal className="lg:col-span-4">
+    <section
+      aria-labelledby="atelier-brand-story-heading"
+      className="bg-paper pb-24 pt-14 sm:pb-32 sm:pt-18 lg:pb-40 lg:pt-20"
+    >
+      <Container>
+        {/*
+          Desktop: narrow | wide | narrow (side columns equal).
+          Brand Story title lives in the left column with its image.
+        */}
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.3fr)_minmax(0,0.8fr)] lg:items-stretch lg:gap-8">
+          {/* Left — title + centered image */}
+          <aside className="order-2 lg:order-1">
+            <ScrollReveal>
               <h2
                 id="atelier-brand-story-heading"
-                className="text-[clamp(2.75rem,6vw,5.5rem)] leading-[0.92] font-medium tracking-[-0.055em] text-saan-charcoal"
+                className="max-w-[8ch] text-[clamp(3rem,6.5vw,5.75rem)] leading-[0.9] font-medium tracking-[-0.055em] text-saan-charcoal"
               >
                 {headline}
               </h2>
-              <span
-                className="mt-9 block h-2.5 w-2.5 rounded-full bg-saan-maroon"
-                aria-hidden
-              />
             </ScrollReveal>
 
-            <ScrollReveal className="lg:col-span-7 lg:col-start-6" delay={0.08}>
-              <div className="space-y-7 text-[clamp(1rem,1.6vw,1.2rem)] leading-[1.8] font-light text-saan-ink/75">
-                {intro.map((paragraph, index) => (
-                  <p
-                    key={paragraph.slice(0, 28)}
-                    className={
-                      index === 0
-                        ? 'text-[clamp(1.5rem,3vw,2.25rem)] leading-[1.35] font-normal text-saan-charcoal'
-                        : undefined
-                    }
-                  >
-                    {paragraph}
-                  </p>
-                ))}
-                {closing.paragraphs.slice(0, 2).map((paragraph) => (
-                  <p key={paragraph.slice(0, 28)}>{paragraph}</p>
-                ))}
-              </div>
-              <blockquote className="mt-12 border-y border-saan-charcoal/15 py-8 text-[clamp(1.5rem,3vw,2.25rem)] leading-[1.3] font-normal text-ink italic">
-                {closing.paragraphs[2]}
-              </blockquote>
-            </ScrollReveal>
-          </div>
-        </Container>
-      </section>
-
-      <section
-        aria-labelledby="atelier-founder-heading"
-        className="bg-saan-champagne/30 py-16 sm:py-20 lg:py-28"
-      >
-        <Container>
-          <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-20">
-            <ScrollReveal className="lg:col-span-6">
-              <div className="relative aspect-[4/5] overflow-hidden">
+            <ScrollReveal className="mt-12 sm:mt-14 lg:mt-16" delay={0.1}>
+              <div className="relative mx-auto aspect-[3/4] w-[min(100%,17rem)] overflow-hidden bg-saan-champagne/40 sm:w-[min(100%,19rem)] lg:w-[21rem]">
                 <Image
-                  src={founder.image.src}
-                  alt={founder.image.alt}
+                  src={STORY_IMAGES.left.src}
+                  alt={STORY_IMAGES.left.alt}
                   fill
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                  className="object-cover"
-                />
-                <div
-                  className="absolute inset-0 bg-gradient-to-t from-saan-charcoal/25 via-transparent to-transparent"
-                  aria-hidden
+                  sizes="(max-width: 1023px) 19rem, 21rem"
+                  className="object-cover object-center"
                 />
               </div>
             </ScrollReveal>
+          </aside>
 
-            <ScrollReveal className="lg:col-span-5 lg:col-start-8" delay={0.1}>
-              <h2
-                id="atelier-founder-heading"
-                className="text-[clamp(2.75rem,5vw,4.75rem)] leading-[0.98] font-medium tracking-[-0.05em] text-saan-charcoal"
-              >
-                {founder.title}
-              </h2>
-              <p className="mt-3 text-[clamp(1.25rem,2vw,1.625rem)] text-ink italic">
-                {founder.role}
+          {/* Middle — reading column (wider) */}
+          <div className="order-1 lg:order-2">
+            <ScrollReveal delay={0.08}>
+              <p className="max-w-[22ch] text-[clamp(1.65rem,3.2vw,2.5rem)] leading-[1.28] font-normal tracking-[-0.02em] text-saan-charcoal sm:max-w-[28ch]">
+                {opening}
               </p>
-              <div className="mt-8 space-y-5 text-[clamp(1rem,1.4vw,1.125rem)] leading-[1.75] font-light text-saan-ink/70">
-                {founder.body.map((paragraph) => (
+            </ScrollReveal>
+
+            <ScrollReveal delay={0.12}>
+              <div className="mt-16 space-y-10 text-[clamp(1rem,1.45vw,1.125rem)] leading-[1.85] font-light text-saan-ink/70 sm:mt-20 sm:space-y-12">
+                {bodyIntro.map((paragraph) => (
                   <p key={paragraph.slice(0, 28)}>{paragraph}</p>
                 ))}
               </div>
-              <blockquote className="mt-10 border-l border-saan-maroon/35 pl-6 text-[clamp(1.35rem,2.5vw,1.75rem)] leading-[1.4] text-saan-charcoal italic">
-                “{founder.quote}”
-              </blockquote>
+            </ScrollReveal>
+
+            <ScrollReveal delay={0.14}>
+              <div className="mt-14 space-y-8 text-[clamp(1rem,1.45vw,1.125rem)] leading-[1.85] font-light text-saan-ink/70 sm:mt-16">
+                <p>{closingLead}</p>
+                <p>{closingClose}</p>
+              </div>
+            </ScrollReveal>
+
+            <ScrollReveal delay={0.16}>
+              <figure className="relative mt-20 sm:mt-28 lg:mt-32">
+                <span
+                  className="pointer-events-none absolute -top-10 left-0 select-none text-[clamp(6rem,14vw,11rem)] leading-none font-light text-saan-charcoal/[0.06] sm:-top-14"
+                  aria-hidden
+                >
+                  “
+                </span>
+                <blockquote className="relative pt-4 text-[clamp(1.75rem,3.8vw,3rem)] leading-[1.22] font-normal tracking-[-0.025em] text-saan-charcoal italic sm:pt-6">
+                  {pullQuote}
+                </blockquote>
+                <figcaption className="mt-10">
+                  <span
+                    className="block h-px w-16 bg-saan-charcoal/15"
+                    aria-hidden
+                  />
+                </figcaption>
+              </figure>
             </ScrollReveal>
           </div>
-        </Container>
-      </section>
-    </>
+
+          {/* Right — bottom-aligned image, slightly above section base */}
+          <div className="order-3 lg:flex lg:flex-col lg:justify-end lg:pb-10">
+            <ScrollReveal className="mt-12 lg:mt-0" delay={0.18}>
+              <div className="relative mx-auto aspect-[3/4] w-[min(100%,17rem)] overflow-hidden bg-saan-champagne/40 sm:w-[min(100%,19rem)] lg:w-[21rem]">
+                <Image
+                  src={STORY_IMAGES.right.src}
+                  alt={STORY_IMAGES.right.alt}
+                  fill
+                  sizes="(max-width: 1023px) 19rem, 21rem"
+                  className="object-cover object-[center_20%]"
+                />
+              </div>
+            </ScrollReveal>
+          </div>
+        </div>
+      </Container>
+    </section>
   );
 }

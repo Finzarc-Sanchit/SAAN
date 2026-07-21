@@ -197,11 +197,10 @@ export async function openRazorpayCheckout(
       },
       modal: {
         ondismiss: () => {
-          // Brief delay so the success handler can win after mock bank "Success"
-          // without stalling a real cancel. Keep short for faster confirmation redirect.
+          // Allow the success handler time to fire after test-bank "Success" or slow networks.
           dismissTimer = window.setTimeout(() => {
             finish({ status: 'dismissed' });
-          }, 350);
+          }, 2_000);
         },
       },
     });

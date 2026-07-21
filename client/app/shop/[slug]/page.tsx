@@ -1,7 +1,9 @@
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 import { ProductDetailView } from '@/components/product/ProductDetailView';
 import { serverApiRequest } from '@/lib/auth/server-fetch';
 import { mapApiProductToDetail, type ProductDetail } from '@/lib/product-defaults';
+import { buildShareMetadata } from '@/lib/seo';
 import type { Product } from '@/lib/types/product';
 
 type ProductPageProps = {
@@ -19,14 +21,26 @@ async function loadProductDetail(slug: string): Promise<ProductDetail | null> {
   }
 }
 
-export async function generateMetadata({ params }: ProductPageProps) {
+export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
   const product = await loadProductDetail(slug);
-  if (!product) return { title: 'Product — SAAN' };
-  return {
+  if (!product) {
+    return { title: 'Product — SAAN' };
+  }
+
+  const description =
+    product.subtitle?.trim() ||
+    product.description?.trim() ||
+    `${product.name} by SAAN.`;
+  const image = product.image || product.images[0] || null;
+
+  return buildShareMetadata({
     title: `${product.name} — SAAN`,
-    description: product.subtitle,
-  };
+    description,
+    image,
+    imageAlt: product.name,
+    path: `/shop/${slug}`,
+  });
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {

@@ -4,6 +4,8 @@ import localFont from 'next/font/local';
 import { AppChrome } from '@/components/layout/AppChrome';
 import { LenisProvider } from '@/components/providers/LenisProvider';
 import { AppProviders } from '@/components/providers/AppProviders';
+import { BRAND } from '@/lib/site-content';
+import { getSiteUrl } from '@/lib/site-url';
 import './globals.css';
 
 const fraunces = Fraunces({
@@ -40,10 +42,42 @@ const generalSans = localFont({
   display: 'swap',
 });
 
+const siteDescription =
+  'True presence commands through stillness. Luxury editorial couture by SAAN.';
+
 export const metadata: Metadata = {
-  title: 'SAAN — Atmospheric Couture',
-  description:
-    'True presence commands through stillness. Luxury editorial couture by SAAN.',
+  metadataBase: new URL(getSiteUrl()),
+  title: `${BRAND.name} — ${BRAND.tagline}`,
+  description: siteDescription,
+  applicationName: BRAND.name,
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon.png', type: 'image/png', sizes: '512x512' },
+    ],
+    apple: [{ url: '/apple-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_IN',
+    siteName: BRAND.name,
+    title: `${BRAND.name} — ${BRAND.tagline}`,
+    description: siteDescription,
+    images: [
+      {
+        url: '/images/og-default.png',
+        width: 1200,
+        height: 630,
+        alt: `${BRAND.name} — ${BRAND.tagline}`,
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${BRAND.name} — ${BRAND.tagline}`,
+    description: siteDescription,
+    images: ['/images/og-default.png'],
+  },
 };
 
 export default function RootLayout({

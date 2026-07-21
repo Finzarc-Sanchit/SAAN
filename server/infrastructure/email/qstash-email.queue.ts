@@ -40,6 +40,9 @@ export class QStashEmailQueue implements IEmailQueue {
       ...(options.deduplicationId
         ? { deduplicationId: options.deduplicationId }
         : {}),
+      ...(options.delaySeconds && options.delaySeconds > 0
+        ? { delay: options.delaySeconds }
+        : {}),
     });
   }
 }

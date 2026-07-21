@@ -8,6 +8,8 @@ import { mapApiProductToShopProduct } from '@/lib/product-defaults';
 import type { ShopProduct } from '@/lib/site-content';
 
 export const STOREFRONT_PRODUCT_LIMIT = 100;
+export const STOREFRONT_INITIAL_PRODUCT_LIMIT = 12;
+export const STOREFRONT_NEXT_PRODUCT_LIMIT = 9;
 
 type UseStorefrontProductsOptions = {
   search?: string;

@@ -2,10 +2,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Container } from '@/components/ui/Container';
 import { CtaButton } from '@/components/ui/CtaButton';
+import { journalArticleHref, mapJournalToCard } from '@/lib/journal';
 import { JOURNAL_POSTS } from '@/lib/site-content';
 
 export function JournalTeaserSection() {
-  const featured = JOURNAL_POSTS[0];
+  const featured = mapJournalToCard(JOURNAL_POSTS[0]!);
 
   return (
     <section aria-label="Journal" className="section-py bg-paper">
@@ -20,11 +21,14 @@ export function JournalTeaserSection() {
           </CtaButton>
         </div>
 
-        <Link href={`/journal/${featured.id}`} className="group grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-10">
+        <Link
+          href={journalArticleHref(featured.slug)}
+          className="group grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-10"
+        >
           <div className="relative aspect-[16/10] overflow-hidden bg-neutral-100">
             <Image
               src={featured.image}
-              alt=""
+              alt={featured.imageAlt}
               fill
               sizes="(max-width: 768px) 100vw, 50vw"
               className="object-cover transition-opacity duration-500 group-hover:opacity-90"

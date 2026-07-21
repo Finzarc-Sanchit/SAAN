@@ -150,8 +150,102 @@ export class NodemailerEmailService implements IEmailDeliveryService {
           ),
         };
       }
+      case 'appointment-confirmation':
+        return {
+          to: job.to,
+          subject: `Appointment reserved — ${job.referenceCode}`,
+          text: [
+            `Hello ${job.customerName},`,
+            '',
+            `We have received your atelier appointment request (${job.referenceCode}).`,
+            `Date: ${job.appointmentDate}`,
+            `Time: ${job.timeSlot}`,
+            `Type: ${job.appointmentType}`,
+            `Studio: ${job.studioAddress}`,
+            `Contact: ${job.contactPhone} · ${job.contactEmail}`,
+            '',
+            job.cancellationPolicy,
+          ].join('\n'),
+          html: wrapEmail(
+            `<p>Hello ${escapeHtml(job.customerName)},</p><p>We have received your atelier appointment request.</p><p><strong>Reference</strong> ${escapeHtml(job.referenceCode)}<br><strong>Date</strong> ${escapeHtml(job.appointmentDate)}<br><strong>Time</strong> ${escapeHtml(job.timeSlot)}<br><strong>Type</strong> ${escapeHtml(job.appointmentType)}</p><p><strong>Studio</strong><br>${escapeHtml(job.studioAddress)}</p><p><strong>Contact</strong><br>${escapeHtml(job.contactPhone)} · ${escapeHtml(job.contactEmail)}</p><p style="color:#6f685f">${escapeHtml(job.cancellationPolicy)}</p>`,
+          ),
+        };
+      case 'appointment-admin-notification':
+        return {
+          to: env.ADMIN_EMAIL,
+          replyTo: job.customerEmail,
+          subject: `New appointment request — ${job.referenceCode}`,
+          text: [
+            `New appointment ${job.referenceCode}`,
+            `Customer: ${job.customerName} <${job.customerEmail}>`,
+            `Phone: ${job.customerPhone}`,
+            `Date: ${job.appointmentDate} ${job.timeSlot}`,
+            `Type: ${job.appointmentType}`,
+            job.notes ? `Notes:\n${job.notes}` : '',
+            `Admin: ${job.adminAppointmentUrl}`,
+          ]
+            .filter(Boolean)
+            .join('\n'),
+          html: wrapEmail(
+            `<p><strong>New appointment request</strong></p><p><strong>Reference</strong> ${escapeHtml(job.referenceCode)}<br><strong>Customer</strong> ${escapeHtml(job.customerName)} &lt;${escapeHtml(job.customerEmail)}&gt;<br><strong>Phone</strong> ${escapeHtml(job.customerPhone)}<br><strong>Date</strong> ${escapeHtml(job.appointmentDate)} ${escapeHtml(job.timeSlot)}<br><strong>Type</strong> ${escapeHtml(job.appointmentType)}</p>${job.notes ? `<p style="white-space:pre-wrap">${escapeHtml(job.notes)}</p>` : ''}<p><a href="${escapeHtml(job.adminAppointmentUrl)}">Open in admin</a></p>`,
+          ),
+        };
+      case 'appointment-status-update': {
+        const statusLabel = formatAppointmentStatus(job.status);
+        return {
+          to: job.to,
+          subject: `Appointment ${statusLabel.toLowerCase()} — ${job.referenceCode}`,
+          text: [
+            `Hello ${job.customerName},`,
+            '',
+            `Your appointment ${job.referenceCode} is now ${statusLabel.toLowerCase()}.`,
+            `Date: ${job.appointmentDate}`,
+            `Time: ${job.timeSlot}`,
+            `Type: ${job.appointmentType}`,
+            `Studio: ${job.studioAddress}`,
+            job.cancellationReason ? `Note: ${job.cancellationReason}` : '',
+            `Contact: ${job.contactPhone} · ${job.contactEmail}`,
+          ]
+            .filter(Boolean)
+            .join('\n'),
+          html: wrapEmail(
+            `<p>Hello ${escapeHtml(job.customerName)},</p><p>Your appointment <strong>${escapeHtml(job.referenceCode)}</strong> is now <strong>${escapeHtml(statusLabel)}</strong>.</p><p><strong>Date</strong> ${escapeHtml(job.appointmentDate)}<br><strong>Time</strong> ${escapeHtml(job.timeSlot)}<br><strong>Type</strong> ${escapeHtml(job.appointmentType)}</p><p><strong>Studio</strong><br>${escapeHtml(job.studioAddress)}</p>${job.cancellationReason ? `<p>${escapeHtml(job.cancellationReason)}</p>` : ''}<p>${escapeHtml(job.contactPhone)} · ${escapeHtml(job.contactEmail)}</p>`,
+          ),
+        };
+      }
+      case 'appointment-reminder': {
+        const guidelines = job.guidelines
+          .map((line) => `<li>${escapeHtml(line)}</li>`)
+          .join('');
+        return {
+          to: job.to,
+          subject: `Reminder — your SAAN appointment tomorrow`,
+          text: [
+            `Hello ${job.customerName},`,
+            '',
+            `This is a gentle reminder of your atelier appointment (${job.referenceCode}).`,
+            `Date: ${job.appointmentDate}`,
+            `Time: ${job.timeSlot}`,
+            `Type: ${job.appointmentType}`,
+            `Studio: ${job.studioAddress}`,
+            `Contact: ${job.contactPhone} · ${job.contactEmail}`,
+            '',
+            ...job.guidelines.map((line) => `• ${line}`),
+          ].join('\n'),
+          html: wrapEmail(
+            `<p>Hello ${escapeHtml(job.customerName)},</p><p>This is a gentle reminder of your atelier appointment tomorrow.</p><p><strong>Reference</strong> ${escapeHtml(job.referenceCode)}<br><strong>Date</strong> ${escapeHtml(job.appointmentDate)}<br><strong>Time</strong> ${escapeHtml(job.timeSlot)}<br><strong>Type</strong> ${escapeHtml(job.appointmentType)}</p><p><strong>Studio</strong><br>${escapeHtml(job.studioAddress)}</p><p>${escapeHtml(job.contactPhone)} · ${escapeHtml(job.contactEmail)}</p>${guidelines ? `<p><strong>Before you arrive</strong></p><ul>${guidelines}</ul>` : ''}`,
+          ),
+        };
+      }
     }
   }
+}
+
+function formatAppointmentStatus(status: string): string {
+  return status
+    .split('_')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
 }
 
 function formatMoney(amount: number, currency: string): string {

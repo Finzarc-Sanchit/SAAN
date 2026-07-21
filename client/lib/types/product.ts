@@ -60,8 +60,11 @@ export type ProductListParams = {
   status?: ProductStatus;
   search?: string;
   sort?: ProductListSort;
+  minPrice?: number;
+  maxPrice?: number;
   page?: number;
   limit?: number;
+  offset?: number;
 };
 
 export type ProductSizeInput = {

@@ -316,7 +316,7 @@ export function ProductReviewsSection({ product }: ProductReviewsSectionProps) {
                             className={cn(
                               'size-6 transition-colors',
                               isActive
-                                ? 'fill-ink text-ink'
+                                ? 'fill-saan-rating text-saan-rating'
                                 : 'text-neutral-300',
                             )}
                             strokeWidth={1.4}

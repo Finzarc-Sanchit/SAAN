@@ -1,16 +1,20 @@
 import {
-  JournalCategoriesNav,
-  JournalFeaturedSection,
   JournalGridSection,
   JournalHeroSection,
-  JournalLatestSection,
-  JournalQuoteBreak,
 } from '@/components/journal/JournalSections';
+import { publicJournalListPath } from '@/lib/api/journal';
+import { serverApiRequest } from '@/lib/auth/server-fetch';
+import {
+  filterJournalsByCategory,
+  mapJournalToCard,
+  mergeJournals,
+} from '@/lib/journal';
 import {
   JOURNAL_CATEGORIES,
   JOURNAL_COPY,
   JOURNAL_POSTS,
 } from '@/lib/site-content';
+import type { Journal } from '@/lib/types/journal';
 
 export const metadata = {
   title: 'Journal — SAAN',
@@ -21,6 +25,16 @@ type JournalPageProps = {
   searchParams?: Promise<{ category?: string }>;
 };
 
+async function loadPublishedJournals(): Promise<Journal[]> {
+  try {
+    return await serverApiRequest<Journal[]>(
+      publicJournalListPath({ page: 1, limit: 100 }),
+    );
+  } catch {
+    return [];
+  }
+}
+
 export default async function JournalPage({ searchParams }: JournalPageProps) {
   const params = searchParams ? await searchParams : {};
   const category = params.category;
@@ -29,16 +43,12 @@ export default async function JournalPage({ searchParams }: JournalPageProps) {
       ? category
       : 'all';
 
-  const filteredPosts =
-    activeCategory === 'all'
-      ? JOURNAL_POSTS
-      : JOURNAL_POSTS.filter((post) => post.category === activeCategory);
-
-  const featured = filteredPosts[0] ?? JOURNAL_POSTS[0];
-  const remaining = filteredPosts.filter((post) => post.id !== featured.id);
-  const splitAt = Math.ceil(remaining.length / 2);
-  const beforeQuote = remaining.slice(0, splitAt);
-  const afterQuote = remaining.slice(splitAt);
+  const apiJournals = await loadPublishedJournals();
+  const journals = filterJournalsByCategory(
+    mergeJournals(apiJournals, JOURNAL_POSTS),
+    activeCategory,
+  );
+  const posts = journals.map(mapJournalToCard);
 
   return (
     <main>
@@ -47,16 +57,7 @@ export default async function JournalPage({ searchParams }: JournalPageProps) {
         description={JOURNAL_COPY.hero.description}
         image={JOURNAL_COPY.hero.image}
       />
-      <JournalCategoriesNav categories={JOURNAL_CATEGORIES} activeId={activeCategory} />
-      <JournalFeaturedSection post={featured} ctaLabel={JOURNAL_COPY.featured.ctaLabel} />
-      {beforeQuote.length > 0 && <JournalGridSection posts={beforeQuote} />}
-      <JournalQuoteBreak text={JOURNAL_COPY.quote.text} image={JOURNAL_COPY.quote.image} />
-      {afterQuote.length > 0 && (
-        <JournalLatestSection
-          posts={afterQuote}
-          title={JOURNAL_COPY.latest.title}
-        />
-      )}
+      {posts.length > 0 && <JournalGridSection posts={posts} />}
     </main>
   );
 }

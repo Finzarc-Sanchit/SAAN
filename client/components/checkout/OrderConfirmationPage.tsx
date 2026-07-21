@@ -10,7 +10,7 @@ import { OrderSummaryAside } from '@/components/account/order/OrderSummaryAside'
 import { useAuth } from '@/components/providers/AuthProvider';
 import { Container } from '@/components/ui/Container';
 import { CtaButton } from '@/components/ui/CtaButton';
-import { Spinner } from '@/components/ui/Spinner';
+import { OrderConfirmationSkeleton } from '@/components/checkout/OrderConfirmationSkeleton';
 import { formatShortOrderId, getOrderPublicRef } from '@/lib/admin/order-format';
 import { formatAccountDate } from '@/lib/account-format';
 import { fetchOrder, ordersQueryKeys } from '@/lib/api/orders';
@@ -41,16 +41,16 @@ export function OrderConfirmationPage() {
     queryKey: ordersQueryKeys.customerDetail(orderRef),
     queryFn: () => fetchOrder(orderRef),
     enabled: isAuthenticated && Boolean(orderRef),
+    refetchInterval: (query) => {
+      if (query.state.data?.paymentStatus === 'paid') return false;
+      if (query.state.dataUpdateCount >= 15) return false;
+      return 2_000;
+    },
+    refetchIntervalInBackground: true,
   });
 
   if (authLoading || orderQuery.isLoading) {
-    return (
-      <ConfirmationShell>
-        <div className="flex min-h-screen items-center justify-center">
-          <Spinner />
-        </div>
-      </ConfirmationShell>
-    );
+    return <OrderConfirmationSkeleton />;
   }
 
   if (!isAuthenticated) {

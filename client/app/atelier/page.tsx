@@ -1,6 +1,8 @@
 import { AtelierBrandStorySection } from '@/components/atelier/AtelierBrandStorySection';
 import { AtelierClassicStatementSection } from '@/components/atelier/AtelierClassicStatementSection';
 import { AtelierClosingCopySection } from '@/components/atelier/AtelierClosingCopySection';
+import { AtelierFounderSection } from '@/components/atelier/AtelierFounderSection';
+import { AtelierHeroSection } from '@/components/atelier/AtelierHeroSection';
 import { AtelierMadeToMeasureSection } from '@/components/atelier/AtelierMadeToMeasureSection';
 import { AtelierVisitSection } from '@/components/atelier/AtelierVisitSection';
 import { ATELIER_COPY } from '@/lib/site-content';
@@ -13,7 +15,9 @@ export const metadata = {
 export default function AtelierPage() {
   return (
     <main className="bg-paper">
+      <AtelierHeroSection />
       <AtelierBrandStorySection />
+      <AtelierFounderSection />
       <AtelierClassicStatementSection />
       <AtelierVisitSection />
       <AtelierMadeToMeasureSection />

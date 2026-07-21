@@ -325,17 +325,24 @@ export function CheckoutPage({ step }: { step: CheckoutStep }) {
 
       paymentCompleted = true;
 
-      await verifyPayment(orderRef, {
+      const verifyPayload = {
         razorpayOrderId: checkoutResult.response.razorpay_order_id,
         razorpayPaymentId: checkoutResult.response.razorpay_payment_id,
         razorpaySignature: checkoutResult.response.razorpay_signature,
-      });
+      };
 
       removeItem(item.productId, item.sizeLabel);
       clearBuyNowItem();
       setPendingOrderId(null);
       clearPendingOrderId();
+
+      // Redirect immediately after Razorpay success — never block on server verify.
       router.replace(`/order-confirmation/${encodeURIComponent(orderRef)}`);
+
+      void verifyPayment(orderRef, verifyPayload).catch(() => {
+        // Payment already captured; verification can complete asynchronously.
+      });
+
       return;
     } catch (error: unknown) {
       // Do not release stock after Razorpay reports a successful charge —

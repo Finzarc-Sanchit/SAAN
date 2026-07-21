@@ -5,6 +5,10 @@ import {
   SAANLABEL_SECTIONS,
 } from '@/lib/saanlabel-images';
 import { PRODUCT_OCCASIONS, type ProductOccasion } from '@/lib/product-occasion';
+import {
+  STATIC_JOURNALS,
+} from '@/lib/static-journals';
+import type { Journal } from '@/lib/types/journal';
 
 export const ANNOUNCEMENTS = [
   'COMPLIMENTARY SHIPPING ACROSS INDIA',
@@ -94,50 +98,11 @@ export const TRENDING_FILTERS = [
 
 export type TrendingCategory = (typeof TRENDING_FILTERS)[number]['id'];
 
-export const JOURNAL_POSTS = [
-  {
-    id: 'ethnic-vs-traditional',
-    category: 'Style Guide',
-    title: 'Ethnic vs Traditional Wear: Decoding the Differences',
-    excerpt:
-      'How heritage silhouettes and contemporary ethnic dressing meet — and where they quietly diverge.',
-    date: '12 March 2026',
-    readingTime: '6 min read',
-    image: SAANLABEL_COLLECTIONS.ethnicWear,
-  },
-  {
-    id: 'summer-dressing-guide',
-    category: "Editor's Picks",
-    title: 'Summer Dressing Guide: Staying Cool & Chic',
-    excerpt:
-      'Light fabrics, considered layers, and pieces made for heat without losing presence.',
-    date: '28 February 2026',
-    readingTime: '5 min read',
-    image: SAANLABEL_PRODUCTS.pastelMaxiDress,
-  },
-  {
-    id: 'art-of-zardozi',
-    category: 'Behind the Seams',
-    title: 'The Art of Zardozi: Preserving Ancient Crafts',
-    excerpt:
-      'Inside the embroidery clusters and atelier hands that finish every SAAN piece, stitch by stitch.',
-    date: '14 February 2026',
-    readingTime: '7 min read',
-    image: SAANLABEL_PRODUCTS.inkBlueSareeAlt,
-  },
-  {
-    id: 'resort-2026',
-    category: 'Lookbook',
-    title: 'Resort 2026: An Exclusive First Look',
-    excerpt:
-      'An early glimpse of the season ahead — soft geometry, sunlit cloth, and unhurried ease.',
-    date: '2 February 2026',
-    readingTime: '4 min read',
-    image: SAANLABEL_COLLECTIONS.luxeEditBanner,
-  },
-] as const;
-
-export type JournalPost = (typeof JOURNAL_POSTS)[number];
+export {
+  STATIC_JOURNALS as JOURNAL_POSTS,
+  getStaticJournalBySlug,
+} from '@/lib/static-journals';
+export type { Journal as JournalPost } from '@/lib/types/journal';
 
 export const JOURNAL_CATEGORIES = [
   { id: 'all', label: 'All Stories' },
@@ -147,8 +112,8 @@ export const JOURNAL_CATEGORIES = [
   { id: 'Lookbook', label: 'Lookbook' },
 ] as const;
 
-export function getJournalPostById(id: string): JournalPost | undefined {
-  return JOURNAL_POSTS.find((post) => post.id === id);
+export function getJournalPostById(id: string): Journal | undefined {
+  return STATIC_JOURNALS.find((post) => post.id === id || post.slug === id);
 }
 
 export const ATELIER_LANDING_COPY = {
@@ -190,6 +155,33 @@ export const NEWSLETTER_COPY = {
   submitLabel: 'Subscribe',
 } as const;
 
+export const FOOTER_APPOINTMENT_COPY = {
+  title: 'Visit the Atelier',
+  description:
+    'Book a private consultation in Bandra — fittings, fabric, and made-to-measure guidance.',
+  ctaLabel: 'Book Appointment',
+  href: '/appointment',
+} as const;
+
+export const FOOTER_LINKS = {
+  shop: [
+    { label: 'Shop All', href: '/shop' },
+    { label: 'Collections', href: '/collections' },
+    { label: 'Journal', href: '/journal' },
+  ],
+  discover: [
+    { label: 'Our Story', href: '/atelier' },
+    { label: 'Contact', href: '/contact' },
+  ],
+  information: [
+    { label: 'Size Guide', href: '/size-guide' },
+    { label: 'Return & Exchange Policy', href: '/return-exchange' },
+    { label: 'Shipping Policy', href: '/shipping' },
+    { label: 'Privacy Policy', href: '/privacy' },
+    { label: 'Terms & Conditions', href: '/terms' },
+  ],
+} as const;
+
 export const FEATURED_COLLECTION = {
   title: 'Best Sellers',
   subtitle: "Own What's Always Admired",
@@ -228,7 +220,7 @@ export const ATELIER_COPY = {
     title: 'The Bandra atelier.',
     introduction: 'By appointment, Tuesday to Saturday, 11AM to 7PM.',
     image: {
-      src: SAANLABEL_COLLECTIONS.coordSets,
+      src: "/images/visit-section.webp",
       alt: 'SAAN atelier editorial featuring a hand-finished ivory ensemble',
     },
     details: [
@@ -249,8 +241,8 @@ export const ATELIER_COPY = {
       },
     ],
     cta: {
-      label: 'Book a visit on WhatsApp',
-      href: 'https://wa.me/919920613132',
+      label: 'Book Appointment',
+      href: '/appointment',
     },
   },
   madeToMeasure: {
@@ -351,13 +343,67 @@ export const JOURNAL_COPY = {
   },
 } as const;
 
+export const APPOINTMENT_COPY = {
+  hero: {
+    title: 'Book an Appointment',
+    description:
+      'Visit the Bandra atelier for a private consultation — fittings, fabric, and made-to-measure guidance.',
+    image: {
+      src: '/images/visit-section.webp',
+      alt: 'SAAN atelier editorial featuring a hand-finished ivory ensemble',
+    },
+  },
+  intro: {
+    title: 'The atelier, by appointment',
+    description:
+      'Share a few details and choose a time that suits you. We will confirm your visit by email.',
+  },
+  form: {
+    title: 'Request a visit',
+    firstName: 'First name',
+    lastName: 'Last name',
+    email: 'Email',
+    phone: 'Phone',
+    appointmentDate: 'Preferred date',
+    timeSlot: 'Preferred time',
+    appointmentType: 'Appointment type',
+    notes: 'Notes (optional)',
+    submitLabel: 'Request Appointment',
+    selectingSlot: 'Choose a date to see available times',
+    closedDay: 'The atelier is closed on this date. Please choose another day.',
+    loadingSlots: 'Loading times…',
+    slotsUnavailable: 'No times are open for this date.',
+  },
+  success: {
+    title: 'Request received',
+    body: 'Thank you. We have your appointment request and will confirm by email shortly.',
+    referenceLabel: 'Reference',
+    summaryLabel: 'Your visit',
+    ctaLabel: 'Return to the Atelier',
+    ctaHref: '/atelier',
+  },
+  info: {
+    addressLabel: 'Atelier',
+    hoursLabel: 'Hours',
+    contactLabel: 'Contact',
+    durationLabel: 'Session length',
+    durationNote: 'Each visit is reserved for the full slot duration shown when you book.',
+    guidelinesTitle: 'Before you arrive',
+    cancellationTitle: 'Cancellation',
+    image: {
+      src: '/images/visit-section.webp',
+      alt: 'Quiet light in the SAAN Bandra atelier',
+    },
+  },
+} as const;
+
 export const CONTACT_COPY = {
   hero: {
     title: 'Got Any Questions?',
     description:
-      'Use the form below to get in touch with our team.',
+      'Reach the atelier for styling advice, order care, or a quiet conversation about made-to-measure.',
     image: {
-      src: SAANLABEL_COLLECTIONS.coordSets,
+      src: '/images/contact-hero.webp',
       alt: 'Lifestyle editorial imagery for contacting SAAN',
     },
   },
@@ -409,29 +455,52 @@ export const CONTACT_COPY = {
   support: {
     title: 'How We Can Help',
     image: {
-      src: SAANLABEL_PRODUCTS.whitePersianAnarkali,
+      src: "/images/support-section-image.webp",
       alt: 'Editorial product photography from SAAN',
     },
     items: [
       {
         title: 'General Enquiries',
         description:
-          'Redefining heritage for the modern muse. Ethical craftsmanship meets timeless design.',
+          'Brand questions, collection guidance, fabric notes, and anything that does not fit a form field. We reply within one to two business days.',
+        detail: 'Email or WhatsApp · Mon–Sat',
       },
       {
         title: 'Order Support',
-        description: 'For order status, exchanges, and delivery updates.',
+        description:
+          'Track an order, change a delivery address before dispatch, or ask about sizing once your piece is on its way.',
+        detail: 'Include your order number',
       },
       {
-        title: 'Shipping Queries',
-        description: ANNOUNCEMENTS[0],
+        title: 'Shipping & Delivery',
+        description:
+          'Complimentary shipping across India. Most ready-to-wear pieces leave the atelier within 3–5 working days; made-to-measure follows its own timeline.',
+        detail: 'India-wide · tracked',
+      },
+      {
+        title: 'Made-to-Measure',
+        description:
+          'Nearly every piece can be cut to your measurements. Share your brief and we will send a measurement guide within 24 hours.',
+        detail: '18–25 working days typical',
+      },
+      {
+        title: 'Atelier Visits',
+        description:
+          'Visit Pearl Heights on Linking Road by appointment — fittings, fabric swatches, and a quieter look at the season.',
+        detail: 'Tue–Sat · 11AM–7PM',
+      },
+      {
+        title: 'Returns & Exchanges',
+        description:
+          'Ready-to-wear may be exchanged within 7 days if unworn with tags. Made-to-measure is final once cutting begins.',
+        detail: 'See shipping policy for steps',
       },
     ],
   },
   closing: {
     statement: ATELIER_COPY.closing.paragraphs[1],
     image: {
-      src: SAANLABEL_COLLECTIONS.ethnicWear,
+      src: "/images/closing-section-image.webp",
       alt: 'Editorial closing image from the SAAN collections',
     },
   },
@@ -494,25 +563,6 @@ export const TESTIMONIALS = [
   },
 ] as const;
 
-export const FOOTER_LINKS = {
-  shop: [
-    { label: 'New Arrivals', href: '/shop/new-arrivals' },
-    { label: 'Best Sellers', href: '/shop/best-sellers' },
-    { label: 'Festive Collection', href: '/collections/festive' },
-    { label: 'Bridal', href: '/collections/bridal' },
-  ],
-  support: [
-    { label: 'Contact Us', href: '/contact' },
-    { label: 'Shipping & Returns', href: '/shipping' },
-    { label: 'Size Guide', href: '/size-guide' },
-    { label: 'FAQs', href: '/faqs' },
-  ],
-  legal: [
-    { label: 'Terms of Service', href: '/terms' },
-    { label: 'Privacy Policy', href: '/privacy' },
-  ],
-} as const;
-
 export const BRAND = {
   name: 'SAAN',
   tagline: 'Atmospheric Couture',
@@ -522,6 +572,7 @@ export const BRAND = {
     'Redefining heritage for the modern muse. Ethical craftsmanship meets timeless design.',
   social: {
     instagram: 'https://www.instagram.com/saan.label',
+    facebook: 'https://www.facebook.com/saan.label',
   },
 } as const;
 
@@ -686,49 +737,39 @@ export const HOME_COPY = {
 
 export const SIGNATURE_COLLECTIONS = COLLECTIONS.slice(0, 4);
 
-export const OCCASION_TILES = [
-  {
-    id: 'wedding-guest',
-    label: 'Wedding Guest',
-    description: 'Presence without performance.',
-    href: '/shop?occasion=Wedding',
-    image: SAANLABEL_PRODUCTS.whitePersianAnarkali,
-  },
-  {
-    id: 'festive',
-    label: 'Festive',
+export const OCCASION_TILE_COPY: Record<
+  ProductOccasion,
+  { description: string; image: string }
+> = {
+  Festive: {
     description: 'Ceremonial depth, reimagined.',
-    href: '/shop?occasion=Festive',
     image: SAANLABEL_PRODUCTS.purpleGlassKurta,
   },
-  {
-    id: 'everyday-luxury',
-    label: 'Everyday Luxury',
+  Wedding: {
+    description: 'Presence without performance.',
+    image: SAANLABEL_PRODUCTS.whitePersianAnarkali,
+  },
+  Daily: {
     description: 'Intentional design for a simpler pace.',
-    href: '/shop?occasion=Daily',
     image: SAANLABEL_PRODUCTS.whiteCottonCoord,
   },
-  {
-    id: 'vacation',
-    label: 'Vacation',
-    description: 'Resort ease, editorial ease.',
-    href: '/shop?occasion=Resort',
-    image: SAANLABEL_PRODUCTS.pastelMaxiDress,
-  },
-  {
-    id: 'evening',
-    label: 'Evening',
+  Cocktail: {
     description: 'Where light meets the unseen.',
-    href: '/shop?occasion=Cocktail',
     image: SAANLABEL_PRODUCTS.noirGraceSuit,
   },
-  {
-    id: 'workwear',
-    label: 'Workwear',
-    description: 'Quiet confidence, every day.',
-    href: '/shop?category=Kurta%20Sets',
-    image: SAANLABEL_PRODUCTS.regalMaroonKurta,
+  Resort: {
+    description: 'Resort ease, editorial ease.',
+    image: SAANLABEL_PRODUCTS.pastelMaxiDress,
   },
-] as const;
+};
+
+/** Homepage occasion tiles — mirrors `SHOP_OCCASION_FILTERS` (excludes "All"). */
+export const OCCASION_TILES = PRODUCT_OCCASIONS.map((occasion) => ({
+  id: occasion.toLowerCase(),
+  label: occasion,
+  description: OCCASION_TILE_COPY[occasion].description,
+  href: `/shop?occasion=${encodeURIComponent(occasion)}`,
+  image: OCCASION_TILE_COPY[occasion].image,
+}));
 
 export const COMMUNITY_IMAGES = SAANLABEL_INSTAGRAM;

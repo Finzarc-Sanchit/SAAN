@@ -7,11 +7,17 @@ import { ProductAccordion } from '@/components/product/ProductAccordion';
 const PRODUCT_DISCLAIMER =
   'The colour of the actual product may vary slightly from the images shown due to different device or monitor screen settings and photography lighting conditions.';
 
+const PRODUCT_SHIPPING_RETURNS = [
+  'Complimentary shipping across India. Domestic deliveries are typically completed within 5–7 business days after dispatch, depending on your location. Tracking details are shared once your order leaves the atelier.',
+  'Returns and exchanges are accepted within 7 days of delivery for unused items in their original condition. Approved returns are issued as store credit. Customized or exclusive styles are not eligible for return or exchange.',
+] as const;
+
 type ProductInfoSection =
   | 'description'
   | 'fit'
   | 'materials'
-  | 'disclaimer';
+  | 'disclaimer'
+  | 'shippingReturns';
 
 type ProductInfoAccordionsProps = {
   product: ProductDetail;
@@ -73,6 +79,20 @@ export function ProductInfoAccordions({ product }: ProductInfoAccordionsProps) {
         onToggle={() => toggleSection('disclaimer')}
       >
         <p className="text-body leading-relaxed text-neutral-700">{PRODUCT_DISCLAIMER}</p>
+      </ProductAccordion>
+
+      <ProductAccordion
+        title="Shipping & Returns"
+        isOpen={openSection === 'shippingReturns'}
+        onToggle={() => toggleSection('shippingReturns')}
+      >
+        <div className="space-y-4">
+          {PRODUCT_SHIPPING_RETURNS.map((paragraph) => (
+            <p key={paragraph.slice(0, 32)} className="text-body leading-relaxed text-neutral-700">
+              {paragraph}
+            </p>
+          ))}
+        </div>
       </ProductAccordion>
     </div>
   );

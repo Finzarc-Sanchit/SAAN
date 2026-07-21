@@ -26,6 +26,9 @@ function buildListQuery(params: ProductListParams): string {
   if (params.status) search.set('status', params.status);
   if (params.search) search.set('search', params.search);
   if (params.sort) search.set('sort', params.sort);
+  if (params.minPrice !== undefined) search.set('minPrice', String(params.minPrice));
+  if (params.maxPrice !== undefined) search.set('maxPrice', String(params.maxPrice));
+  if (params.offset !== undefined) search.set('offset', String(params.offset));
   if (params.page) search.set('page', String(params.page));
   if (params.limit) search.set('limit', String(params.limit));
   const qs = search.toString();

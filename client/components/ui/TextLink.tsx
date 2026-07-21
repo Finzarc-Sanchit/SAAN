@@ -28,8 +28,8 @@ export function TextLink({
   const active = !external && isActive(pathname, href);
   const classes = cn(
     'link-underline text-ui text-ink transition-opacity duration-300 hover:opacity-70',
-    active && 'opacity-100 after:scale-x-100',
-    className
+    active && 'is-active',
+    className,
   );
 
   if (external) {

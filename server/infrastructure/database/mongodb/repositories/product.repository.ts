@@ -12,6 +12,7 @@ import type {
 } from '../../../../modules/product/product.types';
 import type { Paginated, Pagination } from '../../../../shared/types/pagination';
 import { NotFoundError } from '../../../../shared/errors/not-found-error';
+import { normalizePagination } from '../../../../shared/utils/pagination';
 import { isValidSizeIdFormat } from '../../../../shared/utils/size-id';
 import {
   ProductModel,
@@ -243,7 +244,7 @@ export class MongoProductRepository implements IProductRepository {
 
   async findMany(filter: ProductFilter, pagination: Pagination): Promise<Paginated<Product>> {
     const query = buildMongoFilter(filter);
-    const skip = (pagination.page - 1) * pagination.limit;
+    const { page, limit, skip } = normalizePagination(pagination);
     const sort = buildSort(filter.sort);
 
     const [docs, total] = await Promise.all([

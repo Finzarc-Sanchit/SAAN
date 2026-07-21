@@ -61,7 +61,7 @@ export function ProductDetailAccordions({ product }: ProductDetailAccordionsProp
                       className={cn(
                         'h-3 w-3',
                         i < review.rating
-                          ? 'fill-ink text-ink'
+                          ? 'fill-saan-rating text-saan-rating'
                           : 'text-ink/30'
                       )}
                       strokeWidth={1.25}

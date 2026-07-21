@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
 const IMAGE_LABELS = ['Front', 'Back', 'Detail', 'On Model'] as const;
+const ZOOM_SCALE = 2.4;
 
 type ProductGalleryProps = {
   images: string[];
@@ -13,14 +14,18 @@ type ProductGalleryProps = {
 
 export function ProductGallery({ images, productName }: ProductGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
+  const [reducedMotion, setReducedMotion] = useState(false);
   const galleryImages = images.slice(0, 4);
   const mainImage = galleryImages[activeIndex] ?? galleryImages[0];
 
   useEffect(() => {
-    if (
-      galleryImages.length <= 1 ||
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    ) {
+    setReducedMotion(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }, []);
+
+  useEffect(() => {
+    if (galleryImages.length <= 1 || isHovered || reducedMotion) {
       return;
     }
 
@@ -29,20 +34,71 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
     }, 7_000);
 
     return () => window.clearTimeout(timer);
-  }, [activeIndex, galleryImages.length]);
+  }, [activeIndex, galleryImages.length, isHovered, reducedMotion]);
+
+  const handleMouseMove = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+    setZoomOrigin({ x, y });
+  }, []);
+
+  const handleMouseEnter = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    setIsHovered(true);
+    handleMouseMove(event);
+  }, [handleMouseMove]);
+
+  const handleMouseLeave = useCallback(() => {
+    setIsHovered(false);
+  }, []);
+
+  useEffect(() => {
+    if (isHovered) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setZoomOrigin({ x: 50, y: 50 });
+    }, 750);
+
+    return () => window.clearTimeout(timer);
+  }, [isHovered]);
 
   return (
     <div className="flex flex-col gap-4 lg:flex-row-reverse lg:items-start lg:gap-6">
-      <div className="relative aspect-[3/4] w-full shrink-0 overflow-hidden bg-neutral-100 lg:min-w-0 lg:flex-1">
+      <div
+        className="relative aspect-[3/4] w-full shrink-0 cursor-pointer overflow-hidden bg-neutral-100 lg:min-w-0 lg:flex-1"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onMouseMove={handleMouseMove}
+      >
         {mainImage && (
-          <Image
-            src={mainImage}
-            alt={`${productName} — ${IMAGE_LABELS[activeIndex] ?? 'view'}`}
-            fill
-            priority
-            sizes="(max-width: 1024px) 100vw, 55vw"
-            className="object-cover object-center"
-          />
+          <>
+            <Image
+              src={mainImage}
+              alt={`${productName} — ${IMAGE_LABELS[activeIndex] ?? 'view'}`}
+              fill
+              priority
+              sizes="(max-width: 1024px) 100vw, 55vw"
+              className="object-cover object-center"
+            />
+            {!reducedMotion && (
+              <div
+                aria-hidden="true"
+                className={cn(
+                  'absolute inset-0 bg-cover bg-center will-change-transform transition-transform',
+                  isHovered
+                    ? 'duration-500 ease-out'
+                    : 'duration-700 ease-[var(--ease-luxury)]',
+                )}
+                style={{
+                  backgroundImage: `url("${mainImage}")`,
+                  transform: isHovered ? `scale(${ZOOM_SCALE})` : 'scale(1)',
+                  transformOrigin: `${zoomOrigin.x}% ${zoomOrigin.y}%`,
+                }}
+              />
+            )}
+          </>
         )}
       </div>
 

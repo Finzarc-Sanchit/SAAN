@@ -20,8 +20,13 @@ import {
   adminCollectionRoutes,
   collectionRoutes,
 } from '../modules/collection/collection.module';
+import {
+  adminJournalRoutes,
+  journalRoutes,
+} from '../modules/journal/journal.module';
 import { analyticsRoutes } from '../modules/analytics/analytics.module';
 import { createContactModule } from '../modules/contact/contact.module';
+import { createAppointmentModule } from '../modules/appointment/appointment.module';
 import {
   adminNewsletterRoutes,
   newsletterRoutes,
@@ -38,6 +43,7 @@ import { successResponse } from '../shared/utils/response';
 export function createApp(): express.Application {
   const app = express();
   const contactModule = createContactModule(emailQueue);
+  const appointmentModule = createAppointmentModule(emailQueue);
 
   app.set('trust proxy', 1);
   app.use(ensureConnectionsMiddleware);
@@ -122,8 +128,16 @@ export function createApp(): express.Application {
   app.use('/api/v1/campaigns', campaignRoutes);
   app.use('/api/v1/collections', collectionRoutes);
   app.use('/api/v1/admin/collections', adminCollectionRoutes);
+  app.use('/api/v1/journal', journalRoutes);
+  app.use('/api/v1/admin/journal', adminJournalRoutes);
   app.use('/api/v1/contact', contactModule.contactRoutes);
   app.use('/api/v1/admin/contacts', contactModule.adminContactRoutes);
+  app.use('/api/v1/appointments', appointmentModule.appointmentRoutes);
+  app.use('/api/v1/admin/appointments', appointmentModule.adminAppointmentRoutes);
+  app.use(
+    '/api/v1/admin/appointment-settings',
+    appointmentModule.adminAppointmentSettingsRoutes,
+  );
   app.use('/api/v1/newsletter', newsletterRoutes);
   app.use('/api/v1/admin/newsletter', adminNewsletterRoutes);
   app.use('/api/v1/admin/analytics', analyticsRoutes);

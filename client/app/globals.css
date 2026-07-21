@@ -17,6 +17,8 @@
   --color-surface: #ffffff;
   --color-error: #b3261e;
   --color-success: #3f6b4a;
+  /* E-commerce rating star fill — Amazon #FFA41C (industry-standard amber gold) */
+  --color-saan-rating: #ffa41c;
 
   /* Legacy aliases — mapped to new palette for gradual migration */
   --color-saan-ink: var(--color-ink);
@@ -302,7 +304,9 @@
   }
 
   .link-underline:hover::after,
-  .link-underline:focus-visible::after {
+  .link-underline:focus-visible::after,
+  .link-underline.is-active::after,
+  .link-underline[aria-current='page']::after {
     transform: scaleX(1);
   }
 
@@ -385,22 +389,22 @@
   }
 
   /* ── Product card image crossfade ── */
-  .product-image-crossfade .product-image-hover {
+  .product-card .product-image-crossfade .product-image-hover {
     opacity: 0;
     transition: opacity 0.6s var(--ease-fade);
   }
 
-  .product-image-crossfade:hover .product-image-hover,
-  .product-image-crossfade:focus-within .product-image-hover {
+  .product-card:hover .product-image-crossfade .product-image-hover,
+  .product-card:focus-within .product-image-crossfade .product-image-hover {
     opacity: 1;
   }
 
-  .product-image-crossfade .product-image-front {
+  .product-card .product-image-crossfade .product-image-front {
     transition: opacity 0.6s var(--ease-fade);
   }
 
-  .product-image-crossfade:hover .product-image-front,
-  .product-image-crossfade:focus-within .product-image-front {
+  .product-card:hover .product-image-crossfade .product-image-front,
+  .product-card:focus-within .product-image-crossfade .product-image-front {
     opacity: 0;
   }
 
@@ -420,6 +424,26 @@
 
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  .scrollbar-panel {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(163 163 163 / 0.85) transparent;
+  }
+
+  .scrollbar-panel::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  .scrollbar-panel::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-panel::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 9999px;
+    background-color: rgb(163 163 163 / 0.85);
+    background-clip: content-box;
   }
 
   /* Legacy marquee / card utilities */
@@ -478,22 +502,22 @@
   .link-underline::after,
   .btn-primary-fill::before,
   .btn-primary-fill-light::before,
-  .product-image-crossfade .product-image-hover,
-  .product-image-crossfade .product-image-front {
+  .product-card .product-image-crossfade .product-image-hover,
+  .product-card .product-image-crossfade .product-image-front {
     transition: none !important;
   }
 
-  .product-image-crossfade .product-image-hover {
+  .product-card .product-image-crossfade .product-image-hover {
     opacity: 0 !important;
   }
 
-  .product-image-crossfade:hover .product-image-hover,
-  .product-image-crossfade:focus-within .product-image-hover {
+  .product-card:hover .product-image-crossfade .product-image-hover,
+  .product-card:focus-within .product-image-crossfade .product-image-hover {
     opacity: 1 !important;
   }
 
-  .product-image-crossfade:hover .product-image-front,
-  .product-image-crossfade:focus-within .product-image-front {
+  .product-card:hover .product-image-crossfade .product-image-front,
+  .product-card:focus-within .product-image-crossfade .product-image-front {
     opacity: 0 !important;
   }
 }

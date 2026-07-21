@@ -8,14 +8,12 @@ import {
 } from '@/lib/site-content';
 import { cn } from '@/lib/utils';
 
-type FilterOption = { id: string; label: string };
-
 type ShopStickyFiltersProps = {
   filters: ShopFilterState;
   setFilters: React.Dispatch<React.SetStateAction<ShopFilterState>>;
   maxPriceLimit: number;
   resultCount: number;
-  categoryOptions?: readonly FilterOption[];
+  availableCategories?: Set<string>;
 };
 
 function FilterGroup({
@@ -38,27 +36,35 @@ function RadioOption({
   id,
   label,
   checked,
+  disabled,
   onChange,
 }: {
   name: string;
   id: string;
   label: string;
   checked: boolean;
+  disabled?: boolean;
   onChange: () => void;
 }) {
   return (
-    <label className="flex cursor-pointer items-center gap-2.5">
+    <label
+      className={cn(
+        'flex cursor-pointer items-center gap-2.5',
+        disabled && 'pointer-events-none opacity-40',
+      )}
+    >
       <input
         type="radio"
         name={name}
         checked={checked}
         onChange={onChange}
+        disabled={disabled}
         className="sr-only"
       />
       <span
         className={cn(
           'flex h-3.5 w-3.5 items-center justify-center border border-neutral-500',
-          checked && 'border-ink bg-ink'
+          checked && 'border-ink bg-ink',
         )}
         aria-hidden
       >
@@ -76,7 +82,7 @@ export function ShopStickyFilters({
   setFilters,
   maxPriceLimit,
   resultCount,
-  categoryOptions = SHOP_CATEGORY_FILTERS,
+  availableCategories,
 }: ShopStickyFiltersProps) {
   const handleReset = () => {
     setFilters({
@@ -101,18 +107,27 @@ export function ShopStickyFilters({
       <div className="space-y-8">
         <FilterGroup title="Category">
           <div className="space-y-2">
-            {categoryOptions.map((item) => (
-              <RadioOption
-                key={item.id}
-                name="category"
-                id={item.id}
-                label={item.label}
-                checked={filters.category === item.id}
-                onChange={() =>
-                  setFilters((prev) => ({ ...prev, category: item.id }))
-                }
-              />
-            ))}
+            {SHOP_CATEGORY_FILTERS.map((item) => {
+              const isAvailable =
+                item.id === 'all' ||
+                !availableCategories ||
+                availableCategories.size === 0 ||
+                availableCategories.has(item.id);
+
+              return (
+                <RadioOption
+                  key={item.id}
+                  name="category"
+                  id={item.id}
+                  label={item.label}
+                  checked={filters.category === item.id}
+                  disabled={!isAvailable}
+                  onChange={() =>
+                    setFilters((prev) => ({ ...prev, category: item.id }))
+                  }
+                />
+              );
+            })}
           </div>
         </FilterGroup>
 
@@ -132,7 +147,7 @@ export function ShopStickyFilters({
                     'border px-2.5 py-1.5 text-ui transition-colors',
                     active
                       ? 'border-ink bg-ink text-paper'
-                      : 'border-neutral-300 text-neutral-700 hover:border-ink'
+                      : 'border-neutral-300 text-neutral-700 hover:border-ink',
                   )}
                 >
                   {item.label}

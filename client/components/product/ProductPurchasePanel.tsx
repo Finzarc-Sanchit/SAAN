@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { Heart } from "lucide-react";
 import { useCart } from "@/components/providers/CartProvider";
+import { useDebouncedWishlistSync } from "@/hooks/useDebouncedWishlistSync";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { ProductColorDisplay } from "@/components/product/ProductColorDisplay";
 import { RatingStars } from "@/components/product/RatingStars";
@@ -21,6 +23,7 @@ import {
 } from "@/lib/product-size-catalog";
 import { getProductHref, getVariantFromSearchParams } from "@/lib/product-url";
 import { formatPrice, getDiscountPercent } from "@/lib/site-content";
+import { cn } from "@/lib/utils";
 
 type ProductPurchasePanelProps = {
   product: ProductDetail;
@@ -31,6 +34,7 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
   const searchParams = useSearchParams();
   const { addItem, closeCart } = useCart();
   const { requireAuth, isAuthenticated } = useRequireAuth();
+  const { wishlisted, toggle: handleWishlistToggle } = useDebouncedWishlistSync(product.id);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [sizeError, setSizeError] = useState(false);
@@ -194,7 +198,37 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
 
   return (
     <>
-      <h1 className="text-h2 text-ink">{product.name}</h1>
+      <div className="flex items-start justify-between gap-4">
+        <h1 className="text-h2 text-ink">{product.name}</h1>
+        <button
+          type="button"
+          aria-label={
+            wishlisted
+              ? `Remove ${product.name} from wishlist`
+              : `Add ${product.name} to wishlist`
+          }
+          aria-pressed={wishlisted}
+          onClick={(e) => {
+            handleWishlistToggle();
+            (e.currentTarget as HTMLButtonElement).blur();
+          }}
+          className={cn(
+            "mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink",
+            "transition-[color,transform] duration-300 ease-[var(--ease-luxury)]",
+            "hover:scale-110 active:scale-90 motion-reduce:transform-none",
+            "hover:text-signature focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signature/40",
+            wishlisted && "text-signature",
+          )}
+        >
+          <Heart
+            className={cn(
+              "h-5 w-5 transition-[fill,color,transform] duration-300 ease-[var(--ease-luxury)]",
+              wishlisted && "fill-signature text-signature",
+            )}
+            strokeWidth={1.25}
+          />
+        </button>
+      </div>
 
       <a
         href="#product-reviews"

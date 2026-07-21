@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import Lenis from 'lenis';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { onPageScrollLockChange } from '@/lib/scroll-lock';
 
 type LenisProviderProps = {
   children: React.ReactNode;
@@ -59,8 +60,17 @@ export function LenisProvider({ children }: LenisProviderProps) {
 
     rafId = requestAnimationFrame(raf);
 
+    const unsubscribeScrollLock = onPageScrollLockChange((locked) => {
+      if (locked) {
+        lenis.stop();
+        return;
+      }
+      lenis.start();
+    });
+
     return () => {
       cancelAnimationFrame(rafId);
+      unsubscribeScrollLock();
       lenis.destroy();
       lenisRef.current = null;
       document.documentElement.classList.remove('lenis', 'lenis-smooth');

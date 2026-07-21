@@ -30,7 +30,7 @@ export function RatingStars({ rating, size = 'sm', className }: RatingStarsProps
               style={{ width: `${fillPercent}%` }}
             >
               <Star
-                className={cn(sizeClass, 'fill-ink text-ink')}
+                className={cn(sizeClass, 'fill-saan-rating text-saan-rating')}
                 strokeWidth={1.4}
               />
             </span>

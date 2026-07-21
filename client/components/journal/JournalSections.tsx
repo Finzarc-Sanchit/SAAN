@@ -3,11 +3,12 @@ import Link from 'next/link';
 import { ScrollReveal } from '@/components/motion/ScrollReveal';
 import { Container } from '@/components/ui/Container';
 import { CtaButton } from '@/components/ui/CtaButton';
-import type { JournalPost } from '@/lib/site-content';
+import type { StorefrontJournalCard } from '@/lib/journal';
+import { journalArticleHref } from '@/lib/journal';
 import { cn } from '@/lib/utils';
 
 type JournalArticleCardProps = {
-  post: JournalPost;
+  post: StorefrontJournalCard;
   className?: string;
 };
 
@@ -15,24 +16,26 @@ export function JournalArticleCard({ post, className }: JournalArticleCardProps)
   return (
     <article className={cn('group', className)}>
       <Link
-        href={`/journal/${post.id}`}
+        href={journalArticleHref(post.slug)}
         className="block focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ink"
       >
         <div className="relative aspect-[3/4] overflow-hidden bg-neutral-100">
           <Image
             src={post.image}
-            alt={post.title}
+            alt={post.imageAlt || post.title}
             fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
             className="object-cover object-center transition-transform duration-700 ease-[var(--ease-luxury)] group-hover:scale-[1.015] motion-reduce:transition-none"
           />
         </div>
         <div className="mt-5 border-t border-neutral-300 pt-4">
           <p className="text-caption text-neutral-500">
             {post.date}
-            <span className="mx-2" aria-hidden>
-              /
-            </span>
+            {post.date && post.readingTime ? (
+              <span className="mx-2" aria-hidden>
+                /
+              </span>
+            ) : null}
             {post.readingTime}
           </p>
           <h3 className="text-h3 mt-3 text-ink transition-opacity duration-300 group-hover:opacity-65">
@@ -54,48 +57,76 @@ type JournalHeroSectionProps = {
 };
 
 export function JournalHeroSection({ title, description, image }: JournalHeroSectionProps) {
+  const titleWords = title.trim().split(/\s+/);
+  const titleLead = titleWords.slice(0, -1).join(' ');
+  const titleFinal = titleWords.at(-1) ?? title;
+
   return (
     <section
       aria-labelledby="journal-hero-heading"
-      className="border-b border-neutral-300 bg-paper"
+      className="bg-paper"
     >
-      <Container className="grid min-h-[72vh] grid-cols-1 gap-10 py-14 md:grid-cols-12 md:items-center md:gap-12 md:py-20">
-        <ScrollReveal className="md:col-span-5">
-          <div className="max-w-xl">
-            <h1
-              id="journal-hero-heading"
-              className="font-display text-[clamp(3.5rem,8vw,8rem)] leading-[0.86] tracking-[-0.045em] text-ink"
-            >
-              {title}
-            </h1>
-            <p className="text-body-l mt-8 max-w-sm text-neutral-700">{description}</p>
-            <div className="mt-10 h-px w-20 bg-ink" aria-hidden />
-          </div>
-        </ScrollReveal>
+      <div className="flex min-h-[min(100svh,58rem)] flex-col lg:min-h-[94vh]">
+        <div className="relative min-h-[56vh] flex-[1.2] overflow-hidden bg-neutral-100 sm:min-h-[60vh] lg:min-h-[68vh]">
+          <ScrollReveal className="absolute inset-0">
+            <div className="absolute inset-0 overflow-hidden">
+              <Image
+                src={image.src}
+                alt={image.alt}
+                fill
+                priority
+                sizes="100vw"
+                className="object-cover object-[center_28%] scale-[1.04] motion-reduce:scale-100"
+              />
+            </div>
+          </ScrollReveal>
+        </div>
 
-        <ScrollReveal delay={0.08} className="md:col-span-7">
-          <div className="relative aspect-[4/5] max-h-[72vh] overflow-hidden bg-neutral-100 md:ml-auto md:w-[88%]">
-            <Image
-              src={image.src}
-              alt={image.alt}
-              fill
-              priority
-              sizes="(max-width: 768px) 100vw, 58vw"
-              className="object-cover object-center"
-            />
-          </div>
-        </ScrollReveal>
-      </Container>
+        <div className="relative">
+          <div
+            className="pointer-events-none absolute inset-x-0 -top-20 h-20 bg-gradient-to-t from-paper to-transparent lg:-top-28 lg:h-28"
+            aria-hidden
+          />
+
+          <Container className="relative -mt-8 pb-16 pt-4 sm:-mt-10 sm:pb-20 lg:-mt-16 lg:pb-24 lg:pt-0">
+            <ScrollReveal delay={0.1} className="max-w-3xl">
+              <p className="text-caption tracking-[0.22em] text-neutral-500 uppercase">
+                Journal
+              </p>
+
+              <h1
+                id="journal-hero-heading"
+                className="mt-7 font-display text-[clamp(3.5rem,10vw,8rem)] leading-[0.86] tracking-[-0.05em] text-ink sm:mt-8 lg:mt-10"
+              >
+                {titleLead ? (
+                  <>
+                    <span className="block">{titleLead}</span>
+                    <span className="mt-1 block sm:mt-2">{titleFinal}</span>
+                  </>
+                ) : (
+                  title
+                )}
+              </h1>
+
+              <p className="text-body mt-8 max-w-[38ch] text-neutral-700 sm:mt-10 lg:mt-12">
+                {description}
+              </p>
+            </ScrollReveal>
+          </Container>
+        </div>
+      </div>
     </section>
   );
 }
 
 type JournalFeaturedSectionProps = {
-  post: JournalPost;
+  post: StorefrontJournalCard;
   ctaLabel: string;
 };
 
 export function JournalFeaturedSection({ post, ctaLabel }: JournalFeaturedSectionProps) {
+  const href = journalArticleHref(post.slug);
+
   return (
     <section aria-labelledby="journal-featured-heading" className="bg-paper py-20 md:py-32">
       <Container>
@@ -114,25 +145,25 @@ export function JournalFeaturedSection({ post, ctaLabel }: JournalFeaturedSectio
                 className="text-display-l mt-5 text-ink"
               >
                 <Link
-                  href={`/journal/${post.id}`}
+                  href={href}
                   className="transition-opacity duration-300 hover:opacity-65 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ink"
                 >
                   {post.title}
                 </Link>
               </h2>
               <p className="text-body-l mt-6 text-neutral-700">{post.excerpt}</p>
-              <CtaButton href={`/journal/${post.id}`} variant="primary" className="mt-9 min-w-[12rem]">
+              <CtaButton href={href} variant="primary" className="mt-9 min-w-[12rem]">
                 {ctaLabel}
               </CtaButton>
             </div>
 
             <Link
-              href={`/journal/${post.id}`}
+              href={href}
               className="group relative aspect-[16/11] overflow-hidden bg-neutral-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ink lg:col-span-8"
             >
               <Image
                 src={post.image}
-                alt={post.title}
+                alt={post.imageAlt || post.title}
                 fill
                 sizes="(max-width: 1024px) 100vw, 66vw"
                 className="object-cover object-center transition-transform duration-700 ease-[var(--ease-luxury)] group-hover:scale-[1.01] motion-reduce:transition-none"
@@ -146,7 +177,7 @@ export function JournalFeaturedSection({ post, ctaLabel }: JournalFeaturedSectio
 }
 
 type JournalGridSectionProps = {
-  posts: readonly JournalPost[];
+  posts: readonly StorefrontJournalCard[];
   title?: string;
   id?: string;
 };
@@ -169,7 +200,7 @@ export function JournalGridSection({
             </h2>
           </ScrollReveal>
         )}
-        <div className="grid grid-cols-1 gap-x-8 gap-y-16 md:grid-cols-2 md:gap-x-12">
+        <div className="grid grid-cols-1 gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 lg:gap-x-8 lg:gap-y-16">
           {posts.map((post, index) => (
             <ScrollReveal key={post.id} delay={index * 0.05}>
               <JournalArticleCard post={post} />
@@ -182,7 +213,7 @@ export function JournalGridSection({
 }
 
 type JournalLatestSectionProps = {
-  posts: readonly JournalPost[];
+  posts: readonly StorefrontJournalCard[];
   title: string;
 };
 
@@ -202,13 +233,13 @@ export function JournalLatestSection({ posts, title }: JournalLatestSectionProps
         {lead && (
           <ScrollReveal className="mb-14">
             <Link
-              href={`/journal/${lead.id}`}
+              href={journalArticleHref(lead.slug)}
               className="group grid grid-cols-1 gap-8 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ink lg:grid-cols-12 lg:gap-14"
             >
               <div className="relative aspect-[4/3] overflow-hidden bg-neutral-200 lg:col-span-7 lg:order-2">
                 <Image
                   src={lead.image}
-                  alt={lead.title}
+                  alt={lead.imageAlt || lead.title}
                   fill
                   sizes="(max-width: 1024px) 100vw, 50vw"
                   className="object-cover object-center transition-transform duration-700 ease-[var(--ease-luxury)] group-hover:scale-[1.01] motion-reduce:transition-none"
@@ -217,9 +248,11 @@ export function JournalLatestSection({ posts, title }: JournalLatestSectionProps
               <div className="flex flex-col justify-center lg:col-span-5 lg:order-1">
                 <p className="text-caption text-neutral-500">
                   {lead.date}
-                  <span className="mx-2" aria-hidden>
-                    /
-                  </span>
+                  {lead.date && lead.readingTime ? (
+                    <span className="mx-2" aria-hidden>
+                      /
+                    </span>
+                  ) : null}
                   {lead.readingTime}
                 </p>
                 <h3 className="text-display-l mt-5 text-ink transition-opacity duration-300 group-hover:opacity-70">
@@ -247,7 +280,7 @@ export function JournalLatestSection({ posts, title }: JournalLatestSectionProps
 
 type JournalQuoteBreakProps = {
   text: string;
-  image: { src: string; alt: string };
+  image: { src: string; alt: string; };
 };
 
 export function JournalQuoteBreak({ text, image }: JournalQuoteBreakProps) {
@@ -278,7 +311,7 @@ export function JournalQuoteBreak({ text, image }: JournalQuoteBreakProps) {
 }
 
 type JournalCategoriesNavProps = {
-  categories: readonly { id: string; label: string }[];
+  categories: readonly { id: string; label: string; }[];
   activeId?: string;
 };
 

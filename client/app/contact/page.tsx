@@ -19,7 +19,6 @@ export default function ContactPage() {
       <ContactHeroSection />
       <ContactInfoSection />
       <ContactFormSection />
-      <ContactStudioSection />
       <ContactSupportSection />
       <ContactClosingSection />
     </main>

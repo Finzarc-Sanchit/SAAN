@@ -4,6 +4,7 @@ import { env } from '../../config/env';
 import { UnauthorizedError } from '../../shared/errors/unauthorized-error';
 import { ValidationError } from '../../shared/errors/validation-error';
 import { successResponse } from '../../shared/utils/response';
+import { getEmailDeliveryHooks } from './email-delivery-hook';
 import type { IEmailDeliveryService } from './email-delivery.interface';
 import { emailJobSchema } from './email-job.types';
 
@@ -44,7 +45,26 @@ export class EmailJobController {
       );
     }
 
-    await this.deliveryService.deliver(parsed.data);
+    const job = parsed.data;
+    const hooks = getEmailDeliveryHooks();
+
+    for (const hook of hooks) {
+      if (!hook.beforeDeliver) continue;
+      const decision = await hook.beforeDeliver(job);
+      if (decision === 'skip') {
+        res.status(200).json(successResponse({ processed: true, skipped: true }));
+        return;
+      }
+    }
+
+    await this.deliveryService.deliver(job);
+
+    for (const hook of hooks) {
+      if (hook.afterDeliver) {
+        await hook.afterDeliver(job);
+      }
+    }
+
     res.status(200).json(successResponse({ processed: true }));
   };
 

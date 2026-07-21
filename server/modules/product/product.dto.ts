@@ -159,6 +159,7 @@ export const productFilterDto = z.object({
   search: z.string().min(1).max(200).optional(),
   status: z.enum(['draft', 'active', 'archived']).optional(),
   sort: z.enum(['newest', 'price_asc', 'price_desc', 'name_asc']).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
   page: z.coerce.number().int().min(1).default(PAGINATION.DEFAULT_PAGE),
   limit: z.coerce
     .number()

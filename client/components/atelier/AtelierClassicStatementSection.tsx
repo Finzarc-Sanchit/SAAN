@@ -51,10 +51,10 @@ export function AtelierClassicStatementSection() {
       </div>
 
       <div className="pointer-events-none absolute inset-0 select-none" aria-hidden>
-        <p className="absolute top-[10%] left-1/2 -translate-x-1/2 text-[clamp(4rem,18vw,13rem)] leading-none font-bold tracking-tight text-[#ececec] uppercase">
+        <p className="absolute top-[18%] left-1/2 -translate-x-1/2 text-[clamp(4rem,18vw,13rem)] leading-none font-bold tracking-tight text-[#ececec] uppercase sm:top-[10%]">
           {word}
         </p>
-        <p className="absolute bottom-[10%] left-1/2 -translate-x-1/2 text-[clamp(4rem,18vw,13rem)] leading-none font-bold tracking-tight text-[#ececec] uppercase">
+        <p className="absolute bottom-[30%] left-1/2 -translate-x-1/2 text-[clamp(4rem,18vw,13rem)] leading-none font-bold tracking-tight text-[#ececec] uppercase sm:bottom-[10%]">
           {word}
         </p>
       </div>

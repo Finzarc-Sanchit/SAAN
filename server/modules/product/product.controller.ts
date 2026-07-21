@@ -9,12 +9,12 @@ export class ProductController {
 
   listProducts = async (req: Request, res: Response): Promise<void> => {
     const query = req.query as unknown as ProductFilterDto;
-    const { page, limit, sort, ...filter } = query;
+    const { page, limit, sort, offset, ...filter } = query;
 
     const isAdmin = req.user?.role === USER_ROLES.ADMIN;
     const result = await this.productService.listProducts(
       { ...filter, sort: sort as never },
-      { page, limit },
+      { page, limit, offset },
       { includeAllStatuses: isAdmin },
     );
 

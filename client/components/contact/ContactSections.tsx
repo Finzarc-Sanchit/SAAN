@@ -45,7 +45,7 @@ export function ContactInfoSection() {
           </h2>
           <dl className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-5 lg:gap-8">
             <div>
-              <dt className="text-ui text-neutral-500">{email.label}</dt>
+              <dt className="text-h3 text-ink">{email.label}</dt>
               <dd className="text-body-l mt-3 text-ink">
                 <a href={email.href} className="transition-opacity hover:opacity-70">
                   {email.value}
@@ -53,7 +53,7 @@ export function ContactInfoSection() {
               </dd>
             </div>
             <div>
-              <dt className="text-ui text-neutral-500">{phone.label}</dt>
+              <dt className="text-h3 text-ink">{phone.label}</dt>
               <dd className="text-body-l mt-3 text-ink">
                 <a href={phone.href} className="transition-opacity hover:opacity-70">
                   {phone.value}
@@ -61,12 +61,12 @@ export function ContactInfoSection() {
               </dd>
             </div>
             <div>
-              <dt className="text-ui text-neutral-500">{hours.label}</dt>
+              <dt className="text-h3 text-ink">{hours.label}</dt>
               <dd className="text-body-l mt-3 text-ink">{hours.value}</dd>
               <dd className="text-body mt-1 text-neutral-700">{hours.detail}</dd>
             </div>
             <div>
-              <dt className="text-ui text-neutral-500">{address.label}</dt>
+              <dt className="text-h3 text-ink">{address.label}</dt>
               <dd className="text-body-l mt-3 text-ink">
                 {address.lines.map((line) => (
                   <span key={line} className="block">
@@ -77,7 +77,7 @@ export function ContactInfoSection() {
               <dd className="text-body mt-1 text-neutral-700">{address.detail}</dd>
             </div>
             <div>
-              <dt className="text-ui text-neutral-500">{social.label}</dt>
+              <dt className="text-h3 text-ink">{social.label}</dt>
               <dd className="mt-3">
                 <TextLink href={social.href} external>
                   {social.value}
@@ -151,9 +151,9 @@ export function ContactSupportSection() {
   return (
     <section aria-labelledby="contact-support-heading" className="section-py bg-neutral-100">
       <Container>
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-16">
+        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-16">
           <ScrollReveal className="lg:col-span-5">
-            <div className="relative aspect-[3/4] overflow-hidden bg-neutral-200">
+            <div className="relative aspect-[3/4] w-full overflow-hidden bg-neutral-200">
               <Image
                 src={image.src}
                 alt={image.alt}
@@ -163,17 +163,24 @@ export function ContactSupportSection() {
               />
             </div>
           </ScrollReveal>
-          <div className="lg:col-span-7">
-            <ScrollReveal className="mb-12 md:mb-16">
+
+          <div className="text-left lg:col-span-7">
+            <ScrollReveal className="mb-10 md:mb-12">
               <h2 id="contact-support-heading" className="text-display-l text-ink">
                 {title}
               </h2>
             </ScrollReveal>
-            <div className="grid grid-cols-1 gap-10 md:gap-12">
+
+            <div className="grid grid-cols-1 gap-8 md:gap-10">
               {items.map((item, index) => (
-                <ScrollReveal key={item.title} delay={index * 0.06}>
+                <ScrollReveal key={item.title} delay={index * 0.05}>
                   <h3 className="text-h3 text-ink">{item.title}</h3>
-                  <p className="text-body mt-4 max-w-md text-neutral-700">{item.description}</p>
+                  {'detail' in item && item.detail ? (
+                    <p className="text-caption mt-2 tracking-[0.08em] text-neutral-500">
+                      {item.detail}
+                    </p>
+                  ) : null}
+                  <p className="text-body mt-3 text-neutral-700">{item.description}</p>
                 </ScrollReveal>
               ))}
             </div>
@@ -189,7 +196,7 @@ export function ContactClosingSection() {
 
   return (
     <section aria-labelledby="contact-closing-heading" className="relative">
-      <div className="relative min-h-[55vh] overflow-hidden bg-midnight md:min-h-[65vh]">
+      <div className="relative min-h-[55vh] overflow-hidden bg-midnight md:min-h-[65vh] lg:min-h-[85vh]">
         <Image
           src={image.src}
           alt={image.alt}
@@ -197,8 +204,8 @@ export function ContactClosingSection() {
           sizes="100vw"
           className="object-cover object-center"
         />
-        <div className="absolute inset-0 bg-midnight/45" aria-hidden />
-        <div className="relative z-10 flex min-h-[55vh] items-end px-6 pb-16 pt-24 md:min-h-[65vh] md:px-12 md:pb-24 lg:px-16">
+        <div className="absolute inset-0 bg-midnight/20" aria-hidden />
+        <div className="relative z-10 flex min-h-[55vh] items-end px-6 pb-16 pt-24 md:min-h-[65vh] md:px-12 md:pb-24 lg:min-h-[85vh] lg:px-16">
           <ScrollReveal className="max-w-2xl">
             <h2 id="contact-closing-heading" className="sr-only">
               Closing note
