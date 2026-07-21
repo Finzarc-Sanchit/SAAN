@@ -4,7 +4,6 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useRef } from 'react';
 import { TestimonialCard } from '@/components/home/TestimonialCard';
 import { Container } from '@/components/ui/Container';
-import { CtaButton } from '@/components/ui/CtaButton';
 import { TESTIMONIALS, TESTIMONIALS_COPY } from '@/lib/site-content';
 import { cn } from '@/lib/utils';
 
@@ -67,12 +66,6 @@ export function TestimonialsSection() {
           {TESTIMONIALS.map((testimonial) => (
             <TestimonialCard key={testimonial.id} testimonial={testimonial} />
           ))}
-        </div>
-
-        <div className="mt-10">
-          <CtaButton href={copy.cta.href} variant="primary" className="min-w-[12rem]">
-            {copy.cta.label}
-          </CtaButton>
         </div>
       </Container>
     </section>

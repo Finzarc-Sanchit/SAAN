@@ -31,7 +31,7 @@ export function AtelierBrandStorySection() {
         */}
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.3fr)_minmax(0,0.8fr)] lg:items-stretch lg:gap-8">
           {/* Left — title + centered image */}
-          <aside className="order-2 lg:order-1">
+          <aside>
             <ScrollReveal>
               <h2
                 id="atelier-brand-story-heading"
@@ -55,7 +55,7 @@ export function AtelierBrandStorySection() {
           </aside>
 
           {/* Middle — reading column (wider) */}
-          <div className="order-1 lg:order-2">
+          <div>
             <ScrollReveal delay={0.08}>
               <p className="max-w-[22ch] text-[clamp(1.65rem,3.2vw,2.5rem)] leading-[1.28] font-normal tracking-[-0.02em] text-saan-charcoal sm:max-w-[28ch]">
                 {opening}
@@ -99,7 +99,7 @@ export function AtelierBrandStorySection() {
           </div>
 
           {/* Right — bottom-aligned image, slightly above section base */}
-          <div className="order-3 lg:flex lg:flex-col lg:justify-end lg:pb-10">
+          <div className="lg:flex lg:flex-col lg:justify-end lg:pb-10">
             <ScrollReveal className="mt-12 lg:mt-0" delay={0.18}>
               <div className="relative mx-auto aspect-[3/4] w-[min(100%,17rem)] overflow-hidden bg-saan-champagne/40 sm:w-[min(100%,19rem)] lg:w-[21rem]">
                 <Image

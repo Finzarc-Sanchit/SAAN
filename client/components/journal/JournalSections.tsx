@@ -57,64 +57,38 @@ type JournalHeroSectionProps = {
 };
 
 export function JournalHeroSection({ title, description, image }: JournalHeroSectionProps) {
-  const titleWords = title.trim().split(/\s+/);
-  const titleLead = titleWords.slice(0, -1).join(' ');
-  const titleFinal = titleWords.at(-1) ?? title;
-
   return (
     <section
       aria-labelledby="journal-hero-heading"
-      className="bg-paper"
+      className="relative -mt-16 h-[100svh] overflow-hidden bg-neutral-900 md:-mt-[72px]"
     >
-      <div className="flex min-h-[min(100svh,58rem)] flex-col lg:min-h-[94vh]">
-        <div className="relative min-h-[56vh] flex-[1.2] overflow-hidden bg-neutral-100 sm:min-h-[60vh] lg:min-h-[68vh]">
-          <ScrollReveal className="absolute inset-0">
-            <div className="absolute inset-0 overflow-hidden">
-              <Image
-                src={image.src}
-                alt={image.alt}
-                fill
-                priority
-                sizes="100vw"
-                className="object-cover object-[center_28%] scale-[1.04] motion-reduce:scale-100"
-              />
-            </div>
-          </ScrollReveal>
+      <Image
+        src={image.src}
+        alt={image.alt}
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover object-center"
+      />
+
+      <div
+        aria-hidden
+        className="absolute inset-0 bg-black/40"
+      />
+
+      <Container className="relative flex h-full items-center justify-center px-4 text-center sm:px-6">
+        <div className="max-w-2xl">
+          <h1
+            id="journal-hero-heading"
+            className="font-display text-[clamp(3rem,10vw,5.5rem)] uppercase leading-none tracking-[0.06em] text-paper"
+          >
+            {title}
+          </h1>
+          <p className="text-body mx-auto mt-6 max-w-lg text-paper/90 sm:mt-8">
+            {description}
+          </p>
         </div>
-
-        <div className="relative">
-          <div
-            className="pointer-events-none absolute inset-x-0 -top-20 h-20 bg-gradient-to-t from-paper to-transparent lg:-top-28 lg:h-28"
-            aria-hidden
-          />
-
-          <Container className="relative -mt-8 pb-16 pt-4 sm:-mt-10 sm:pb-20 lg:-mt-16 lg:pb-24 lg:pt-0">
-            <ScrollReveal delay={0.1} className="max-w-3xl">
-              <p className="text-caption tracking-[0.22em] text-neutral-500 uppercase">
-                Journal
-              </p>
-
-              <h1
-                id="journal-hero-heading"
-                className="mt-7 font-display text-[clamp(3.5rem,10vw,8rem)] leading-[0.86] tracking-[-0.05em] text-ink sm:mt-8 lg:mt-10"
-              >
-                {titleLead ? (
-                  <>
-                    <span className="block">{titleLead}</span>
-                    <span className="mt-1 block sm:mt-2">{titleFinal}</span>
-                  </>
-                ) : (
-                  title
-                )}
-              </h1>
-
-              <p className="text-body mt-8 max-w-[38ch] text-neutral-700 sm:mt-10 lg:mt-12">
-                {description}
-              </p>
-            </ScrollReveal>
-          </Container>
-        </div>
-      </div>
+      </Container>
     </section>
   );
 }

@@ -1,6 +1,6 @@
-import Link from 'next/link';
 import { Container } from '@/components/ui/Container';
 import { CollectionCard } from '@/components/collections/CollectionCard';
+import { CtaButton } from '@/components/ui/CtaButton';
 import { COLLECTIONS } from '@/lib/site-content';
 
 export const metadata = {
@@ -25,13 +25,10 @@ export default function CollectionsIndexPage() {
             <CollectionCard key={collection.id} collection={collection} />
           ))}
         </div>
-        <div className="mt-12 text-center">
-          <Link
-            href="/shop"
-            className="text-label-caps text-ink underline-offset-4 hover:underline"
-          >
+        <div className="mt-12 flex justify-center">
+          <CtaButton href="/shop" variant="primary" className="min-w-[12rem]">
             View All in Shop
-          </Link>
+          </CtaButton>
         </div>
       </Container>
     </main>

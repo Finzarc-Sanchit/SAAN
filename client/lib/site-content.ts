@@ -321,11 +321,12 @@ export const ATELIER_COPY = {
 
 export const JOURNAL_COPY = {
   hero: {
-    title: 'The SAAN Journal',
-    description: 'Stories of style, heritage, and modern living.',
+    title: 'Journal',
+    description:
+      'Stories of craft, heritage, and modern living — curated to inspire every wardrobe and every season.',
     image: {
-      src: SAANLABEL_COLLECTIONS.westernWear,
-      alt: 'Editorial campaign photography for the SAAN Journal',
+      src: '/images/journal-hero.webp',
+      alt: 'Editorial lifestyle photograph for the SAAN Journal',
     },
   },
   featured: {
@@ -512,7 +513,6 @@ export const TESTIMONIALS_COPY = {
   titleAccent: 'Our Clients',
   description:
     'From bridal couture to everyday elegance, SAAN has dressed women who value craft, comfort, and quiet confidence.',
-  cta: { label: 'Explore the Atelier', href: '/atelier' },
 } as const;
 
 export const TESTIMONIALS = [
