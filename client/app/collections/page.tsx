@@ -20,9 +20,14 @@ export default function CollectionsIndexPage() {
             Five lines, one philosophy.
           </p>
         </div>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-wrap justify-center gap-6">
           {COLLECTIONS.map((collection) => (
-            <CollectionCard key={collection.id} collection={collection} />
+            <div
+              key={collection.id}
+              className="w-full sm:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-3rem)/3)]"
+            >
+              <CollectionCard collection={collection} />
+            </div>
           ))}
         </div>
         <div className="mt-12 flex justify-center">

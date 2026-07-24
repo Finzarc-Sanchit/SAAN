@@ -1,11 +1,13 @@
 import Image from 'next/image';
+import { AtelierHeroStatCard } from '@/components/atelier/AtelierHeroStatCard';
 import { ScrollReveal } from '@/components/motion/ScrollReveal';
 import { Container } from '@/components/ui/Container';
 import { ATELIER_COPY, ATELIER_LANDING_COPY } from '@/lib/site-content';
+import { SAANLABEL_COLLECTIONS } from '@/lib/saanlabel-images';
 
 const HERO_MOSAIC = {
   primary: {
-    src: ATELIER_COPY.founder.image.src,
+    src: SAANLABEL_COLLECTIONS.ethnicWear,
     alt: ATELIER_COPY.founder.image.alt,
   },
   secondary: {
@@ -64,15 +66,12 @@ export function AtelierHeroSection() {
           {/* Middle — figure panel + image */}
           <div className="grid grid-rows-[auto_1fr] gap-3 sm:grid-cols-2 sm:grid-rows-1 lg:grid-cols-1 lg:grid-rows-[auto_1fr] lg:gap-4 xl:gap-5">
             <ScrollReveal delay={0.1}>
-              <div className="flex min-h-[11rem] flex-col justify-between rounded-2xl bg-midnight px-7 py-7 text-paper sm:min-h-[14rem] lg:min-h-[12rem] lg:px-8 lg:py-8 xl:min-h-[13rem]">
-                <p className="font-display text-[clamp(2.75rem,5vw,4rem)] leading-none tracking-tight">
-                  {statPrimary.value}
-                  {statPrimary.suffix}
-                </p>
-                <p className="text-[11px] font-medium tracking-[0.14em] text-paper/55 uppercase">
-                  {statPrimary.label}
-                </p>
-              </div>
+              <AtelierHeroStatCard
+                value={statPrimary.value}
+                suffix={statPrimary.suffix}
+                label={statPrimary.label}
+                tone="midnight"
+              />
             </ScrollReveal>
 
             <ScrollReveal delay={0.14}>
@@ -103,15 +102,12 @@ export function AtelierHeroSection() {
             </ScrollReveal>
 
             <ScrollReveal delay={0.2}>
-              <div className="flex min-h-[11rem] flex-col justify-between rounded-2xl bg-ink px-7 py-7 text-paper sm:min-h-[14rem] lg:min-h-[12rem] lg:px-8 lg:py-8 xl:min-h-[13rem]">
-                <p className="font-display text-[clamp(2.75rem,5vw,4rem)] leading-none tracking-tight">
-                  {statSecondary.value}
-                  {statSecondary.suffix}
-                </p>
-                <p className="text-[11px] font-medium tracking-[0.14em] text-paper/55 uppercase">
-                  {statSecondary.label}
-                </p>
-              </div>
+              <AtelierHeroStatCard
+                value={statSecondary.value}
+                suffix={statSecondary.suffix}
+                label={statSecondary.label}
+                tone="ink"
+              />
             </ScrollReveal>
           </div>
         </div>

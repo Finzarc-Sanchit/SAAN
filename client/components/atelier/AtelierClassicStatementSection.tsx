@@ -1,8 +1,20 @@
+'use client';
+
 import Image from 'next/image';
+import { useEffect, useLayoutEffect, useRef } from 'react';
+import { animate, useInView } from 'framer-motion';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { ATELIER_COPY } from '@/lib/site-content';
 import { cn } from '@/lib/utils';
 
 const MARQUEE_TEXT = 'CLASSIC CLASSIC CLASSIC CLASSIC ';
+
+/** GSAP power4.out ≈ cubic-bezier */
+const POWER4_OUT = [0.13, 0.84, 0.31, 1] as const;
+/** GSAP power2.out ≈ cubic-bezier */
+const POWER2_OUT = [0.215, 0.61, 0.355, 1] as const;
+
+const LETTER_SELECTOR = '.relative.z-10 span.inline-block';
 
 type SplitWordProps = {
   word: string;
@@ -30,11 +42,139 @@ function SplitWord({ word, className }: SplitWordProps) {
   );
 }
 
+function getClassicLetterSpans(root: HTMLElement): HTMLElement[] {
+  return Array.from(root.querySelectorAll<HTMLElement>(LETTER_SELECTOR));
+}
+
+function getClassicWordContainers(letters: HTMLElement[]): HTMLElement[] {
+  return [
+    ...new Set(
+      letters
+        .map((letter) => letter.parentElement)
+        .filter((el): el is HTMLElement => el !== null),
+    ),
+  ];
+}
+
 export function AtelierClassicStatementSection() {
   const { word, tagline, ariaLabel, portrait } = ATELIER_COPY.classicStatement;
+  const sectionRef = useRef<HTMLElement>(null);
+  const hasAnimated = useRef(false);
+  const prefersReducedMotion = useReducedMotion();
+  const isInView = useInView(sectionRef, { once: true, amount: 0.35 });
+
+  useLayoutEffect(() => {
+    const root = sectionRef.current;
+    if (!root || hasAnimated.current) return;
+
+    const letters = getClassicLetterSpans(root);
+    const reduced =
+      prefersReducedMotion ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (reduced) {
+      for (const letter of letters) {
+        letter.style.opacity = '';
+        letter.style.transform = '';
+      }
+      return;
+    }
+
+    for (const letter of letters) {
+      letter.style.opacity = '0';
+      letter.style.transform = 'translateY(40px)';
+    }
+  }, [prefersReducedMotion]);
+
+  useEffect(() => {
+    const root = sectionRef.current;
+    if (!root || !isInView || hasAnimated.current) return;
+
+    const reduced =
+      prefersReducedMotion ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const letters = getClassicLetterSpans(root);
+    const containers = getClassicWordContainers(letters);
+
+    if (reduced) {
+      hasAnimated.current = true;
+      for (const letter of letters) {
+        letter.style.opacity = '';
+        letter.style.transform = '';
+      }
+      return;
+    }
+
+    hasAnimated.current = true;
+
+    const layers = containers.map((container) =>
+      Array.from(container.querySelectorAll<HTMLElement>('span.inline-block')),
+    );
+
+    let cancelled = false;
+    const controls: Array<{ stop: () => void }> = [];
+
+    const run = async () => {
+      await Promise.all(
+        layers.flatMap((layerLetters) =>
+          layerLetters.map((letter, index) => {
+            const control = animate(
+              letter,
+              { opacity: 1, y: 0 },
+              {
+                duration: 1.2,
+                ease: POWER4_OUT,
+                delay: index * 0.04,
+              },
+            );
+            controls.push(control);
+            return control;
+          }),
+        ),
+      );
+
+      if (cancelled) return;
+
+      for (const container of containers) {
+        container.style.transform = 'scale(0.995)';
+      }
+
+      const scaleControl = animate(
+        containers,
+        { scale: 1 },
+        {
+          duration: 0.6,
+          ease: POWER2_OUT,
+        },
+      );
+      controls.push(scaleControl);
+      await scaleControl;
+
+      if (cancelled) return;
+
+      for (const letter of letters) {
+        letter.style.opacity = '';
+        letter.style.transform = '';
+      }
+      for (const container of containers) {
+        container.style.transform = '';
+      }
+    };
+
+    void run();
+
+    return () => {
+      cancelled = true;
+      for (const control of controls) {
+        control.stop();
+      }
+    };
+  }, [isInView, prefersReducedMotion]);
 
   return (
     <section
+      ref={sectionRef}
       className="relative overflow-hidden bg-white py-16 sm:py-20 lg:py-24"
       aria-label={ariaLabel}
     >

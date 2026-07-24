@@ -206,7 +206,7 @@ export const ATELIER_COPY = {
     title: 'Jueata Kaur.',
     role: 'Founder & creative director.',
     image: {
-      src: SAANLABEL_COLLECTIONS.ethnicWear,
+      src: "/images/jueata-kaur.webp",
       alt: 'SAAN editorial study in contemporary Indian tailoring',
     },
     body: [
@@ -739,7 +739,7 @@ export const SIGNATURE_COLLECTIONS = COLLECTIONS.slice(0, 4);
 
 export const OCCASION_TILE_COPY: Record<
   ProductOccasion,
-  { description: string; image: string }
+  { description: string; image: string; }
 > = {
   Festive: {
     description: 'Ceremonial depth, reimagined.',
